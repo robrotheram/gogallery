@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM ubuntu:latest
 
 MAINTAINER Robrotheram <robrotheram@gmail.com>
 
@@ -13,4 +13,4 @@ ENV GLLERY_GALLERY_BASEPATH "/app/pictures"
 # Set the working directory to /app
 WORKDIR /app
 
-ENTRYPOINT ["./awesomeProject"]
+ENTRYPOINT ["./gogallery"]
