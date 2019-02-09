@@ -1,0 +1,24 @@
+{{define "indexPage"}}
+    <!DOCTYPE HTML>
+    <html>
+    {{template "head" .}}
+    <body>
+    {{template "header" .}}
+
+    <main role="main" style="margin-top: 30px">
+        <div class="album py-5 bg-light">
+            <div class="masonry">
+                {{range .data}}
+                    <div class="masonry-item" alt="test"><a href="/pic/{{.Name}}"><img src="/static/img/loading.gif"  class="masonry-content lazy" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a></div>
+                {{end}}
+            </div>
+        </div>
+
+        </div>
+
+    </main>
+
+    {{template "footer" .}}
+    </body>
+    </html>
+{{end}}

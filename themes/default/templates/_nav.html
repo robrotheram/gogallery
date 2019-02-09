@@ -1,0 +1,40 @@
+{{define "header"}}
+    <header class="fixed-top">
+        <div class="collapse bg-dark" id="navbarHeader">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-8 col-md-7 py-4">
+                        <h4 class="text-white">About</h4>
+                        <p class="text-muted">{{.about}}</p>
+                    </div>
+                    <div class="col-sm-4 offset-md-1 py-4">
+                        <h4 class="text-white">Contact</h4>
+                        <ul class="list-unstyled">
+                            {{if .twitter}}<li><a href="https://twitter.com/{{.twitter}}" class="text-white">Follow on Twitter</a></li>{{end}}
+                            {{if .facebook}}<li><a href="https://facebook.com/{{.facebook}}" class="text-white">Like on Facebook</a></li>{{end}}
+                            {{if .email}}<li><a href="mailto:{{.email}}" class="text-white">Email me</a></li>{{end}}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+            <a href="/" class="navbar-brand d-flex align-items-center">
+                <img src="/static/img/iconfinder_document-06_1622830.png" width="30px" style="margin-right: 10px">
+                <strong>{{.name}}</strong>
+            </a>
+            <div class="navbar-collapse" id="navbarNavAltMarkup">
+                <div class=" nav-pills">
+                    <a class="nav-item nav-link" href="/albums">Albums <span class="sr-only">(current)</span></a>
+                </div>
+            </div>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+        </nav>
+
+    </header>
+{{end}}

@@ -1,0 +1,34 @@
+{{define "albumPage"}}
+    <!DOCTYPE HTML>
+    <html>
+    {{template "head" .}}
+    <body>
+    {{template "header" .}}
+
+    {{ with .data }}
+    <main role="main">
+        <style>
+            .hero-bg{
+                background-image: url("/img/{{.ProfileIMG.Name}}");
+            }
+        </style>
+
+        <section class="jumbotron text-center hero-bg">
+            <div class="hero-text container ">
+                <h1 class="jumbotron-heading">{{.Name}}</h1>
+            </div>
+        </section>
+
+        <div class="album py-5 bg-light">
+            <div class="masonry">
+                {{range .Images}}
+                    <div class="masonry-item" alt="test"><a href="/pic/{{.Name}}"><img src="/static/img/loading.gif"  class="masonry-content lazy" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a></div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+    {{end}}
+    {{template "footer" .}}
+    </body>
+    </html>
+{{end}}

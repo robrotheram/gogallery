@@ -1,0 +1,15 @@
+database:
+  baseurl: "/tmp/gallery/"
+server:
+  port: ":8800"
+
+gallery:
+  name: "Robrotheram gallery"
+  basepath: "/home/robert/Pictures"
+  url:      "https://beta.exceptionerror.io"
+  theme:    "default"
+  twitter: "@robrotheram"
+  facebook: "robrotheram"
+  email: ""
+  about: "Hi I am rob here is a collection of photos I have taken over a number of year whilst I am not busy buidling som adhock thing which is documented on my <a href='https://robrotheram.com'>blog<a>"
+  footer: "Photos ©robrotheram"

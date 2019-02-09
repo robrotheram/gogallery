@@ -1,0 +1,94 @@
+{{define "picturePage"}}
+    <!DOCTYPE HTML>
+    <html>
+    {{template "head" .}}
+    <body>
+    {{template "header" .}}
+    {{ with .data }}
+    <div style="margin-top: 60px">
+        <div class="img-container">
+        {{ with .picture }}
+            <img src="/static/img/loading.gif"  class="img-thumbnail lazy" data-src="/img/{{.Name}}"  alt="{{.Name}}" />
+        {{ end }}
+            </div>
+        <div class="gallery-nav">
+            {{if .prePic}}
+                <a href="/pic/{{.prePic.Name}}" class="btn btn-outline-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
+                        <path d="M4 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z" transform="translate(1)" />
+                    </svg>
+                </a>
+            {{else}}
+                <div></div>
+            {{end}}
+            {{if .nextPic}}
+                <a href="/pic/{{.nextPic.Name}}" class="btn btn-outline-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
+                        <path d="M1.5 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z" transform="translate(1)" />
+                    </svg>
+                </a>
+            {{end}}
+        </div>
+
+    </div>
+    <hr/>
+    <div class="container" style="background-color: white">
+        <div class="row">
+    {{ with .picture }}
+            <div class="col-12">
+                <h2>{{.Name}}  <span class="badge badge-pill badge-light date-pill">{{.FormatTime}}</span> </h2>
+                <table class="table table-hover">
+                    <tbody>
+                    <tr>
+                        <th scope="row">Album</th>
+                        <td><a href="/album/{{.Album}}">{{.Album}}</a></td>
+                    </tr>
+                    {{if .Exif.Camera}}
+                        <tr>
+                            <th scope="row">Camera Make</th>
+                            <td>{{.Exif.Camera}}</td>
+                        </tr>
+                    {{end}}
+                    {{if .Exif.LensModel}}
+                    <tr>
+                        <th scope="row">Lens Make</th>
+                        <td>{{.Exif.LensModel}}</td>
+                    </tr>
+                    {{end}}
+                    {{if .Exif.FocalLength}}
+                    <tr>
+                        <th scope="row">Focal Length</th>
+                        <td>{{.Exif.FocalLength}}mm</td>
+                    </tr>
+                    {{end}}
+                    {{if .Exif.FStop}}
+                        <tr>
+                            <th scope="row">Aperture</th>
+                            <td>f{{.Exif.FStop}}</td>
+                        </tr>
+                    {{end}}
+                    {{if .Exif.ShutterSpeed}}
+                        <tr>
+                            <th scope="row">Exposure</th>
+                            <td>{{.Exif.ShutterSpeed}}</td>
+                        </tr>
+                    {{end}}
+                    {{if .Exif.ISO}}
+                        <tr>
+                            <th scope="row">ISO</th>
+                            <td>{{.Exif.ISO}}</td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {{end}}
+    {{end}}
+    </div>
+    <hr/>
+
+    {{template "footer" .}}
+    </body>
+    </html>
+{{end}}

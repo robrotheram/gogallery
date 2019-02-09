@@ -1,0 +1,170 @@
+.jumbotron {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 0;
+    background-color: #fff;
+}
+@media (min-width: 768px) {
+    .jumbotron {
+        padding-top: 6rem;
+        padding-bottom: 6rem;
+    }
+}
+
+.jumbotron p:last-child {
+    margin-bottom: 0;
+}
+
+.jumbotron-heading {
+    font-weight: 300;
+}
+
+.jumbotron .container {
+    max-width: 40rem;
+}
+
+footer {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+footer p {
+    margin-bottom: .25rem;
+}
+
+
+.masonry {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+    grid-auto-rows: 0;
+    padding: 0px 20px 0px 20px;
+}
+
+.masonry-item {
+}
+
+.masonry-item {
+
+    overflow: hidden;
+}
+
+.masonry-item,
+.masonry-item img {
+    position: relative;
+}
+
+.masonry-item:after {
+    /*font-weight: bold;*/
+    /*background-color: rgba(0, 0, 0, .5);*/
+    /*content: attr(alt);*/
+    /*counter-increment: masonry;*/
+    /*position: absolute;*/
+    /*top: 0;*/
+    /*bottom: 20px;*/
+    /*left: 0;*/
+    /*height: 100%;*/
+    /*width: 100%;*/
+    /*color: white;*/
+    /*display: flex;*/
+    /*justify-content: center;*/
+    /*align-items: flex-end;*/
+    /*transition: all .1s ease-in;*/
+}
+
+.masonry-item:hover:after {
+    font-size: 30px;
+    background-color: rgba(0, 0, 0, .75);
+}
+
+.bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+}
+
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
+.hero-text{
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    max-width: 70rem !important;
+    box-shadow: 0px 0px 50px 12px rgba(255,255,255,0.6);
+}
+
+
+.navbar-toggler{
+    display: block !important;
+}
+.navbar{
+    flex-wrap: nowrap;
+}
+
+.nav-pills .nav-link {
+    width: fit-content;
+    color: white;
+    padding: 5px;
+
+}
+.nav-link:hover{
+    background-color: #1f242a;
+    color: white;
+    border-radius: 12px;
+    border: 1px solid #1c1c1c !important;
+}
+
+
+.gallery-nav{
+    width: 100%;
+    padding: 10px;
+    color: white;
+    top:50%;
+    position: fixed;
+}
+
+@media screen and (max-width: 992px) {
+    .gallery-nav{
+        position: relative;
+        margin-top: -50px;
+    }
+}
+
+/* On screens that are 600px or less, set the background color to olive */
+@media screen and (max-width: 600px) {
+    .gallery-nav{
+        position: relative;
+        margin-top: -50px;
+    }
+}
+
+
+.gallery-nav :nth-child(2){
+    float: right;
+}
+
+.img-container img {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+}
+
+.img-container {
+    width:100vw;
+    height:78vh;
+
+    display:table-cell;
+    vertical-align:middle;
+    text-align:center;
+}
+
+
+.date-pill{
+    font-size: 16px;
+    margin-top: 7px;
+    font-weight: normal;
+    float: right;
+}
