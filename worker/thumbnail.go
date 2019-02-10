@@ -61,7 +61,7 @@ func worker(id int, jobs <-chan string) {
 }
 
 func StartWorkers() {
-	for w := 1; w <= 3; w++ {
+	for w := 1; w <= config.Config.Server.Workers; w++ {
 		go worker(w, ThumbnailChan)
 	}
 }

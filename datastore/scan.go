@@ -69,8 +69,8 @@ func ScanPath(path string) (map[string]*Node, error) {
 			if album.ProfileIMG == nil {
 				album.ProfileIMG = &p
 				Cache.Tables("ALBUM").Edit(album)
-				worker.ThumbnailChan <- path
 			}
+			worker.ThumbnailChan <- path
 		}
 
 		if info.IsDir() {

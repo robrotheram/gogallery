@@ -24,6 +24,7 @@ Config can be also edited via environmental variables
 
 ```
 GLLRY_SERVER_PORT
+GLLRY_SERVER_WORKERS
 
 GLLRY_DATABASE_BASEURL
 
