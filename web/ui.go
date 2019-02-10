@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	"github.com/robrotheram/gogallery/worker"
 	"html/template"
 	"image"
 	"image/jpeg"
@@ -165,12 +166,12 @@ func Serve() {
 			if len(picArr) == 0 {
 				return
 			}
-			cachePath := fmt.Sprintf("cache/%s.jpg", datastore.GetMD5Hash(picArr[0].Path))
+			cachePath := fmt.Sprintf("cache/%s.jpg", config.GetMD5Hash(picArr[0].Path))
 			if _, err := os.Stat(cachePath); err == nil {
 				http.ServeFile(w, r, cachePath)
 			} else {
 				http.ServeFile(w, r, cachePath)
-				datastore.MakeThumbnail(picArr[0].Path)
+				worker.MakeThumbnail(picArr[0].Path)
 			}
 
 		}

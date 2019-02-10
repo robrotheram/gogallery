@@ -4,6 +4,7 @@ import (
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	"github.com/robrotheram/gogallery/web"
+	"github.com/robrotheram/gogallery/worker"
 	"github.com/spf13/viper"
 	"log"
 	"strings"
@@ -24,7 +25,10 @@ func main() {
 	}
 
 	log.Println(config.Config.Database)
+	worker.StartWorkers()
+
 	datastore.Cache = datastore.NewDataStore()
 	datastore.ScanPath(config.Config.Gallery.Basepath)
+
 	web.Serve()
 }

@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"github.com/robrotheram/gogallery/worker"
 	"log"
 	"os"
 	"path/filepath"
@@ -65,13 +66,11 @@ func ScanPath(path string) (map[string]*Node, error) {
 
 			a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
 			album := a.(Album)
-			//fmt.Println(album)
 			if album.ProfileIMG == nil {
 				album.ProfileIMG = &p
 				Cache.Tables("ALBUM").Edit(album)
-				go MakeThumbnail(path)
+				worker.ThumbnailChan <- path
 			}
-			//
 		}
 
 		if info.IsDir() {
