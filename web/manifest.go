@@ -28,7 +28,7 @@ type manifest struct {
 }
 
 func getIconList() (icons []icon) {
-	file, err := os.Open("./web/themes/default/static/icons/ios")
+	file, err := os.Open("../themes/default/static/icons/ios")
 	if err != nil {
 		log.Fatalf("failed opening directory: %s", err)
 	}
