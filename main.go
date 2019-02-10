@@ -28,7 +28,9 @@ func main() {
 	worker.StartWorkers()
 
 	datastore.Cache = datastore.NewDataStore()
-	datastore.ScanPath(config.Config.Gallery.Basepath)
 
+	go func() {
+		datastore.ScanPath(config.Config.Gallery.Basepath)
+	}()
 	web.Serve()
 }
