@@ -76,10 +76,10 @@ func (uDs *albumDataStore) Edit(u interface{}) error {
 	original, ok := u.(Album)
 	if ok {
 		err := uDs.db.Update(func(tx *badger.Txn) error {
-			fmt.Println(original.Id)
+			//fmt.Println(original.Id)
 			return tx.Set([]byte(original.Id), original.serialize())
 		})
-		fmt.Println(err)
+		//fmt.Println(err)
 		return err
 	}
 	fmt.Println("NO ERROR")

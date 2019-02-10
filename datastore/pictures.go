@@ -2,13 +2,21 @@ package datastore
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"github.com/dgraph-io/badger"
+	"github.com/nfnt/resize"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"github.com/rwcarlsen/goexif/tiff"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -233,4 +241,50 @@ func (uDs *pictureDataStore) Query(field string, val interface{}, limit int) (in
 		return nil
 	})
 	return pictures, err
+}
+
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func MakeThumbnail(path string) {
+	cachePath := fmt.Sprintf("cache/%s.jpg", GetMD5Hash(path))
+
+	if _, err := os.Stat(cachePath); err == nil {
+		return
+	}
+	fmt.Println("Creating Thumbnail")
+	os.MkdirAll("cache", os.ModePerm)
+	file, err := os.Open(path)
+	if err != nil {
+		//fmt.Println(path)
+		return
+	}
+	// decode jpeg into image.Image
+	extension := filepath.Ext(path)
+	var img image.Image
+	var img_err error
+	switch extension {
+	case ".jpg":
+		img, img_err = jpeg.Decode(file)
+	case ".png":
+		img, img_err = png.Decode(file)
+	}
+	if img_err != nil {
+		fmt.Println(path)
+		return
+	}
+	file.Close()
+
+	// resize to width 1000 using Lanczos resampling
+	// and preserve aspect ratio
+	m := resize.Resize(300, 0, img, resize.Bilinear)
+	out, err := os.Create(cachePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+	jpeg.Encode(out, m, nil)
 }

@@ -1,148 +1,173 @@
-function resizeMasonryItem(item){
-    /* Get the grid object, its row-gap, and the size of its implicit rows */
-    var grid = document.getElementsByClassName('masonry')[0],
-        rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-row-gap')),
-        rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
-
-    /*
-     * Spanning for any brick = S
-     * Grid's row-gap = G
-     * Size of grid's implicitly create row-track = R
-     * Height of item content = H
-     * Net height of the item = H1 = H + G
-     * Net height of the implicit row-track = T = G + R
-     * S = H1 / T
-     */
-    var rowSpan = Math.ceil((item.querySelector('.masonry-content').getBoundingClientRect().height+rowGap)/(rowHeight+rowGap));
-
-    /* Set the spanning as calculated above (S) */
-    item.style.gridRowEnd = 'span '+rowSpan;
-
-    /* Make the images take all the available space in the cell/item */
-    item.querySelector('.masonry-content').style.height = rowSpan * 10 + "px";
-}
-
-/**
- * Apply spanning to all the masonry items
+/*!
+ * Lazy Load - JavaScript plugin for lazy loading images
  *
- * Loop through all the items and apply the spanning to them using
- * `resizeMasonryItem()` function.
+ * Copyright (c) 2007-2017 Mika Tuupola
  *
- * @uses resizeMasonryItem
+ * Licensed under the MIT license:
+ *   http://www.opensource.org/licenses/mit-license.php
+ *
+ * Project home:
+ *   https://appelsiini.net/projects/lazyload
+ *
+ * Version: 2.0.0-beta.2
+ *
  */
-function resizeAllMasonryItems(){
-    // Get all item class objects in one list
-    var allItems = document.getElementsByClassName('masonry-item');
 
-    /*
-     * Loop through the above list and execute the spanning function to
-     * each list-item (i.e. each masonry item)
-     */
-    for(var i=0;i>allItems.length;i++){
-        resizeMasonryItem(allItems[i]);
+(function (root, factory) {
+    if (typeof exports === "object") {
+        module.exports = factory(root);
+    } else if (typeof define === "function" && define.amd) {
+        define([], factory(root));
+    } else {
+        root.LazyLoad = factory(root);
     }
-}
+}) (typeof global !== "undefined" ? global : this.window || this.global, function (root) {
 
-/**
- * Resize the items when all the images inside the masonry grid
- * finish loading. This will ensure that all the content inside our
- * masonry items is visible.
- *
- * @uses ImagesLoaded
- * @uses resizeMasonryItem
- */
-function waitForImages() {
-    var allItems = document.getElementsByClassName('masonry-item');
-    for(var i=0;i<allItems.length;i++){
-        imagesLoaded( allItems[i], function(instance) {
-            var item = instance.elements[0];
-            resizeMasonryItem(item);
-        } );
-    }
-}
+    "use strict";
 
-/* Resize all the grid items on the load and resize events */
-var masonryEvents = ['load', 'resize'];
-masonryEvents.forEach( function(event) {
-    window.addEventListener(event, resizeAllMasonryItems);
-} );
-
-/* Do a resize once more when all the images finish loading */
-waitForImages();
-
-
-
-
-!function(window){
-    var $q = function(q, res){
-            if (document.querySelectorAll) {
-                res = document.querySelectorAll(q);
-            } else {
-                var d=document
-                    , a=d.styleSheets[0] || d.createStyleSheet();
-                a.addRule(q,'f:b');
-                for(var l=d.all,b=0,c=[],f=l.length;b<f;b++)
-                    l[b].currentStyle.f && c.push(l[b]);
-
-                a.removeRule(0);
-                res = c;
-            }
-            return res;
-        }
-        , addEventListener = function(evt, fn){
-            window.addEventListener
-                ? this.addEventListener(evt, fn, false)
-                : (window.attachEvent)
-                ? this.attachEvent('on' + evt, fn)
-                : this['on' + evt] = fn;
-        }
-        , _has = function(obj, key) {
-            return Object.prototype.hasOwnProperty.call(obj, key);
-        }
-    ;
-
-    function loadImage (el, fn) {
-        var img = new Image()
-            , src = el.getAttribute('data-src');
-        img.onload = function() {
-            if (!! el.parent)
-                el.parent.replaceChild(img, el)
-            else
-                el.src = src;
-
-            fn? fn() : null;
-        }
-        img.src = src;
-    }
-
-    function elementInViewport(el) {
-        var rect = el.getBoundingClientRect()
-
-        return (
-            rect.top    >= 0
-            && rect.left   >= 0
-            && rect.top <= (window.innerHeight || document.documentElement.clientHeight)
-        )
-    }
-
-    var images = new Array()
-        , query = $q('img.lazy')
-        , processScroll = function(){
-            for (var i = 0; i < images.length; i++) {
-                if (elementInViewport(images[i])) {
-                    loadImage(images[i], function () {
-                        images.splice(i, i);
-                    });
-                }
-            };
-        }
-    ;
-    // Array.prototype.slice.call is not callable under our lovely IE8
-    for (var i = 0; i < query.length; i++) {
-        images.push(query[i]);
+    const defaults = {
+        src: "data-src",
+        srcset: "data-srcset",
+        selector: ".lazyload"
     };
 
-    processScroll();
-    addEventListener('scroll',processScroll);
+    /**
+     * Merge two or more objects. Returns a new object.
+     * @private
+     * @param {Boolean}  deep     If true, do a deep (or recursive) merge [optional]
+     * @param {Object}   objects  The objects to merge together
+     * @returns {Object}          Merged values of defaults and options
+     */
+    const extend = function ()  {
 
-}(this);
+        let extended = {};
+        let deep = false;
+        let i = 0;
+        let length = arguments.length;
+
+        /* Check if a deep merge */
+        if (Object.prototype.toString.call(arguments[0]) === "[object Boolean]") {
+            deep = arguments[0];
+            i++;
+        }
+
+        /* Merge the object into the extended object */
+        let merge = function (obj) {
+            for (let prop in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                    /* If deep merge and property is an object, merge properties */
+                    if (deep && Object.prototype.toString.call(obj[prop]) === "[object Object]") {
+                        extended[prop] = extend(true, extended[prop], obj[prop]);
+                    } else {
+                        extended[prop] = obj[prop];
+                    }
+                }
+            }
+        };
+
+        /* Loop through each object and conduct a merge */
+        for (; i < length; i++) {
+            let obj = arguments[i];
+            merge(obj);
+        }
+
+        return extended;
+    };
+
+    function LazyLoad(images, options) {
+        this.settings = extend(defaults, options || {});
+        this.images = images || document.querySelectorAll(this.settings.selector);
+        this.observer = null;
+        this.init();
+    }
+
+    LazyLoad.prototype = {
+        init: function() {
+
+            /* Without observers load everything and bail out early. */
+            if (!root.IntersectionObserver) {
+                this.loadImages();
+                return;
+            }
+
+            let self = this;
+            let observerConfig = {
+                root: null,
+                rootMargin: "0px",
+                threshold: [0]
+            };
+
+            this.observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function (entry) {
+                    if (entry.intersectionRatio > 0) {
+                        self.observer.unobserve(entry.target);
+                        let src = entry.target.getAttribute(self.settings.src);
+                        let srcset = entry.target.getAttribute(self.settings.srcset);
+                        if ("img" === entry.target.tagName.toLowerCase()) {
+                            if (src) {
+                                entry.target.src = src;
+                            }
+                            if (srcset) {
+                                entry.target.srcset = srcset;
+                            }
+                        } else {
+                            entry.target.style.backgroundImage = "url(" + src + ")";
+                        }
+                    }
+                });
+            }, observerConfig);
+
+            this.images.forEach(function (image) {
+                self.observer.observe(image);
+            });
+        },
+
+        loadAndDestroy: function () {
+            if (!this.settings) { return; }
+            this.loadImages();
+            this.destroy();
+        },
+
+        loadImages: function () {
+            if (!this.settings) { return; }
+
+            let self = this;
+            this.images.forEach(function (image) {
+                let src = image.getAttribute(self.settings.src);
+                let srcset = image.getAttribute(self.settings.srcset);
+                if ("img" === image.tagName.toLowerCase()) {
+                    if (src) {
+                        image.src = src;
+                    }
+                    if (srcset) {
+                        image.srcset = srcset;
+                    }
+                } else {
+                    image.style.backgroundImage = "url('" + src + "')";
+                }
+            });
+        },
+
+        destroy: function () {
+            if (!this.settings) { return; }
+            this.observer.disconnect();
+            this.settings = null;
+        }
+    };
+
+    root.lazyload = function(images, options) {
+        return new LazyLoad(images, options);
+    };
+
+    if (root.jQuery) {
+        const $ = root.jQuery;
+        $.fn.lazyload = function (options) {
+            options = options || {};
+            options.attribute = options.attribute || "data-src";
+            new LazyLoad($.makeArray(this), options);
+            return this;
+        };
+    }
+
+    return LazyLoad;
+});

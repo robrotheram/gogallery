@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/nfnt/resize"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	"html/template"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
+	"time"
 )
 
 // Shorthand - useful!
@@ -51,7 +49,6 @@ func CacheControlWrapper(h http.Handler) http.Handler {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	fmt.Println(config.Config.Gallery)
 	templates().ExecuteTemplate(w, tmpl, M{
 		"name":     config.Config.Gallery.Name,
 		"twitter":  config.Config.Gallery.Twitter,
@@ -65,22 +62,25 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 func Serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/albums", func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 		al, _ := datastore.Cache.Tables("ALBUM").GetAll() //Query("Album","02")
 		sArr := al.([]datastore.Album)
-		for i := range sArr {
-			albm := &sArr[i]
-			pic, err := datastore.Cache.Tables("PICTURE").Query("Album", albm.Name, 1)
-			if err == nil {
-				picArr := pic.([]datastore.Picture)
-				if len(picArr) > 0 {
-					fmt.Println(picArr[0])
-					albm.ProfileIMG = &picArr[0]
-				}
-			}
-		}
-
-		//tree := datastore.BuildTree(sArr)
-		fmt.Println(sArr)
+		fmt.Println(len(sArr))
+		//for i := range sArr {
+		//	st := time.Now()
+		//	albm := &sArr[i]
+		//	pic, err := datastore.Cache.Tables("PICTURE").Query("Album", albm.Name, 1)
+		//	if err == nil {
+		//		picArr := pic.([]datastore.Picture)
+		//		if len(picArr) > 0 {
+		//			albm.ProfileIMG = &picArr[0]
+		//		}
+		//	}
+		//	elapsed := time.Since(st)
+		//	log.Printf("func %d took %s", i, elapsed)
+		//}
+		elapsed := time.Since(start)
+		log.Printf("Binomial took %s", elapsed)
 		renderTemplate(w, "albumsPage", sArr)
 	})
 	r.HandleFunc("/album/{name}", func(w http.ResponseWriter, r *http.Request) {
@@ -102,8 +102,6 @@ func Serve() {
 		pictures := pics.([]datastore.Picture)
 		album.Images = pictures
 		album.ProfileIMG = &pictures[0]
-
-		fmt.Println(pictures[0])
 		renderTemplate(w, "albumPage", album)
 	})
 	r.HandleFunc("/pic/{picture}", func(w http.ResponseWriter, r *http.Request) {
@@ -152,7 +150,6 @@ func Serve() {
 		if err == nil {
 			picArr := pic.([]datastore.Picture)
 			if len(picArr) > 0 {
-				fmt.Println(picArr[0])
 				http.ServeFile(w, r, picArr[0].Path)
 			}
 		}
@@ -168,30 +165,14 @@ func Serve() {
 			if len(picArr) == 0 {
 				return
 			}
-			file, err := os.Open(picArr[0].Path)
-			if err != nil {
-				fmt.Println(picArr[0].Path)
-				return
+			cachePath := fmt.Sprintf("cache/%s.jpg", datastore.GetMD5Hash(picArr[0].Path))
+			if _, err := os.Stat(cachePath); err == nil {
+				http.ServeFile(w, r, cachePath)
+			} else {
+				http.ServeFile(w, r, cachePath)
+				datastore.MakeThumbnail(picArr[0].Path)
 			}
-			// decode jpeg into image.Image
-			extension := filepath.Ext(picArr[0].Path)
-			var img image.Image
-			var img_err error
-			switch extension {
-			case ".jpg":
-				img, img_err = jpeg.Decode(file)
-			case ".png":
-				img, img_err = png.Decode(file)
-			}
-			if img_err != nil {
-				fmt.Println(picArr[0].Path)
-				return
-			}
-			file.Close()
-			// resize to width 1000 using Lanczos resampling
-			// and preserve aspect ratio
-			m := resize.Resize(300, 0, img, resize.Lanczos3)
-			jpeg.Encode(w, m, nil)
+
 		}
 	})
 

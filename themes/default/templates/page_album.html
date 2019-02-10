@@ -20,11 +20,11 @@
         </section>
 
         <div class="album py-5 bg-light">
-            <div class="masonry">
+            <ul id="myContent">
                 {{range .Images}}
-                    <div class="masonry-item" alt="test"><a href="/pic/{{.Name}}"><img src="/static/img/loading.gif"  class="masonry-content lazy" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a></div>
+                    <li><a href="/pic/{{.Name}}"><img src="/static/img/loading.gif"  class="img img-thumbnail lazyload" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a></li>
                 {{end}}
-            </div>
+            </ul>
         </div>
     </main>
     {{end}}

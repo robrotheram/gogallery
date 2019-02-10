@@ -62,6 +62,16 @@ func ScanPath(path string) (map[string]*Node, error) {
 				Exif:    Exif{}}
 			p.CreateExif()
 			Cache.Tables("PICTURE").Save(p)
+
+			a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
+			album := a.(Album)
+			//fmt.Println(album)
+			if album.ProfileIMG == nil {
+				album.ProfileIMG = &p
+				Cache.Tables("ALBUM").Edit(album)
+				go MakeThumbnail(path)
+			}
+			//
 		}
 
 		if info.IsDir() {
