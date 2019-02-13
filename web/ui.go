@@ -168,7 +168,7 @@ func Serve() {
 	})
 
 	r.HandleFunc("/thumb/{name}", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=2592000") // 30 days
+		w.Header().Set("Cache-Control", "max-age=604800") // 7 days
 		vars := mux.Vars(r)
 		name := vars["name"]
 		pic, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)

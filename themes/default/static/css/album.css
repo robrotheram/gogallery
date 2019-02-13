@@ -188,8 +188,28 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
     grid-auto-rows: 0px;
     width: 100%;
-
 }
+
+
+/* On screens that are 600px or less, set the background color to olive */
+@media screen and (max-width: 600px) {
+    .grid {
+        display: block;
+        -moz-column-count: 1;
+        -moz-column-gap: 0px;
+        -webkit-column-count: 1;
+        -webkit-column-gap: 0px;
+        column-count: 1;
+        column-gap: 0px;
+        width: 100%;
+        padding: 20px;
+        width: 100%;
+    }
+    .item {
+        margin-bottom: 20px;
+    }
+}
+
 
 .content{
 

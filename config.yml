@@ -5,7 +5,7 @@ server:
   workers: 10
 
 gallery:
-  name: "Robrotheram gallery"
+  name: "Gallery"
   basepath: "/home/robert/Pictures/gallery"
   url:      "https://beta.exceptionerror.io"
   theme:    "default"
