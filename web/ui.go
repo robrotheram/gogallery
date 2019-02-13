@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -101,6 +102,11 @@ func Serve() {
 			return
 		}
 		pictures := pics.([]datastore.Picture)
+
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+
 		album.Images = pictures
 		album.ProfileIMG = &pictures[0]
 		renderTemplate(w, "albumPage", album)
@@ -116,7 +122,7 @@ func Serve() {
 			return
 		}
 		picture := pics.([]datastore.Picture)[0]
-		picture.FormatTime = picture.ModTime.Format("01-02-2006 15:04:05")
+		picture.FormatTime = picture.Exif.DateTaken.Format("01-02-2006 15:04:05")
 
 		/*Find next and previous picture*/
 		pics, err = datastore.Cache.Tables("PICTURE").Query("Album", picture.Album, 0)
@@ -141,7 +147,12 @@ func Serve() {
 	})
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-		renderTemplate(w, "indexPage", pics.([]datastore.Picture))
+		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+
+		renderTemplate(w, "indexPage", pictures)
 	})
 
 	r.HandleFunc("/img/{name}", func(w http.ResponseWriter, r *http.Request) {

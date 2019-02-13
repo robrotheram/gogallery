@@ -44,7 +44,7 @@ func MakeThumbnail(path string) {
 
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
-	m := resize.Resize(300, 0, img, resize.Bilinear)
+	m := resize.Resize(600, 0, img, resize.Bilinear)
 	out, err := os.Create(cachePath)
 	if err != nil {
 		log.Fatal(err)

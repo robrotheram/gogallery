@@ -55,12 +55,11 @@ func ScanPath(path string) (map[string]*Node, error) {
 		}
 		if checkEXT(path) && !info.IsDir() {
 			p := Picture{
-				Id:      path,
-				Name:    info.Name(),
-				Path:    path,
-				ModTime: info.ModTime(),
-				Album:   filepath.Base(filepath.Dir(path)),
-				Exif:    Exif{}}
+				Id:    path,
+				Name:  info.Name(),
+				Path:  path,
+				Album: filepath.Base(filepath.Dir(path)),
+				Exif:  Exif{}}
 			p.CreateExif()
 			Cache.Tables("PICTURE").Save(p)
 
@@ -80,7 +79,6 @@ func ScanPath(path string) (map[string]*Node, error) {
 				Name:    info.Name,
 				ModTime: info.ModTime,
 				Parent:  filepath.Base(filepath.Dir(path))})
-
 		}
 		return nil
 	}

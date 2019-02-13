@@ -113,6 +113,7 @@
                         } else {
                             entry.target.style.backgroundImage = "url(" + src + ")";
                         }
+                        resizeAllGridItems();
                     }
                 });
             }, observerConfig);
@@ -146,6 +147,7 @@
                     image.style.backgroundImage = "url('" + src + "')";
                 }
             });
+            resizeAllGridItems();
         },
 
         destroy: function () {
@@ -171,3 +173,34 @@
 
     return LazyLoad;
 });
+
+
+function resizeGridItem(item){
+    grid = document.getElementsByClassName("grid")[0];
+    rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
+    rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-row-gap'));
+    rowSpan = Math.ceil((item.querySelector('.content').getBoundingClientRect().height+rowGap)/(rowHeight+rowGap));
+    item.style.gridRowEnd = "span "+rowSpan;
+}
+
+var resizing = false;
+function resizeAllGridItems(){
+    if (resizing) {
+        return
+    }
+    resizing = true
+    console.log("RESIZING")
+    allItems = document.getElementsByClassName("item");
+    for(x=0;x<allItems.length;x++){
+        resizeGridItem(allItems[x]);
+    }
+    resizing = false
+}
+
+function resizeInstance(instance){
+    item = instance.elements[0];
+    resizeGridItem(item);
+}
+
+
+

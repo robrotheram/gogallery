@@ -5,19 +5,17 @@
     <body>
     {{template "header" .}}
 
-    <main role="main">
-        <div class="album py-5 bg-light">
-            <ul id="myContent">
-                {{range .data}}
-                    <li><a href="/pic/{{.Name}}"><img src="/static/img/loading.gif"  class="img img-thumbnail lazyload" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a></li>
-                {{end}}
-            </ul>
+    <main role="main" style="margin-top: 70px; padding-left: 10px; padding-right: 10px;">
+        <div class="grid">
+            {{range .data}}
+                    <div class="item photo">
+                        <div class="content">
+                            <a href="/pic/{{.Name}}"> <img src="/static/img/loading.gif"  class="photothumb img img-thumbnail lazyload" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a>
+                        </div>
+                    </div>
+            {{end}}
         </div>
-
-        </div>
-
     </main>
-
     {{template "footer" .}}
     </body>
     </html>

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"github.com/araddon/dateparse"
 	"github.com/dgraph-io/badger"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
@@ -15,23 +16,23 @@ import (
 )
 
 type Exif struct {
-	FStop        float64 `json:"f_stop"`
-	FocalLength  float64 `json:"focal_length"`
-	ShutterSpeed string  `json:"shutter_speed"`
-	ISO          string  `json:"iso"`
-	Dimension    string  `json:"dimension"`
-	Camera       string  `json:"camera"`
-	LensModel    string  `json: lens_model`
+	FStop        float64   `json:"f_stop"`
+	FocalLength  float64   `json:"focal_length"`
+	ShutterSpeed string    `json:"shutter_speed"`
+	ISO          string    `json:"iso"`
+	Dimension    string    `json:"dimension"`
+	Camera       string    `json:"camera"`
+	LensModel    string    `json: lens_model`
+	DateTaken    time.Time `json: date_taken`
 }
 
 type Picture struct {
-	Id         string    `json:"id"`
-	Name       string    `json:"name"`
-	Path       string    `json:"path"`
-	ModTime    time.Time `json:"mod_time"`
-	FormatTime string    `json:"format_time"`
-	Album      string    `json:"album"`
-	Exif       Exif      `json:"exif"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Path       string `json:"path"`
+	FormatTime string `json:"format_time"`
+	Album      string `json:"album"`
+	Exif       Exif   `json:"exif"`
 }
 
 func (u *Picture) serialize() []byte {
@@ -87,6 +88,16 @@ func decodeExifTag(exf *exif.Exif, tag exif.FieldName) (val string) {
 
 }
 
+func convertTime(str string) time.Time {
+	if str == "" {
+		return time.Time{}
+	}
+	dateTime := strings.Split(str, " ")
+	date := strings.Split(dateTime[0], ":")
+	t, _ := dateparse.ParseLocal(fmt.Sprintf("%s/%s/%s %s", date[0], date[1], date[2], dateTime[1]))
+	return t
+}
+
 func (u *Picture) CreateExif() {
 	f, err := os.Open(u.Path)
 	if err == nil {
@@ -100,7 +111,8 @@ func (u *Picture) CreateExif() {
 				decodeExifTag(x, exif.ISOSpeedRatings),
 				fmt.Sprintf("%sx%s", decodeExifTag(x, exif.PixelXDimension), decodeExifTag(x, exif.PixelYDimension)),
 				decodeExifTag(x, exif.Make),
-				decodeExifTag(x, exif.LensModel)}
+				decodeExifTag(x, exif.LensModel),
+				convertTime(decodeExifTag(x, exif.DateTime))}
 		}
 	}
 }
