@@ -182,27 +182,9 @@ func Serve() {
 			"picture": picture})
 
 	})
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-		pictures := pics.([]datastore.Picture)
-		sort.Slice(pictures, func(i, j int) bool {
-			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
-		})
-		pictures = paginate(pictures, 0, size)
-		renderTemplate(w, "indexPage", pictures)
-	})
-	r.HandleFunc("/{name}", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.Atoi(mux.Vars(r)["name"])
-		if err != nil {
-			return
-		}
-		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-		pictures := pics.([]datastore.Picture)
-		sort.Slice(pictures, func(i, j int) bool {
-			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
-		})
-		pictures = paginate(pictures, i*size, size)
-		renderTemplate(w, "indexPage", pictures)
+	r.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(makeManifest())
 	})
 
 	r.HandleFunc("/img/{name}", func(w http.ResponseWriter, r *http.Request) {
@@ -238,13 +220,31 @@ func Serve() {
 		}
 	})
 
-	r.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(makeManifest())
-	})
-
 	r.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/"+themePath()+"static/js/sw.js")
+	})
+
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
+		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+		pictures = paginate(pictures, 0, size)
+		renderTemplate(w, "indexPage", pictures)
+	})
+	r.HandleFunc("/{name}", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.Atoi(mux.Vars(r)["name"])
+		if err != nil {
+			return
+		}
+		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
+		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+		pictures = paginate(pictures, i*size, size)
+		renderTemplate(w, "indexPage", pictures)
 	})
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
