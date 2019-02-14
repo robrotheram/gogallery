@@ -6,7 +6,7 @@ Using the golang templating so no massive ball of javascript to edit
 
 Supports PWA (Progressive Web Apps) the is very simple service worker.
 
-Demo at http://robrotheram.com:6060 (the strange album names are caused by me mapping the directory from the old gallery software I was using : koken )
+Demo at https://gallery.exceptionerror.io 
 
 ## Installation
 
