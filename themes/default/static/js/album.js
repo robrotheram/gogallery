@@ -185,11 +185,12 @@ function resizeGridItem(item){
 
 var resizing = false;
 function resizeAllGridItems(){
-    if (resizing) {
+    if (resizing || window.innerWidth <= 800) {
+        alert(window.innerWidth)
         return
     }
     resizing = true
-    console.log("RESIZING")
+    console.log("RESIZING", )
     allItems = document.getElementsByClassName("item");
     for(x=0;x<allItems.length;x++){
         resizeGridItem(allItems[x]);

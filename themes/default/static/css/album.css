@@ -192,7 +192,7 @@ main {
 
 
 /* On screens that are 600px or less, set the background color to olive */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 800px) {
     .grid {
         display: block;
         -moz-column-count: 1;
