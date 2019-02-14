@@ -37,7 +37,6 @@ func MakeThumbnail(path string) {
 		img, img_err = png.Decode(file)
 	}
 	if img_err != nil {
-		fmt.Println(path)
 		return
 	}
 	file.Close()

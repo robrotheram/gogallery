@@ -6,15 +6,33 @@
     {{template "header" .}}
 
     <main role="main" style="margin-top: 70px; padding-left: 10px; padding-right: 10px;">
-        <div class="grid">
+
+        <div class="image-grid are-images-unloaded" data-js="image-grid">
+            <div class="image-grid__col-sizer"></div>
+            <div class="image-grid__gutter-sizer"></div>
             {{range .data}}
-                    <div class="item photo">
-                        <div class="content">
-                            <a href="/pic/{{.Name}}"> <img src="/static/img/loading.gif"  class="photothumb img img-thumbnail lazyload" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a>
-                        </div>
+                    <div class="image-grid__item">
+                        <a href="/pic/{{.Name}}"> <img class="image-grid__image img img-thumbnail" src="/thumb/{{.Name}}"></a>
                     </div>
             {{end}}
         </div>
+        <div class="scroller-status">
+            <div class="loader-ellips infinite-scroll-request">
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+            </div>
+            <p class="scroller-status__message infinite-scroll-last">End of content</p>
+            <p class="scroller-status__message infinite-scroll-error">No more pages to load</p>
+        </div>
+
+        <p class="pagination">
+            <a class="pagination__next" href="2">Next page</a>
+        </p>
+
+
+
     </main>
     {{template "footer" .}}
     </body>

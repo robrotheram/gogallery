@@ -11,21 +11,9 @@
     <script src="/static/js/imagesloaded.min.js"></script>
     <script src="/static/js/album.js"></script>
     <script src="/static/js/bootstrap-native-v4.min.js"></script>
-    <script type="text/javascript">
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker
-                .register('/sw.js')
-                .then(function() { console.log('Service Worker Registered'); });
-        }else{
-            console.log("No Navigator")
-        }
-        document.addEventListener("DOMContentLoaded", function(){
-            lazyload();
-            allItems = document.getElementsByClassName("item");
-            for(x=0;x<allItems.length;x++){
-                imagesLoaded( allItems[x], resizeInstance);
-            }
-        });
 
-    </script>
+
+
+
+
 {{end}}

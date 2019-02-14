@@ -20,15 +20,19 @@
         </section>
 
         <div class="album py-5 bg-light">
-            <div class="grid">
+            <div class="image-grid are-images-unloaded" data-js="image-grid">
+                <div class="image-grid__col-sizer"></div>
+                <div class="image-grid__gutter-sizer"></div>
                 {{range .Images}}
-                    <div class="item photo">
-                        <div class="content">
-                            <a href="/pic/{{.Name}}"> <img src="/static/img/loading.gif"  class="photothumb img img-thumbnail lazyload" data-src="/thumb/{{.Name}}"  alt="{{.Name}}" /></a>
-                        </div>
+                    <div class="image-grid__item">
+                        <a href="/pic/{{.Name}}"> <img class="image-grid__image img img-thumbnail" src="/thumb/{{.Name}}"></a>
                     </div>
                 {{end}}
             </div>
+
+            <p class="pagination">
+                <a class="pagination__next" href="{{.Name}}/2">Next page</a>
+            </p>
         </div>
     </main>
     {{end}}

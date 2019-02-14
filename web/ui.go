@@ -16,7 +16,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"time"
 )
 
 // Shorthand - useful!
@@ -61,34 +60,37 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		"data":     data})
 }
 
+var size = 50
+
+func paginate(x []datastore.Picture, skip int, size int) []datastore.Picture {
+	limit := func() int {
+		if skip+size > len(x) {
+			return len(x)
+		} else {
+			return skip + size
+		}
+
+	}
+
+	start := func() int {
+		if skip > len(x) {
+			return len(x)
+		} else {
+			return skip
+		}
+
+	}
+	return x[start():limit()]
+}
+
 func Serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/albums", func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
 		al, _ := datastore.Cache.Tables("ALBUM").GetAll() //Query("Album","02")
 		sArr := al.([]datastore.Album)
-		fmt.Println(len(sArr))
-		//for i := range sArr {
-		//	st := time.Now()
-		//	albm := &sArr[i]
-		//	pic, err := datastore.Cache.Tables("PICTURE").Query("Album", albm.Name, 1)
-		//	if err == nil {
-		//		picArr := pic.([]datastore.Picture)
-		//		if len(picArr) > 0 {
-		//			albm.ProfileIMG = &picArr[0]
-		//		}
-		//	}
-		//	elapsed := time.Since(st)
-		//	log.Printf("func %d took %s", i, elapsed)
-		//}
-		elapsed := time.Since(start)
-		log.Printf("Binomial took %s", elapsed)
 		renderTemplate(w, "albumsPage", sArr)
 	})
 	r.HandleFunc("/album/{name}", func(w http.ResponseWriter, r *http.Request) {
-		//vars := mux.Vars(r)
-		//title := vars["title"]
-
 		vars := mux.Vars(r)
 		name := vars["name"]
 		albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
@@ -96,13 +98,16 @@ func Serve() {
 			return
 		}
 		albums := albm.([]datastore.Album)
+		if len(albums) == 0 {
+			return
+		}
 		album := &albums[0]
 		pics, err := datastore.Cache.Tables("PICTURE").Query("Album", name, 0)
 		if err != nil {
 			return
 		}
 		pictures := pics.([]datastore.Picture)
-
+		pictures = paginate(pictures, 0, size)
 		sort.Slice(pictures, func(i, j int) bool {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
@@ -111,6 +116,38 @@ func Serve() {
 		album.ProfileIMG = &pictures[0]
 		renderTemplate(w, "albumPage", album)
 	})
+
+	r.HandleFunc("/album/{name}/{page}", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.Atoi(mux.Vars(r)["page"])
+		if err != nil {
+			return
+		}
+
+		vars := mux.Vars(r)
+		name := vars["name"]
+		albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
+		if err != nil {
+			return
+		}
+		albums := albm.([]datastore.Album)
+		if len(albums) == 0 {
+			return
+		}
+		album := &albums[0]
+		pics, err := datastore.Cache.Tables("PICTURE").Query("Album", name, 0)
+		if err != nil {
+			return
+		}
+		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+		album.ProfileIMG = &pictures[0]
+		pictures = paginate(pictures, i*size, size)
+		album.Images = pictures
+		renderTemplate(w, "albumPage", album)
+	})
+
 	r.HandleFunc("/pic/{picture}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["picture"]
@@ -151,7 +188,20 @@ func Serve() {
 		sort.Slice(pictures, func(i, j int) bool {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
-
+		pictures = paginate(pictures, 0, size)
+		renderTemplate(w, "indexPage", pictures)
+	})
+	r.HandleFunc("/{name}", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.Atoi(mux.Vars(r)["name"])
+		if err != nil {
+			return
+		}
+		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
+		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+		pictures = paginate(pictures, i*size, size)
 		renderTemplate(w, "indexPage", pictures)
 	})
 
