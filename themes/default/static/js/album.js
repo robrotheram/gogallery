@@ -186,7 +186,6 @@ function resizeGridItem(item){
 var resizing = false;
 function resizeAllGridItems(){
     if (resizing || window.innerWidth <= 800) {
-        alert(window.innerWidth)
         return
     }
     resizing = true
