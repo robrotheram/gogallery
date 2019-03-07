@@ -238,6 +238,11 @@ func Serve() {
 		if err != nil {
 			return
 		}
+		// JS Image Infinite scroll assume page starts at 1 not 0 causing a whole page of images to go missing.
+		if i != 0 {
+			i--
+		}
+
 		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
 		pictures := pics.([]datastore.Picture)
 		sort.Slice(pictures, func(i, j int) bool {
