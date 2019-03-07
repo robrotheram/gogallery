@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func ScanPath(path string) (map[string]*Node, error) {
 		if checkEXT(path) && !info.IsDir() {
 			p := Picture{
 				Id:    path,
-				Name:  info.Name(),
+				Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
 				Path:  path,
 				Album: filepath.Base(filepath.Dir(path)),
 				Exif:  Exif{}}

@@ -16,6 +16,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // Shorthand - useful!
@@ -49,15 +50,19 @@ func CacheControlWrapper(h http.Handler) http.Handler {
 	})
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture) {
 	templates().ExecuteTemplate(w, tmpl, M{
-		"name":     config.Config.Gallery.Name,
-		"twitter":  config.Config.Gallery.Twitter,
-		"facebook": config.Config.Gallery.Facebook,
-		"email":    config.Config.Gallery.Email,
-		"about":    template.HTML(config.Config.Gallery.About),
-		"footer":   template.HTML(config.Config.Gallery.Footer),
-		"data":     data})
+		"name":        config.Config.Gallery.Name,
+		"site":        config.Config.Gallery.Url,
+		"twitter":     config.Config.Gallery.Twitter,
+		"facebook":    config.Config.Gallery.Facebook,
+		"email":       config.Config.Gallery.Email,
+		"about":       template.HTML(config.Config.Gallery.About),
+		"footer":      template.HTML(config.Config.Gallery.Footer),
+		"socialImage": image.Name,
+		"imageWidth":  strings.Split(image.Exif.Dimension, "x")[0],
+		"imageHeight": strings.Split(image.Exif.Dimension, "x")[1],
+		"data":        data})
 }
 
 var size = 50
@@ -88,7 +93,7 @@ func Serve() {
 	r.HandleFunc("/albums", func(w http.ResponseWriter, r *http.Request) {
 		al, _ := datastore.Cache.Tables("ALBUM").GetAll() //Query("Album","02")
 		sArr := al.([]datastore.Album)
-		renderTemplate(w, "albumsPage", sArr)
+		renderTemplate(w, "albumsPage", sArr, *sArr[1].ProfileIMG)
 	})
 	r.HandleFunc("/album/{name}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -114,7 +119,7 @@ func Serve() {
 
 		album.Images = pictures
 		album.ProfileIMG = &pictures[0]
-		renderTemplate(w, "albumPage", album)
+		renderTemplate(w, "albumPage", album, *album.ProfileIMG)
 	})
 
 	r.HandleFunc("/album/{name}/{page}", func(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +150,7 @@ func Serve() {
 		album.ProfileIMG = &pictures[0]
 		pictures = paginate(pictures, i*size, size)
 		album.Images = pictures
-		renderTemplate(w, "albumPage", album)
+		renderTemplate(w, "albumPage", album, album.Images[0])
 	})
 
 	r.HandleFunc("/pic/{picture}", func(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +184,8 @@ func Serve() {
 		renderTemplate(w, "picturePage", M{
 			"prePic":  prePic,
 			"nextPic": nextPic,
-			"picture": picture})
+			"picture": picture},
+			picture)
 
 	})
 	r.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +237,7 @@ func Serve() {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
 		pictures = paginate(pictures, 0, size)
-		renderTemplate(w, "indexPage", pictures)
+		renderTemplate(w, "indexPage", pictures, pictures[0])
 	})
 	r.HandleFunc("/{name}", func(w http.ResponseWriter, r *http.Request) {
 		i, err := strconv.Atoi(mux.Vars(r)["name"])
@@ -249,7 +255,7 @@ func Serve() {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
 		pictures = paginate(pictures, i*size, size)
-		renderTemplate(w, "indexPage", pictures)
+		renderTemplate(w, "indexPage", pictures, pictures[0])
 	})
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
