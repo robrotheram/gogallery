@@ -65,6 +65,18 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image 
 		"data":        data})
 }
 
+func renderNonSocialTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	templates().ExecuteTemplate(w, tmpl, M{
+		"name":     config.Config.Gallery.Name,
+		"site":     config.Config.Gallery.Url,
+		"twitter":  config.Config.Gallery.Twitter,
+		"facebook": config.Config.Gallery.Facebook,
+		"email":    config.Config.Gallery.Email,
+		"about":    template.HTML(config.Config.Gallery.About),
+		"footer":   template.HTML(config.Config.Gallery.Footer),
+		"data":     data})
+}
+
 var size = 50
 
 func paginate(x []datastore.Picture, skip int, size int) []datastore.Picture {
@@ -169,6 +181,10 @@ func Serve() {
 		/*Find next and previous picture*/
 		pics, err = datastore.Cache.Tables("PICTURE").Query("Album", picture.Album, 0)
 		pictures := pics.([]datastore.Picture)
+		sort.Slice(pictures, func(i, j int) bool {
+			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+		})
+
 		var nextPic, prePic *datastore.Picture
 		for i := range pictures {
 			if pictures[i].Name == name {
@@ -255,7 +271,12 @@ func Serve() {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
 		pictures = paginate(pictures, i*size, size)
-		renderTemplate(w, "indexPage", pictures, pictures[0])
+		if len(pictures) > 0 {
+			renderTemplate(w, "indexPage", pictures, pictures[0])
+		} else {
+			renderNonSocialTemplate(w, "indexPage", pictures)
+		}
+
 	})
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
