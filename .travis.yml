@@ -42,20 +42,10 @@ deploy:
   provider: releases
   api_key: $AUTH_TOKEN
   file:
-    - "gogallery-darwin-386.tgz"
-    - "gogallery-darwin-amd64.tgz"
-
-    - "gogallery-freebsd-386.tgz"
-    - "gogallery-freebsd-arm.tgz"
-    - "gogallery-freebsd-amd64.tgz"
-
     - "gogallery-linux-386.tgz"
     - "gogallery-linux-arm.tgz"
     - "gogallery-linux-amd64.tgz"
 
-    - "gogallery-windows-386.zip"
-    - "gogallery-windows-amd64.zip"
-
   skip_cleanup: true
   on:
-tags: true
+    tags: true
