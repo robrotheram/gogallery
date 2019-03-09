@@ -12,10 +12,10 @@ import (
 type M map[string]interface{}
 
 func themePath() string {
-	return fmt.Sprintf("../themes/%s/", config.Config.Gallery.Theme)
+	return fmt.Sprintf("themes/%s/", config.Config.Gallery.Theme)
 }
 func templates() *template.Template {
-	return template.Must(template.ParseGlob("web/" + themePath() + "templates/*"))
+	return template.Must(template.ParseGlob(themePath() + "templates/*"))
 }
 func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[string]interface{} {
 	model := M{
