@@ -7,6 +7,55 @@ go:
 
 go_import_path: github.com/robrotheram/gogallery
 
-script:
-- make check_license style unused test staticcheck check_assets
-- git diff --exit-code
+sudo: false
+
+install:
+  - go get -u github.com/golang/dep/cmd/dep
+    && dep ensure -vendor-only -v
+
+before_deploy:
+  - PLATFORMS=(darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm windows/386 windows/amd64)
+
+  # build binary for all archs
+  - |
+    for PLATFORM in "${PLATFORMS[@]}"; do
+      echo "Building $PLATFORM"
+      GOOS=${PLATFORM%/*}
+      GOARCH=${PLATFORM#*/}
+      if [ "$GOOS" = "windows" ]; then
+        build_cmd="GOOS=$GOOS GOARCH=$GOARCH go build -o sample -ldflags '-w -s'"
+      else
+        build_cmd="CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -o sample -ldflags '-d -w -s'"
+      fi
+      if ! eval $build_cmd; then
+        echo "Failed building sample for $PLATFORM" && return 1
+      fi
+      if [ "$GOOS" = "windows" ]; then
+        zip sample-${GOOS}-${GOARCH}.zip sample
+      else
+        tar cvzf sample-${GOOS}-${GOARCH}.tgz sample
+      fi
+    done
+  - ls
+
+deploy:
+  provider: releases
+  api_key: $AUTH_TOKEN
+  file:
+    - "sample-darwin-386.tgz"
+    - "sample-darwin-amd64.tgz"
+
+    - "sample-freebsd-386.tgz"
+    - "sample-freebsd-arm.tgz"
+    - "sample-freebsd-amd64.tgz"
+
+    - "sample-linux-386.tgz"
+    - "sample-linux-arm.tgz"
+    - "sample-linux-amd64.tgz"
+
+    - "sample-windows-386.zip"
+    - "sample-windows-amd64.zip"
+
+  skip_cleanup: true
+  on:
+tags: true
