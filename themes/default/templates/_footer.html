@@ -1,15 +1,13 @@
 {{define "footer"}}
+    <hr/>
     <footer class="text-muted">
         <div class="container">
             <p class="float-right">
-                <a href="#">Back to top</a>
+                <a href="#" onclick="topFunction()">Back to top</a>
             </p>
             <p>{{.footer}}</p>
         </div>
     </footer>
-
-    <script src="/static/js/imagesloaded.min.js"></script>
-    <script src="/static/js/album.js"></script>
     <script src="/static/js/bootstrap-native-v4.min.js"></script>
     <script type="text/javascript">
         if ('serviceWorker' in navigator) {
@@ -19,10 +17,9 @@
         }else{
             console.log("No Navigator")
         }
+        function topFunction() {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
     </script>
-
-
-
-
-
 {{end}}

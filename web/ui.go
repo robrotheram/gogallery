@@ -1,104 +1,18 @@
 package web
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	"github.com/robrotheram/gogallery/worker"
-	"html/template"
-	"image"
-	"image/jpeg"
 	"log"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 )
-
-// Shorthand - useful!
-type M map[string]interface{}
-
-func themePath() string {
-	return fmt.Sprintf("../themes/%s/", config.Config.Gallery.Theme)
-}
-func templates() *template.Template {
-	return template.Must(template.ParseGlob("web/" + themePath() + "templates/*"))
-}
-
-func writeImage(w http.ResponseWriter, img *image.Image) {
-
-	buffer := new(bytes.Buffer)
-	if err := jpeg.Encode(buffer, *img, nil); err != nil {
-		log.Println("unable to encode image.")
-	}
-
-	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
-	if _, err := w.Write(buffer.Bytes()); err != nil {
-		log.Println("unable to write image.")
-	}
-}
-
-func CacheControlWrapper(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=2592000") // 30 days
-		h.ServeHTTP(w, r)
-	})
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture) {
-	templates().ExecuteTemplate(w, tmpl, M{
-		"name":        config.Config.Gallery.Name,
-		"site":        config.Config.Gallery.Url,
-		"twitter":     config.Config.Gallery.Twitter,
-		"facebook":    config.Config.Gallery.Facebook,
-		"email":       config.Config.Gallery.Email,
-		"about":       template.HTML(config.Config.Gallery.About),
-		"footer":      template.HTML(config.Config.Gallery.Footer),
-		"socialImage": image.Name,
-		"imageWidth":  strings.Split(image.Exif.Dimension, "x")[0],
-		"imageHeight": strings.Split(image.Exif.Dimension, "x")[1],
-		"data":        data})
-}
-
-func renderNonSocialTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	templates().ExecuteTemplate(w, tmpl, M{
-		"name":     config.Config.Gallery.Name,
-		"site":     config.Config.Gallery.Url,
-		"twitter":  config.Config.Gallery.Twitter,
-		"facebook": config.Config.Gallery.Facebook,
-		"email":    config.Config.Gallery.Email,
-		"about":    template.HTML(config.Config.Gallery.About),
-		"footer":   template.HTML(config.Config.Gallery.Footer),
-		"data":     data})
-}
-
-var size = 50
-
-func paginate(x []datastore.Picture, skip int, size int) []datastore.Picture {
-	limit := func() int {
-		if skip+size > len(x) {
-			return len(x)
-		} else {
-			return skip + size
-		}
-
-	}
-
-	start := func() int {
-		if skip > len(x) {
-			return len(x)
-		} else {
-			return skip
-		}
-
-	}
-	return x[start():limit()]
-}
 
 func Serve() {
 	r := mux.NewRouter()
@@ -108,6 +22,8 @@ func Serve() {
 		renderTemplate(w, "albumsPage", sArr, *sArr[1].ProfileIMG)
 	})
 	r.HandleFunc("/album/{name}", func(w http.ResponseWriter, r *http.Request) {
+		size := config.Config.Gallery.ImagesPerPage
+
 		vars := mux.Vars(r)
 		name := vars["name"]
 		albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
@@ -124,22 +40,30 @@ func Serve() {
 			return
 		}
 		pictures := pics.([]datastore.Picture)
-		pictures = paginate(pictures, 0, size)
+		max := maxPages(pictures)
 		sort.Slice(pictures, func(i, j int) bool {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
-
-		album.Images = pictures
 		album.ProfileIMG = &pictures[0]
-		renderTemplate(w, "albumPage", album, *album.ProfileIMG)
+		pictures = paginate(pictures, 0, size)
+		album.Images = pictures
+		if len(album.Images) == 0 {
+			return
+		}
+		renderGalleryTemplate(w, "albumPage", album, *album.ProfileIMG, max)
 	})
 
 	r.HandleFunc("/album/{name}/{page}", func(w http.ResponseWriter, r *http.Request) {
+		size := config.Config.Gallery.ImagesPerPage
+
 		i, err := strconv.Atoi(mux.Vars(r)["page"])
 		if err != nil {
 			return
 		}
-
+		fmt.Println("ON PAGE: " + mux.Vars(r)["page"])
+		if i > 1 {
+			i = i - 1
+		}
 		vars := mux.Vars(r)
 		name := vars["name"]
 		albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
@@ -162,7 +86,10 @@ func Serve() {
 		album.ProfileIMG = &pictures[0]
 		pictures = paginate(pictures, i*size, size)
 		album.Images = pictures
-		renderTemplate(w, "albumPage", album, album.Images[0])
+		if len(album.Images) == 0 {
+			return
+		}
+		renderGalleryTemplate(w, "albumPage", album, album.Images[0], 1)
 	})
 
 	r.HandleFunc("/pic/{picture}", func(w http.ResponseWriter, r *http.Request) {
@@ -247,22 +174,26 @@ func Serve() {
 	})
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		size := config.Config.Gallery.ImagesPerPage
+
 		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
 		pictures := pics.([]datastore.Picture)
 		sort.Slice(pictures, func(i, j int) bool {
 			return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 		})
 		pictures = paginate(pictures, 0, size)
-		renderTemplate(w, "indexPage", pictures, pictures[0])
+		renderGalleryTemplate(w, "indexPage", pictures, pictures[0], maxPages(pics.([]datastore.Picture)))
 	})
 	r.HandleFunc("/{name}", func(w http.ResponseWriter, r *http.Request) {
+		size := config.Config.Gallery.ImagesPerPage
+
 		i, err := strconv.Atoi(mux.Vars(r)["name"])
 		if err != nil {
 			return
 		}
 		// JS Image Infinite scroll assume page starts at 1 not 0 causing a whole page of images to go missing.
-		if i != 0 {
-			i--
+		if i > 1 {
+			i = i - 1
 		}
 
 		pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
@@ -272,7 +203,7 @@ func Serve() {
 		})
 		pictures = paginate(pictures, i*size, size)
 		if len(pictures) > 0 {
-			renderTemplate(w, "indexPage", pictures, pictures[0])
+			renderGalleryTemplate(w, "indexPage", pictures, pictures[0], 1)
 		} else {
 			renderNonSocialTemplate(w, "indexPage", pictures)
 		}

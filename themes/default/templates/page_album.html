@@ -29,13 +29,18 @@
                     </div>
                 {{end}}
             </div>
-
-            <p class="pagination">
-                <a class="pagination__next" href="{{.Name}}/2">Next page</a>
-            </p>
+            <div class="scroller-status">
+                <div class="loader-ellips infinite-scroll-request">
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                </div>
+            </div>
         </div>
     </main>
     {{end}}
+    {{template "gallery" .}}
     {{template "footer" .}}
     </body>
     </html>
