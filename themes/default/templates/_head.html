@@ -7,11 +7,18 @@
         <meta name="generator" content="Jekyll v3.8.5">
         <title>{{.name}}</title>
 
+        <!-- Gallery Dependacy Scripts -->
+        <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+        <script src="https://unpkg.com/infinite-scroll@3/dist/infinite-scroll.pkgd.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/3.0.4/jquery.imagesloaded.min.js"></script>
+
         <!-- Bootstrap core CSS -->
         <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- Custom styles for this template -->
         <link href="/static/css/album.css" rel="stylesheet">
+
+
 
         <link rel="manifest" href="/manifest.json">
 
@@ -40,5 +47,23 @@
                 min-height: 300px;
             }
         </style>
+
+
+
+
+        <!--Social META -->
+        <meta property="og:url"  content="{{.site}}" />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content="{{.name}} | {{.socialImage}}">
+        <meta property="og:image" content="{{.site}}/thumb/{{.socialImage}}">
+        <meta property="og:image:width" content="{{.imageWidth}}">
+        <meta property="og:image:height" content="{{.imageHeight}}">
+
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{.name}} | {{.socialImage}}">
+        <meta name="twitter:description" content="{{.about}}">
+        <meta name="twitter:image" content="{{.site}}/thumb/{{.socialImage}}">
+
     </head>
 {{end}}

@@ -6,7 +6,8 @@ server:
 
 gallery:
   name: "Gallery"
-  basepath: "/home/robert/Pictures/gallery"
+  imagesPerPage: 20
+  basepath: "/home/robert/Pictures/test"
   url:      "https://beta.exceptionerror.io"
   theme:    "default"
   twitter: "@robrotheram"

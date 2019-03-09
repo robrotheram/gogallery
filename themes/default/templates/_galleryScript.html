@@ -1,0 +1,51 @@
+{{define "gallery"}}
+<script>
+    var maxPages = {{.imageMaxCount}};
+
+    var path = window.location.pathname;
+    var grid = document.querySelector('.image-grid');
+
+    var i = new Masonry(grid, {
+        itemSelector: "none",
+        columnWidth: ".image-grid__col-sizer",
+        gutter: ".image-grid__gutter-sizer",
+        percentPosition: !0,
+        stagger: 30,
+        visibleStyle: {
+            transform: "translateY(0)",
+            opacity: 1
+        },
+        hiddenStyle: {
+            transform: "translateY(100px)",
+            opacity: 0
+        }
+    });
+
+    imagesLoaded(grid, function() {
+        grid.classList.remove("are-images-unloaded"), i.options.itemSelector = ".image-grid__item";
+        var t = grid.querySelectorAll(".image-grid__item");
+        i.appended(t)
+    })
+    new InfiniteScroll(grid, {
+        path: function() {
+            var pageNumber = this.loadCount + 1 ;
+            if(pageNumber<=maxPages){
+                if(path === "/"){
+                    path = "";
+                }
+                console.log(path +'/'+pageNumber)
+                return path +'/'+pageNumber;
+            }
+        },
+        hideNav: ".pagination",
+        append: ".image-grid__item",
+        outlayer: i,
+        status: ".scroller-status",
+    })
+    if((maxPages === 0)  && (document.getElementsByClassName("scroller-status").length >0)){
+        document.getElementsByClassName("scroller-status")[0].style["display"] = "none";
+    }
+
+
+</script>
+{{end}}
