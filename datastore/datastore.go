@@ -45,7 +45,7 @@ func (d *DataStore) RegisterData(name string, factory DS) {
 	}
 	_, registered := d.dataFactories[name]
 	if registered {
-		log.Println("datastore factory %s already registered. Ignoring.", name)
+		log.Printf("datastore factory %s already registered. Ignoring. \n", name)
 	}
 	d.dataFactories[name] = factory
 }
