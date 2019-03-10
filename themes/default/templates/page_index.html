@@ -5,14 +5,14 @@
     <body>
     {{template "header" .}}
 
-    <main role="main" style="margin-top: 70px; padding-left: 10px; padding-right: 10px;">
+    <main role="main" style="margin-top: 55px; padding: 10px; background: #efefef;">
 
         <div class="image-grid are-images-unloaded" data-js="image-grid">
             <div class="image-grid__col-sizer"></div>
             <div class="image-grid__gutter-sizer"></div>
             {{range .data}}
                     <div class="image-grid__item">
-                        <a href="/pic/{{.Name}}"> <img class="image-grid__image img img-thumbnail" src="/thumb/{{.Name}}"></a>
+                        <a href="/pic/{{.Name}}"> <img class="image-grid__image card-1" src="/thumb/{{.Name}}"></a>
                     </div>
             {{end}}
         </div>

@@ -4,87 +4,110 @@
     {{template "head" .}}
     <body>
     {{template "header" .}}
-    {{ with .data }}
-    <div style="margin-top: 60px">
-        <div class="img-container">
+
+    <div style="margin-top: 56px">
         {{ with .picture }}
-            <img class="img-thumbnail" src="/img/{{.Name}}"  alt="{{.Name}}" />
-        {{ end }}
+            <div id="lg-share-demo" class="img-container">
+                <a id="galleryImage"
+                        data-pinterest-text="{{.Name}} by {{$.photographer}}"
+                        data-tweet-text="{{.Name}} by {{$.photographer}}"
+                        data-facebook-share-url="{{$.site}}/pic/{{.Name}}"
+                        data-twitter-share-url="{{$.site}}/pic/{{.Name}}"
+                        data-googleplus-share-url="{{$.site}}/pic/{{.Name}}"
+                        data-pinterest-share-url="{{$.site}}/pic/{{.Name}}"
+                        data-src="/img/{{.Name}}"
+                        a href="">
+                    <img src="/img/{{.Name}}">
+                </a>
             </div>
+        {{ end }}
+
+        <a href="/album/{{.picture.Album}}" class="btn btn-outline-dark btn-circle" style="position: absolute; top: 65px; left: 10px">
+        <svg width="20" height="20" viewBox="0 0 12 16">
+            <path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z" style="fill: #FFF"/>
+        </svg>
+        </a>
+        <a  onclick="fullscreen()"  class="btn btn-outline-dark btn-circle" style="position: absolute; top: 65px; right: 10px">
+            <svg width="20" height="20"  viewBox="0 0 14 16">
+                <path fill-rule="evenodd" d="M13 10h1v3c0 .547-.453 1-1 1h-3v-1h3v-3zM1 10H0v3c0 .547.453 1 1 1h3v-1H1v-3zm0-7h3V2H1c-.547 0-1 .453-1 1v3h1V3zm1 1h10v8H2V4zm2 6h6V6H4v4zm6-8v1h3v3h1V3c0-.547-.453-1-1-1h-3z" style="fill:#FFF;"/>
+            </svg>
+        </a>
+
         <div class="gallery-nav">
             {{if .prePic}}
-                <a href="/pic/{{.prePic.Name}}" class="btn btn-outline-dark">
+                <a href="/pic/{{.prePic.Name}}" class="btn btn-outline-dark btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
-                        <path d="M4 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z" transform="translate(1)" />
+                        <path d="M4 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z" transform="translate(1)" style="fill:#FFF;" />
                     </svg>
                 </a>
             {{else}}
                 <div></div>
             {{end}}
             {{if .nextPic}}
-                <a href="/pic/{{.nextPic.Name}}" class="btn btn-outline-dark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
-                        <path d="M1.5 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z" transform="translate(1)" />
+                <a href="/pic/{{.nextPic.Name}}" class="btn btn-outline-dark btn-circle">
+                    <svg width="20" height="20" viewBox="0 0 8 8">
+                        <path d="M1.5 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z" transform="translate(1)"  style="fill:#FFF;"/>
                     </svg>
                 </a>
             {{end}}
         </div>
 
     </div>
-    <hr/>
-    <div class="container" style="background-color: white">
+    <div class="container" style="background-color: white; margin-top: 20px">
         <div class="row">
     {{ with .picture }}
             <div class="col-12">
-                <h2>{{.Name}}  <span class="badge badge-pill badge-light date-pill">{{.FormatTime}}</span> </h2>
-                <table class="table table-hover">
+                <h2 class="robotFont">{{.Name}}  <span class="badge badge-pill badge-light date-pill">{{.FormatTime}}</span> </h2>
+                <table class="table" style="text-align: center; line-height: 50px; ">
                     <tbody>
-                    <tr>
-                        <th scope="row">Album</th>
-                        <td><a href="/album/{{.Album}}">{{.Album}}</a></td>
-                    </tr>
                     {{if .Exif.Camera}}
                         <tr>
-                            <th scope="row">Camera Make</th>
+                            <th scope="row"><img src="/static/img/icons/camera.svg" width="50px"/></th>
                             <td>{{.Exif.Camera}}</td>
                         </tr>
                     {{end}}
                     {{if .Exif.LensModel}}
                     <tr>
-                        <th scope="row">Lens Make</th>
+                        <th scope="row"><img src="/static/img/icons/lens.svg" width="50px"/></th>
                         <td>{{.Exif.LensModel}}</td>
                     </tr>
                     {{end}}
                     {{if .Exif.FocalLength}}
                     <tr>
-                        <th scope="row">Focal Length</th>
+                        <th scope="row"><img src="/static/img/icons/focal-length.svg" width="50px"/></th>
                         <td>{{.Exif.FocalLength}}mm</td>
                     </tr>
                     {{end}}
                     {{if .Exif.FStop}}
                         <tr>
-                            <th scope="row">Aperture</th>
+                            <th scope="row"><img src="/static/img/icons/apature.svg" width="50px"/></th>
                             <td>f{{.Exif.FStop}}</td>
                         </tr>
                     {{end}}
                     {{if .Exif.ShutterSpeed}}
                         <tr>
-                            <th scope="row">Exposure</th>
+                            <th scope="row"><img src="/static/img/icons/timer.svg" width="50px"/></th>
                             <td>{{.Exif.ShutterSpeed}}</td>
                         </tr>
                     {{end}}
                     {{if .Exif.ISO}}
                         <tr>
-                            <th scope="row">ISO</th>
+                            <th scope="row"><img src="/static/img/icons/iso.svg" width="50px"/></th>
                             <td>{{.Exif.ISO}}</td>
                         </tr>
                     {{end}}
+                    <tr>
+                        <th scope="row">
+                            <img src="/static/img/icons/albums.svg" width="50px"/>
+                        </th>
+                        <td><a href="/album/{{.Album}}">{{.Album}}</a></td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     {{end}}
-    {{end}}
+
     </div>
     <hr/>
 

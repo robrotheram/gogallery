@@ -60,7 +60,6 @@ func Serve() {
 		if err != nil {
 			return
 		}
-		fmt.Println("ON PAGE: " + mux.Vars(r)["page"])
 		if i > 1 {
 			i = i - 1
 		}
@@ -124,11 +123,12 @@ func Serve() {
 				break
 			}
 		}
-		renderTemplate(w, "picturePage", M{
-			"prePic":  prePic,
-			"nextPic": nextPic,
-			"picture": picture},
-			picture)
+
+		model := templateModel(picture, picture, -1)
+		model["prePic"] = prePic
+		model["nextPic"] = nextPic
+		model["picture"] = picture
+		templates().ExecuteTemplate(w, "picturePage", model)
 
 	})
 	r.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
@@ -211,7 +211,7 @@ func Serve() {
 	})
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
-		CacheControlWrapper(http.FileServer(http.Dir("web/"+themePath()+"static")))))
+		CacheControlWrapper(http.FileServer(http.Dir(themePath()+"static")))))
 
 	log.Println("Starting server on port" + config.Config.Server.Port)
 	log.Fatal(http.ListenAndServe(config.Config.Server.Port, r))

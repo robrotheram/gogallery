@@ -6,6 +6,7 @@ server:
 
 gallery:
   name: "Gallery"
+  photographer: "Robrotheram"
   imagesPerPage: 20
   basepath: "/home/robert/Pictures/test"
   url:      "https://beta.exceptionerror.io"
@@ -13,5 +14,5 @@ gallery:
   twitter: "@robrotheram"
   facebook: "robrotheram"
   email: ""
-  about: "Hi I am rob here is a collection of photos I have taken over a number of year whilst I am not busy buidling som adhock thing which is documented on my <a href='https://robrotheram.com'>blog<a>"
+  about: "Hi I am rob here is a collection of photos I have taken over a number of year whilst I am not busy buidling som adhock thing which is documented on my <a href='https://robrotheram.com'>blog</a>"
   footer: "Photos ©robrotheram"

@@ -9,23 +9,22 @@
     <main role="main">
         <style>
             .hero-bg{
-                background-image: url("/img/{{.ProfileIMG.Name}}");
+                background-image:url("/img/{{.ProfileIMG.Name}}");
+                z-index: -1;
             }
         </style>
+        <section class="jumbotron text-center hero-bg"></section>
 
-        <section class="jumbotron text-center hero-bg">
-            <div class="hero-text container ">
+        <div class="album py-5 bg-light" style="margin-top: 500px;">
+            <div class="hero-text">
                 <h1 class="jumbotron-heading">{{.Name}}</h1>
             </div>
-        </section>
-
-        <div class="album py-5 bg-light">
             <div class="image-grid are-images-unloaded" data-js="image-grid">
                 <div class="image-grid__col-sizer"></div>
                 <div class="image-grid__gutter-sizer"></div>
                 {{range .Images}}
                     <div class="image-grid__item">
-                        <a href="/pic/{{.Name}}"> <img class="image-grid__image img img-thumbnail" src="/thumb/{{.Name}}"></a>
+                        <a href="/pic/{{.Name}}"> <img class="image-grid__image card-1" src="/thumb/{{.Name}}"></a>
                     </div>
                 {{end}}
             </div>

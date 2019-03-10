@@ -10,5 +10,6 @@ type GalleryConfiguration struct {
 	Email         string
 	About         string
 	Footer        string
+	Photographer  string
 	ImagesPerPage int
 }

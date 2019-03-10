@@ -19,18 +19,21 @@ func templates() *template.Template {
 }
 func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[string]interface{} {
 	model := M{
-		"name":     config.Config.Gallery.Name,
-		"site":     config.Config.Gallery.Url,
-		"twitter":  config.Config.Gallery.Twitter,
-		"facebook": config.Config.Gallery.Facebook,
-		"email":    config.Config.Gallery.Email,
-		"about":    template.HTML(config.Config.Gallery.About),
-		"footer":   template.HTML(config.Config.Gallery.Footer),
-		"data":     data}
+		"name":         config.Config.Gallery.Name,
+		"site":         config.Config.Gallery.Url,
+		"twitter":      config.Config.Gallery.Twitter,
+		"facebook":     config.Config.Gallery.Facebook,
+		"email":        config.Config.Gallery.Email,
+		"photographer": config.Config.Gallery.Photographer,
+		"about":        template.HTML(config.Config.Gallery.About),
+		"footer":       template.HTML(config.Config.Gallery.Footer),
+		"data":         data}
+	if image.Name != "" {
+		model["socialImage"] = image.Name
+	}
 	if image.Exif.Dimension != "" {
 		model["imageWidth"] = strings.Split(image.Exif.Dimension, "x")[0]
 		model["imageHeight"] = strings.Split(image.Exif.Dimension, "x")[1]
-		model["socialImage"] = image.Name
 	}
 
 	if numOfPic != -1 {
