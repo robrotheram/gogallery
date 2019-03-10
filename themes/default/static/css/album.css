@@ -131,16 +131,16 @@ footer p {
 
 @media screen and (max-width: 992px) {
     .gallery-nav{
-        position: relative;
-        margin-top: -50px;
+        top: calc(100% - 90px);
+        position: absolute;
     }
 }
 
 /* On screens that are 600px or less, set the background color to olive */
 @media screen and (max-width: 600px) {
     .gallery-nav{
-        position: relative;
-        margin-top: -50px;
+        top: calc(100% - 90px);
+        position: absolute;
     }
 }
 

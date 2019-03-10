@@ -43,6 +43,7 @@ func MakeThumbnail(path string) {
 
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
+	log.Printf("Creating Thumbnail for user: %s", path);
 	m := resize.Resize(600, 0, img, resize.Bilinear)
 	out, err := os.Create(cachePath)
 	if err != nil {
@@ -53,7 +54,7 @@ func MakeThumbnail(path string) {
 }
 
 func worker(id int, jobs <-chan string) {
-	fmt.Printf("Strarting Worker: %d \n", id)
+	log.Printf("Strarting Worker: %d \n", id)
 	for j := range jobs {
 		MakeThumbnail(j)
 	}
