@@ -23,9 +23,9 @@ docker run -p 6060:80 -v $(pwd):/app/pictures gogallery
 Edit the config and change the name basepath and base folder that is used for scanning images
 
 #### Admin
-The application contains a basic admin section accessed by '/admin' using the username/password combo
+The application contains a basic admin section accessed by `/admin` using the username/password combo
 The password use the bcrypt algorithum and therefore before using it you needed to created the hash and store in the config.
-To generate the password do  './gogallery generate password' 
+To generate the password do  `./gogallery generate password` 
 
 #### Configuration 
 Config can be also edited via environmental variables
