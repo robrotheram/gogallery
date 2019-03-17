@@ -1,38 +1,29 @@
 {{define "header"}}
     <header class="fixed-top">
-        <div class="collapse bg-dark" id="navbarHeader">
-            <div class="container">
-                <div class="row">
-                    <div class="col-sm-8 col-md-7 py-4">
-                        <h4 class="text-white">About</h4>
-                        <p class="text-muted">{{.about}}</p>
-                    </div>
-                    <div class="col-sm-4 offset-md-1 py-4">
-                        <h4 class="text-white">Contact</h4>
-                        <ul class="list-unstyled">
-                            {{if .twitter}}<li><a href="https://twitter.com/{{.twitter}}" class="text-white">Follow on Twitter</a></li>{{end}}
-                            {{if .facebook}}<li><a href="https://facebook.com/{{.facebook}}" class="text-white">Like on Facebook</a></li>{{end}}
-                            {{if .email}}<li><a href="mailto:{{.email}}" class="text-white">Email me</a></li>{{end}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
         <nav class="navbar navbar-expand-lg navbar-light bg-light shadow">
-            <a href="/" class="navbar-brand d-flex align-items-center">
+            <a class="navbar-brand mx-auto" href="/">
                 <img src="/static/img/iconfinder_document-06_1622830.png" width="30px" style="margin-right: 10px">
                 <strong>{{.name}}</strong>
             </a>
-            <div class="navbar-collapse" id="navbarNavAltMarkup">
-                <div class=" nav-pills">
-                    <a class="nav-item nav-link" href="/albums">Albums <span class="sr-only">(current)</span></a>
-                </div>
-            </div>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link text-center" href="/albums"><img src="/static/img/icons/albums.svg" width="32px" style="margin-right:2px"/>Albums</a>
+                    </li>
+                </ul>
+
+                    <li class="nav-item active">
+                        <a class="nav-link text-center" href="/about" style="color: #261F1F"><i class="fa fa-user-circle-o fa-2x" aria-hidden="true" style="color: #5f5f5f"></i><span class="nav-hidden"> About</span></a>
+                    </li>
+
+
+            </div>
         </nav>
     </header>
 {{end}}
+
+

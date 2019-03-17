@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/araddon/dateparse"
 	"github.com/dgraph-io/badger"
+	"github.com/prometheus/common/log"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"github.com/rwcarlsen/goexif/tiff"
@@ -172,6 +173,20 @@ func (uDs *pictureDataStore) Delete(u interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (u *pictureDataStore) DeleteAll() {
+	u.db.Update(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			log.Info("Deleteing Key:" + string(item.Key()))
+			txn.Delete(item.Key())
+		}
+		return nil
+	})
 }
 
 func (uDs *pictureDataStore) Get(id string) (interface{}, error) {

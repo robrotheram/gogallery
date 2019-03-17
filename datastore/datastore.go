@@ -2,7 +2,7 @@ package datastore
 
 import (
 	"github.com/dgraph-io/badger"
-	"github.com/robrotheram/gogallery/config"
+	galleryConfig "github.com/robrotheram/gogallery/config"
 	"log"
 	"os"
 	"reflect"
@@ -15,6 +15,7 @@ type DataStore struct {
 type DS interface {
 	Close()
 	Initialize()
+	DeleteAll()
 	Get(id string) (interface{}, error)
 	Query(field string, val interface{}, limit int) (interface{}, error)
 	Edit(obj interface{}) error
@@ -23,9 +24,11 @@ type DS interface {
 	Save(obj interface{}) error
 }
 
+var config *galleryConfig.DatabaseConfiguration
 var Cache *DataStore
 
-func NewDataStore() *DataStore {
+func NewDataStore(conf *galleryConfig.DatabaseConfiguration) *DataStore {
+	config = conf
 	d := DataStore{}
 	d.dataFactories = make(map[string]DS)
 	d.RegisterData("ALBUM", albumDataStore{}.New())
@@ -57,6 +60,12 @@ func (d *DataStore) Close() {
 
 }
 
+func (d *DataStore) RestDB() {
+	for _, v := range d.dataFactories {
+		v.DeleteAll()
+	}
+
+}
 func (d DataStore) DoesTableExist(table string) bool {
 	return d.dataFactories[table] != nil
 }
@@ -68,9 +77,9 @@ func (d DataStore) Tables(table string) DS {
 // Helper function
 func createDatastore(ds string) *badger.DB {
 	opts := badger.DefaultOptions
-	log.Println("DB location:" + config.Config.Database.Baseurl)
-	opts.Dir = config.Config.Database.Baseurl + ds
-	opts.ValueDir = config.Config.Database.Baseurl + ds
+	log.Println("DB location:" + config.Baseurl)
+	opts.Dir = config.Baseurl + ds
+	opts.ValueDir = config.Baseurl + ds
 
 	os.MkdirAll(opts.Dir, os.ModePerm)
 

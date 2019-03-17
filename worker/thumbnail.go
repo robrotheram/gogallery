@@ -1,9 +1,11 @@
 package worker
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"github.com/nfnt/resize"
-	"github.com/robrotheram/gogallery/config"
+	galleryConfig "github.com/robrotheram/gogallery/config"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -14,8 +16,14 @@ import (
 
 var ThumbnailChan = make(chan string, 100)
 
-func MakeThumbnail(path string) {
-	cachePath := fmt.Sprintf("cache/%s.jpg", config.GetMD5Hash(path))
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func generateThumbnail(path string, size uint, prefix string) {
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
 
 	if _, err := os.Stat(cachePath); err == nil {
 		return
@@ -43,8 +51,8 @@ func MakeThumbnail(path string) {
 
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
-	log.Printf("Creating Thumbnail for user: %s", path);
-	m := resize.Resize(600, 0, img, resize.Bilinear)
+	log.Printf("Creating Thumbnail for user: %s", path)
+	m := resize.Resize(size, 0, img, resize.Bilinear)
 	out, err := os.Create(cachePath)
 	if err != nil {
 		log.Fatal(err)
@@ -53,15 +61,24 @@ func MakeThumbnail(path string) {
 	jpeg.Encode(out, m, nil)
 }
 
+func MakeThumbnail(path string) {
+	generateThumbnail(path, 400, "")
+}
+
+func MakeLargeThumbnail(path string) {
+	generateThumbnail(path, 1200, "large_")
+}
+
 func worker(id int, jobs <-chan string) {
 	log.Printf("Strarting Worker: %d \n", id)
 	for j := range jobs {
 		MakeThumbnail(j)
+		MakeLargeThumbnail(j)
 	}
 }
 
-func StartWorkers() {
-	for w := 1; w <= config.Config.Server.Workers; w++ {
+func StartWorkers(conf galleryConfig.ServerConfiguration) {
+	for w := 1; w <= conf.Workers; w++ {
 		go worker(w, ThumbnailChan)
 	}
 }

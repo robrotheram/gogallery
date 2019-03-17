@@ -1,0 +1,171 @@
+{{define "adminPage"}}
+    <!DOCTYPE HTML>
+    <html>
+    {{template "head" .}}
+    <body>
+    {{template "header" .}}
+
+    <style type="text/css">
+        .p-t-2 { padding-top: 1.5rem !important; }
+        .a-b-50 {    position: absolute;    bottom: -50%;    left: 0;    right: 0;}
+        .a-t-50 {    position: absolute;    top: -50%;    left: 0;    right: 0;}
+    </style>
+
+    <main role="main" style="margin-top: 70px; padding: 10px;">
+        <div class="col-lg-12">
+            <h3>Summery</h3>
+            <div class="row" style="margin-top: 20px">
+                <div class="col-sm-3">
+                    <div class="card bg-dark text-white p-t-2 m-1">
+                        <div class="card-block card-title text-center">
+                            <h1 class="m-b-2"><i class="fa fa-image display-4"></i></h1>
+                            <h6 class="text-light">{{ .data.stats.Photos}} Photos</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="card text-white bg-primary p-t-2 m-1">
+                        <div class="card-block card-title text-center">
+                            <h1 class="m-b-2"><i class="fa fa-folder-o  display-4"></i></h1>
+                            <h6 class="text-light">{{ .data.stats.Albums}} Albums</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix p-a-1"> </div>
+                <div class="col-sm-3">
+                    <div class="card text-white bg-success  p-t-2 m-1">
+                        <div class="card-block card-title text-center">
+                            <h1 class="m-b-2"><i class="fa fa-terminal display-4"></i></h1>
+                            <h6 class="text-light">{{ .data.stats.ProcessQue}} Process Que </h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="card text-white bg-danger p-t-2 m-1" >
+                        <div class="card-block card-title text-center" >
+                            <h1 class="m-b-2"><i class="fa fa-eye display-4"></i></h1>
+                            <h6 class="text-light">{{ .data.stats.ViewCount}} Views Count</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr/>
+            <h3>Maintenance Operations </h3>
+            <div class="col-lg-12" style="margin-top: 20px">
+                <div class="row">
+                    <div class=" col-sm-4" style="margin-bottom: 5px">
+                            <button class="btn btn-block btn-primary" data-toggle="modal" data-target="#scanDialog"><i class="fa fa-refresh "></i> Rescan Images</button>
+                     </div>
+                    <div class=" col-sm-4" style="margin-bottom: 5px">
+                            <button class="btn btn-block btn-warning"  data-toggle="modal" data-target="#cacheDialog"><i class="fa fa-trash"></i> Clear Cache Images</button>
+                    </div>
+                    <div class=" col-sm-4" style="margin-bottom: 5px">
+                            <button class="btn btn-block btn-danger"  data-toggle="modal" data-target="#purgeDialog"><i class="fa fa-exclamation-triangle"></i> Purge Gallery </button>
+                    </div>
+                </div>
+                <hr/>
+                <h3>Settings</h3>
+                <div class="row " style="margin-top: 20px">
+                <div class="col-sm-12 table-responsive">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td colspan="2" class="table-heading"><strong>Server</strong></td>
+                                </tr>
+                                {{ range $jkey, $jvalue := .data.Server }}
+                                    <tr>
+                                        <td> <strong>{{ $jkey }}</strong> </td>
+                                        <td >{{ $jvalue }} </td>
+                                    </tr>
+                                {{ end }}
+                                <tr>
+                                    <td colspan="2" class="table-heading"><strong>Database</strong></td>
+                                </tr>
+                                {{ range $jkey, $jvalue := .data.Database }}
+                                    <tr>
+                                        <td> <strong>{{ $jkey }}</strong> </td>
+                                        <td >{{ $jvalue }} </td>
+                                    </tr>
+                                {{ end }}
+                                <tr>
+                                    <td colspan="2" class="table-heading"><strong>Gallery</strong></td>
+                                </tr>
+                                {{ range $jkey, $jvalue := .data.Gallery }}
+                                    <tr>
+                                        <td> <strong>{{ $jkey }}</strong> </td>
+                                        <td >{{ $jvalue }} </td>
+                                    </tr>
+                                {{ end }}
+                                <tr>
+                                    <td colspan="2" class="table-heading"><strong>About</strong></td>
+                                </tr>
+                                {{ range $jkey, $jvalue := .data.About }}
+                                    <tr>
+                                        <td> <strong>{{ $jkey }}</strong> </td>
+                                        <td >{{ $jvalue }} </td>
+                                    </tr>
+                                {{ end }}
+                            </table>
+                    </div>
+                </div>
+            </div>
+            <hr/>
+        </main>
+    <!-- Modals -->
+    <div class="modal fade alert-dark" id="scanDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Are you sure?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"  style="width: 50%; margin: 0px 10px;" >Cancel</button>
+                    <a href="/admin/scan" type="button" class="btn btn-primary" style="width: 50%; margin: 0px 10px;">Yes Rescan</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade alert-warning" id="cacheDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Are you sure?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"  style="width: 50%; margin: 0px 10px;" >Cancel</button>
+                    <a href="/admin/clear" type="button" class="btn btn-warning" style="width: 50%; margin: 0px 10px;"><i class="fa fa-trash"></i> Yes Clear </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade alert-danger" id="purgeDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Are you sure?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"  style="width: 50%; margin: 0px 10px;" >Cancel</button>
+                    <a href="/admin/purge" class="btn btn-danger" style="width: 50%; margin: 0px 10px;"> <i class="fa fa-exclamation-triangle"></i> Yes Purge </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{template "footer" .}}
+
+
+    </body>
+</html>
+{{end}}

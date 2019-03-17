@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/robrotheram/gogallery/config"
 	"log"
 	"os"
 	"path/filepath"
@@ -50,9 +49,9 @@ func getIconList() (icons []icon) {
 
 func makeManifest() *manifest {
 	return &manifest{
-		config.Config.Gallery.Name,
-		config.Config.Gallery.Name,
-		config.Config.Gallery.Url,
+		config.Gallery.Name,
+		config.Gallery.Name,
+		config.Gallery.Url,
 		"standalone",
 		"#3E4EB8",
 		"#2F3BA2",

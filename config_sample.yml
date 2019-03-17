@@ -1,0 +1,32 @@
+database:
+  baseurl: "/tmp/gallery/"
+
+server:
+  port: ":8800"
+  workers: 5
+
+gallery:
+  name: "Gallery"
+  imagesPerPage: 50
+  basepath: "/home/user/pictures/test"
+  url:      "https://your.url.here"
+  theme:    "default"
+
+about:
+  enable: false
+  photographer: "Joe Blogs"
+  backgroundPhoto: "/img/galleryimagename"
+  profilePhoto: "url to profile e.g gravatar"
+  twitter: "@twitter"
+  facebook: "facebook_username"
+  instagram: "instagram_username"
+  email: "me@example.com"
+  blog: "https://blog.example.com"
+  website: "https://example.com"
+  description: "Hello there, here is my gallery containing a number of photos from a number of years"
+  footer: "Photos ©photographer"
+
+admin:
+  enable: false
+  username: admin
+  password: <<GENERATED PASSWORD>>

@@ -1,3 +1,5 @@
 .idea
 vendor
 cache
+config.yml
+gogallery

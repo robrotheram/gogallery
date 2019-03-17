@@ -2,7 +2,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/robrotheram/gogallery/config"
+	"github.com/fatih/structs"
 	"github.com/robrotheram/gogallery/datastore"
 	"html/template"
 	"net/http"
@@ -12,22 +12,31 @@ import (
 type M map[string]interface{}
 
 func themePath() string {
-	return fmt.Sprintf("themes/%s/", config.Config.Gallery.Theme)
+	return fmt.Sprintf("themes/%s/", config.Gallery.Theme)
 }
 func templates() *template.Template {
 	return template.Must(template.ParseGlob(themePath() + "templates/*"))
 }
 func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[string]interface{} {
+
 	model := M{
-		"name":         config.Config.Gallery.Name,
-		"site":         config.Config.Gallery.Url,
-		"twitter":      config.Config.Gallery.Twitter,
-		"facebook":     config.Config.Gallery.Facebook,
-		"email":        config.Config.Gallery.Email,
-		"photographer": config.Config.Gallery.Photographer,
-		"about":        template.HTML(config.Config.Gallery.About),
-		"footer":       template.HTML(config.Config.Gallery.Footer),
-		"data":         data}
+		"name": config.Gallery.Name,
+		"site": config.Gallery.Url,
+		"about": M{
+			"enable":       config.About.Enable,
+			"twitter":      config.About.Twitter,
+			"blog":         config.About.Blog,
+			"website":      config.About.Website,
+			"facebook":     config.About.Facebook,
+			"email":        config.About.Email,
+			"instagram":    config.About.Instagram,
+			"photographer": config.About.Photographer,
+			"photo":        config.About.BackgroundPhoto,
+			"profilePhoto": config.About.ProfilePhoto,
+			"footer":       template.HTML(config.About.Footer),
+		},
+		"data": data}
+
 	if image.Name != "" {
 		model["socialImage"] = image.Name
 	}
@@ -45,6 +54,13 @@ func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture) {
 	templates().ExecuteTemplate(w, tmpl, templateModel(data, datastore.Picture{}, -1))
 }
+
+func renderSettingsTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	results := structs.Map(config)
+	results["stats"] = structs.Map(data)
+	templates().ExecuteTemplate(w, tmpl, templateModel(results, datastore.Picture{}, -1))
+}
+
 func renderGalleryTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture, numOfPic int) {
 	templates().ExecuteTemplate(w, tmpl, templateModel(data, image, numOfPic))
 }
@@ -60,7 +76,7 @@ func CacheControlWrapper(h http.Handler) http.Handler {
 }
 
 func maxPages(x []datastore.Picture) int {
-	size := config.Config.Gallery.ImagesPerPage
+	size := config.Gallery.ImagesPerPage
 	if len(x) < size {
 		return 0
 	}
@@ -68,8 +84,6 @@ func maxPages(x []datastore.Picture) int {
 	if len(x)%size > 0 {
 		page++
 	}
-	page++
-
 	return page
 }
 

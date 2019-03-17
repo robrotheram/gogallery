@@ -39,6 +39,14 @@
         </div>
     </main>
     {{end}}
+    <footer class="text-muted" style="background-color: white">
+        <div class="container">
+            <p class="float-right">
+                <a href="#" onclick="topFunction()">Back to top</a>
+            </p>
+            <p>{{.about.footer}}</p>
+        </div>
+    </footer>
     {{template "gallery" .}}
     {{template "footer" .}}
     </body>

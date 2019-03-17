@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/dgraph-io/badger"
+	"github.com/prometheus/common/log"
 	"time"
 )
 
@@ -46,7 +47,10 @@ type albumDataStore struct {
 }
 
 func (uDs *albumDataStore) Close() {
-	uDs.db.Close()
+	err := uDs.db.Close()
+	if err != nil {
+		log.Info("Error closing DB")
+	}
 }
 func (u albumDataStore) New() *albumDataStore {
 	u = albumDataStore{}
@@ -56,6 +60,19 @@ func (u albumDataStore) New() *albumDataStore {
 
 func (u *albumDataStore) Initialize() {
 	u.db = createDatastore("album")
+}
+func (u *albumDataStore) DeleteAll() {
+	u.db.Update(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			log.Info("Deleteing Key:" + string(item.Key()))
+			txn.Delete(item.Key())
+		}
+		return nil
+	})
 }
 
 func (uDs *albumDataStore) Save(u interface{}) error {
@@ -168,22 +185,4 @@ func (uDs *albumDataStore) Query(field string, val interface{}, limit int) (inte
 		return nil
 	})
 	return albums, err
-}
-
-func BuildTree(albums []Album) (root *Directory) {
-	var nodeTable = map[string]*Directory{}
-	for _, album := range albums {
-		nodeTable[album.Name] = &Directory{album, []*Directory{}}
-	}
-	for _, node := range nodeTable {
-		parent, exists := nodeTable[node.Album.Parent]
-		if !exists { // If a parent does not exist, this is the root.
-			root = node
-		} else {
-			parent.Children = append(parent.Children, node)
-			//Cache.Tables("ALBUM").Save(Album{path, node.Info.Name, node.Info.ModTime, parent.Info.Name})
-
-		}
-	}
-	return
 }

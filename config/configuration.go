@@ -1,20 +1,47 @@
 package config
 
-import (
-	"crypto/md5"
-	"encoding/hex"
-)
-
 type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
+	About    AboutConfiguration
 	Gallery  GalleryConfiguration
+	Admin    AdminConfiguration
 }
 
-var Config Configuration
+type DatabaseConfiguration struct {
+	Baseurl string
+}
 
-func GetMD5Hash(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
+type ServerConfiguration struct {
+	Port    string
+	Workers int
+}
+
+type GalleryConfiguration struct {
+	Name          string
+	Basepath      string
+	Url           string
+	Theme         string
+	ImagesPerPage int
+}
+
+type AboutConfiguration struct {
+	Enable          bool
+	Twitter         string
+	Facebook        string
+	Email           string
+	Instagram       string
+	Description     string
+	Footer          string
+	Photographer    string
+	ProfilePhoto    string
+	BackgroundPhoto string
+	Blog            string
+	Website         string
+}
+
+type AdminConfiguration struct {
+	Enable   bool
+	Username string
+	Password string
 }
