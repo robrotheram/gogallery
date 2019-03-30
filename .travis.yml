@@ -31,7 +31,7 @@ before_deploy:
       if [ "$GOOS" = "windows" ]; then
         zip gogallery-${GOOS}-${GOARCH}.zip gogallery
       else
-        tar cvzf gogallery-${GOOS}-${GOARCH}.tgz gogallery config.yml themes
+        tar cvzf gogallery-${GOOS}-${GOARCH}.tgz gogallery config_sample.yml themes
       fi
     done
   - ls
