@@ -238,8 +238,7 @@
   revision = "af7bedc223fba51343f25a6fa7aba84355d0357a"
 
 [[projects]]
-  branch = "go1"
-  digest = "1:edeb1a1334568a7b976d6968ce7e14b6ba2af19e693221d80f8d9f893a85df79"
+  digest = "1:af16004ff01450a8ceced637b81f167e21eb9b550821e29352da5cd641e18d6b"
   name = "github.com/rwcarlsen/goexif"
   packages = [
     "exif",
@@ -247,7 +246,8 @@
     "tiff",
   ]
   pruneopts = "UT"
-  revision = "76e3344f7516fa8f63642386fd1d6a91daac87c5"
+  revision = "b1fd11e07dc5bc0d2ca3b79d28cbdf3c6d186247"
+  source = "github.com/rwcarlsen/goexif/mknote"
 
 [[projects]]
   digest = "1:e4c72127d910a96daf869a44f3dd563b86dbe6931a172863a0e99c5ff04b59e4"
@@ -353,7 +353,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:21617d33bfd31a61af54dfbd05250009a7c4456e4f62942b08d4f07d51a1eef7"
+  digest = "1:98b5c61a440c27b5ee7c4c0694484882654690e95f3812f160be8afbd79bc24b"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -367,7 +367,7 @@
     "internal/semver",
   ]
   pruneopts = "UT"
-  revision = "1cd2f21070ecb547260f77e509ce60906a51b4ca"
+  revision = "aef51cc3777c6a88d6834b42444edffdac4860fa"
 
 [[projects]]
   digest = "1:c06d9e11d955af78ac3bbb26bd02e01d2f61f689e1a3bce2ef6fb683ef8a7f2d"

@@ -24,6 +24,14 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[constraint]]
+   name = "github.com/rwcarlsen/goexif"
+   source = "github.com/rwcarlsen/goexif/exif"
+
+[[override]]
+   name = "github.com/rwcarlsen/goexif"
+   source = "github.com/rwcarlsen/goexif/mknote"
+   revision = "b1fd11e07dc5bc0d2ca3b79d28cbdf3c6d186247"
 
 [prune]
   go-tests = true
