@@ -30,11 +30,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:56b6b5d7bb076750d47a60b07ab9962f4d8c32c27d0e9e113593526c3e8c4437"
+  digest = "1:6b3d10a2121486de00ad96b4b6c89f5c72be527a494981ca619d870694adbe25"
   name = "github.com/araddon/dateparse"
   packages = ["."]
   pruneopts = "UT"
-  revision = "262228af701ebf3932b8b8488da6781b9d585c88"
+  revision = "74dc0e29b01ffe39f7eac02f22b80260d0645e24"
 
 [[projects]]
   branch = "master"
@@ -61,11 +61,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ea678afd6431e09f84a56fc6915ccab9189ddd1379fed997e1433ead9586c50b"
+  digest = "1:4f8b6d3cfd2ac1813bddcfee3b954fc5c0315e3917d8b3879d2e1cd09f9a3692"
   name = "github.com/dgryski/go-farm"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3adb47b1fb0f6d9efcc5051a6c62e2e413ac85a9"
+  revision = "8198c7b169ec28630587aded52777c5e10a037c2"
 
 [[projects]]
   digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
@@ -152,6 +152,28 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:5d801c2fc18fba33f854e0310ad9283077f1f0db4fd558f75a7cdc0142cf8ab2"
+  name = "github.com/mmcloughlin/avo"
+  packages = [
+    "attr",
+    "build",
+    "buildtags",
+    "gotypes",
+    "internal/prnt",
+    "internal/stack",
+    "ir",
+    "operand",
+    "pass",
+    "printer",
+    "reg",
+    "src",
+    "x86",
+  ]
+  pruneopts = "UT"
+  revision = "7a0eb66183daac7566e9a52ee83c2c9359577f6a"
+
+[[projects]]
+  branch = "master"
   digest = "1:34534b73e925d20cc72cf202f8b482fdcbe3a1b113e19375f31aadabd0f0f97d"
   name = "github.com/nfnt/resize"
   packages = ["."]
@@ -209,21 +231,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0573a48c92e778ad732779bf1e5064a5085ab3fbd236ad71e53cab5753ef3e6e"
+  digest = "1:f806b417865e83457c3659232926203f5b0d39aa741b71d9e3e4c0c774e71a5c"
   name = "github.com/prometheus/procfs"
-  packages = [
-    ".",
-    "internal/util",
-    "iostats",
-    "nfs",
-    "xfs",
-  ]
+  packages = ["."]
   pruneopts = "UT"
-  revision = "e56f2e22fc761e82a34aca553f6725e2aff4fe6c"
+  revision = "af7bedc223fba51343f25a6fa7aba84355d0357a"
 
 [[projects]]
   branch = "go1"
-  digest = "1:af16004ff01450a8ceced637b81f167e21eb9b550821e29352da5cd641e18d6b"
+  digest = "1:edeb1a1334568a7b976d6968ce7e14b6ba2af19e693221d80f8d9f893a85df79"
   name = "github.com/rwcarlsen/goexif"
   packages = [
     "exif",
@@ -231,7 +247,7 @@
     "tiff",
   ]
   pruneopts = "UT"
-  revision = "b1fd11e07dc5bc0d2ca3b79d28cbdf3c6d186247"
+  revision = "76e3344f7516fa8f63642386fd1d6a91daac87c5"
 
 [[projects]]
   digest = "1:e4c72127d910a96daf869a44f3dd563b86dbe6931a172863a0e99c5ff04b59e4"
@@ -242,15 +258,15 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
+  digest = "1:bb495ec276ab82d3dd08504bbc0594a65de8c3b22c6f2aaa92d05b73fbf3a82e"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
-  version = "v1.2.1"
+  revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "1:08d65904057412fc0270fc4812a1c90c594186819243160dc779a402d4b6d0bc"
@@ -286,7 +302,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c75a1e88c2b1e0361102c133f2690fd1fd5ab5da829f60a9c2dd20b9c224c71"
+  digest = "1:b7cda6bf367836ce3675325f6f7aec675af1ff2fde841524800f499a1acf0ee2"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -294,7 +310,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
@@ -305,11 +321,11 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
+  revision = "74de082e2cca95839e88aa0aeee5aadf6ce7710f"
 
 [[projects]]
   branch = "master"
-  digest = "1:61e09472d99fa67f51975b9697f95ac5bed7caca01a9b7597ee35b4de78e8777"
+  digest = "1:586d127926ad1017a5a28632ea2f9664cc26159812868f600978508b712a68a1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -318,7 +334,7 @@
     "windows/svc/eventlog",
   ]
   pruneopts = "UT"
-  revision = "a2f829d7f35f2ed1c3520c553a6226495455cae0"
+  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -334,6 +350,24 @@
   pruneopts = "UT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:21617d33bfd31a61af54dfbd05250009a7c4456e4f62942b08d4f07d51a1eef7"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/gcexportdata",
+    "go/internal/gcimporter",
+    "go/internal/packagesdriver",
+    "go/packages",
+    "go/types/typeutil",
+    "internal/fastwalk",
+    "internal/gopathwalk",
+    "internal/semver",
+  ]
+  pruneopts = "UT"
+  revision = "1cd2f21070ecb547260f77e509ce60906a51b4ca"
 
 [[projects]]
   digest = "1:c06d9e11d955af78ac3bbb26bd02e01d2f61f689e1a3bce2ef6fb683ef8a7f2d"
