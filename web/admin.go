@@ -2,13 +2,14 @@ package web
 
 import (
 	"crypto/subtle"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/robrotheram/gogallery/datastore"
 	"github.com/robrotheram/gogallery/worker"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 type Stats struct {
@@ -73,7 +74,7 @@ func BasicAuth(handler http.HandlerFunc) http.HandlerFunc {
 func scanTask(w http.ResponseWriter, r *http.Request) {
 	log.Info("Scanning for new images")
 	go func() {
-		datastore.ScanPath(config.Gallery.Basepath)
+		datastore.ScanPath(config.Gallery.Basepath, &config.Gallery)
 	}()
 	http.Redirect(w, r, "/admin", http.StatusTemporaryRedirect)
 }

@@ -2,11 +2,13 @@ package web
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	galleryConfig "github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
-	"log"
-	"net/http"
 )
 
 var ViewCount = 0
@@ -16,6 +18,7 @@ func Serve(conf *galleryConfig.Configuration) {
 	config = conf
 	r := mux.NewRouter()
 	r.HandleFunc("/albums", renderAlbum)
+	r.HandleFunc("/album/pic/{picture}", renderAlbumPicturePage)
 	r.HandleFunc("/album/{name}", renderAlbumPage)
 	r.HandleFunc("/album/{name}/{page}", renderAlbumPagination)
 	r.HandleFunc("/pic/{picture}", renderPicturePage)
@@ -28,7 +31,7 @@ func Serve(conf *galleryConfig.Configuration) {
 		json.NewEncoder(w).Encode(makeManifest())
 	})
 	r.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/"+themePath()+"static/js/sw.js")
+		http.ServeFile(w, r, themePath()+"static/js/sw.js")
 	})
 
 	if config.About.Enable {
@@ -43,5 +46,5 @@ func Serve(conf *galleryConfig.Configuration) {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", CacheControlWrapper(http.FileServer(http.Dir(themePath()+"static")))))
 
 	log.Println("Starting server on port" + config.Server.Port)
-	log.Fatal(http.ListenAndServe(config.Server.Port, r))
+	log.Fatal(http.ListenAndServe(config.Server.Port, handlers.CompressHandler(r)))
 }

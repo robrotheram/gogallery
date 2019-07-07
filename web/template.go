@@ -2,11 +2,12 @@ package web
 
 import (
 	"fmt"
-	"github.com/fatih/structs"
-	"github.com/robrotheram/gogallery/datastore"
 	"html/template"
 	"net/http"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/robrotheram/gogallery/datastore"
 )
 
 type M map[string]interface{}
@@ -31,6 +32,7 @@ func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[
 			"email":        config.About.Email,
 			"instagram":    config.About.Instagram,
 			"photographer": config.About.Photographer,
+			"description":  config.About.Description,
 			"photo":        config.About.BackgroundPhoto,
 			"profilePhoto": config.About.ProfilePhoto,
 			"footer":       template.HTML(config.About.Footer),

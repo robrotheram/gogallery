@@ -1,6 +1,5 @@
 {{define "aboutPage"}}
     <!DOCTYPE HTML>
-    <html>
     {{template "head" .}}
     <body>
     {{template "header" .}}
@@ -15,7 +14,7 @@
     <main role="main">
         <style>
             .hero-bg{
-                background-image:url("{{.about.photo}}");
+                background-image:url("/thumb/{{.about.photo}}/large");
                 z-index: -1;
             }
         </style>

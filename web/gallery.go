@@ -2,13 +2,14 @@ package web
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/robrotheram/gogallery/datastore"
-	"github.com/robrotheram/gogallery/worker"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/robrotheram/gogallery/datastore"
+	"github.com/robrotheram/gogallery/worker"
 )
 
 func renderAlbum(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +92,7 @@ func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
 	renderGalleryTemplate(w, "albumPage", album, album.Images[0], 1)
 }
 
-func renderPicturePage(w http.ResponseWriter, r *http.Request) {
+func renderAlbumPicturePage(w http.ResponseWriter, r *http.Request) {
 	ViewCount++
 	vars := mux.Vars(r)
 	name := vars["picture"]
@@ -107,6 +108,47 @@ func renderPicturePage(w http.ResponseWriter, r *http.Request) {
 
 	/*Find next and previous picture*/
 	pics, err = datastore.Cache.Tables("PICTURE").Query("Album", picture.Album, 0)
+	pictures := pics.([]datastore.Picture)
+	sort.Slice(pictures, func(i, j int) bool {
+		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
+	})
+
+	var nextPic, prePic *datastore.Picture
+	for i := range pictures {
+		if pictures[i].Name == name {
+			if i+1 < len(pictures) {
+				nextPic = &pictures[i+1]
+			}
+			if i != 0 {
+				prePic = &pictures[i-1]
+			}
+			break
+		}
+	}
+
+	model := templateModel(picture, picture, -1)
+	model["prePic"] = prePic
+	model["nextPic"] = nextPic
+	model["picture"] = picture
+	templates().ExecuteTemplate(w, "albumPicturePage", model)
+}
+
+func renderPicturePage(w http.ResponseWriter, r *http.Request) {
+	ViewCount++
+	vars := mux.Vars(r)
+	name := vars["picture"]
+	pics, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
+	if err != nil {
+		return
+	}
+	if len(pics.([]datastore.Picture)) == 0 {
+		return
+	}
+	picture := pics.([]datastore.Picture)[0]
+	picture.FormatTime = picture.Exif.DateTaken.Format("01-02-2006 15:04:05")
+
+	/*Find next and previous picture*/
+	pics, err = datastore.Cache.Tables("PICTURE").GetAll()
 	pictures := pics.([]datastore.Picture)
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0

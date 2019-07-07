@@ -1,11 +1,12 @@
 package datastore
 
 import (
-	"github.com/dgraph-io/badger"
-	galleryConfig "github.com/robrotheram/gogallery/config"
 	"log"
 	"os"
 	"reflect"
+
+	"github.com/dgraph-io/badger"
+	galleryConfig "github.com/robrotheram/gogallery/config"
 )
 
 type DataStore struct {

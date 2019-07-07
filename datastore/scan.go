@@ -1,15 +1,20 @@
 package datastore
 
 import (
-	"github.com/robrotheram/gogallery/worker"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	Config "github.com/robrotheram/gogallery/config"
+	"github.com/robrotheram/gogallery/worker"
 )
 
 var validExtension = []string{"jpg", "png", "gif"}
+var gConfig *Config.GalleryConfiguration
+
+//albumInBlacklist []string
 
 // FileInfo is a struct created from os.FileInfo interface for serialization.
 type FileInfo struct {
@@ -62,8 +67,26 @@ func RemoveContents(dir string) error {
 	return nil
 }
 
-func ScanPath(path string) (map[string]*Node, error) {
+func IsAlbumInBlacklist(album string) bool {
+	for _, n := range gConfig.AlbumBlacklist {
+		if strings.EqualFold(album, n) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsPictureInBlacklist(pic string) bool {
+	for _, n := range gConfig.PictureBlacklist {
+		if strings.EqualFold(pic, n) {
+			return true
+		}
+	}
+	return false
+}
+func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*Node, error) {
 	log.Println("Scanning Folders at:" + path)
+	gConfig = g_config
 	absRoot, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -74,31 +97,37 @@ func ScanPath(path string) (map[string]*Node, error) {
 			return err
 		}
 		if checkEXT(path) && !info.IsDir() {
-			p := Picture{
-				Id:    path,
-				Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
-				Path:  path,
-				Album: filepath.Base(filepath.Dir(path)),
-				Exif:  Exif{}}
-			p.CreateExif()
-			Cache.Tables("PICTURE").Save(p)
+			albumName := filepath.Base(filepath.Dir(path))
+			picName := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
+			if !IsAlbumInBlacklist(albumName) && !IsPictureInBlacklist(picName) {
+				p := Picture{
+					Id:    path,
+					Name:  picName,
+					Path:  path,
+					Album: albumName,
+					Exif:  Exif{}}
+				p.CreateExif()
+				Cache.Tables("PICTURE").Save(p)
 
-			a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
-			album := a.(Album)
-			if album.ProfileIMG == nil {
-				album.ProfileIMG = &p
-				Cache.Tables("ALBUM").Edit(album)
+				a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
+				album := a.(Album)
+				if album.ProfileIMG == nil {
+					album.ProfileIMG = &p
+					Cache.Tables("ALBUM").Edit(album)
+				}
+				worker.ThumbnailChan <- path
 			}
-			worker.ThumbnailChan <- path
 		}
 
 		if info.IsDir() {
-			info := fileInfoFromInterface(info)
-			Cache.Tables("ALBUM").Save(Album{
-				Id:      path,
-				Name:    info.Name,
-				ModTime: info.ModTime,
-				Parent:  filepath.Base(filepath.Dir(path))})
+			if !IsAlbumInBlacklist(info.Name()) {
+				info := fileInfoFromInterface(info)
+				Cache.Tables("ALBUM").Save(Album{
+					Id:      path,
+					Name:    info.Name,
+					ModTime: info.ModTime,
+					Parent:  filepath.Base(filepath.Dir(path))})
+			}
 		}
 		return nil
 	}
@@ -108,7 +137,7 @@ func ScanPath(path string) (map[string]*Node, error) {
 
 func NewTree(path string) (result *Node, err error) {
 	var root = &Node{}
-	paths, err := ScanPath(path)
+	paths, err := ScanPath(path, nil)
 	if err != nil {
 		return nil, err
 	}

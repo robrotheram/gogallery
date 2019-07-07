@@ -1,6 +1,5 @@
 {{define "albumPage"}}
     <!DOCTYPE HTML>
-    <html>
     {{template "head" .}}
     <body>
     {{template "header" .}}
@@ -9,7 +8,7 @@
     <main role="main">
         <style>
             .hero-bg{
-                background-image:url("/img/{{.ProfileIMG.Name}}");
+                background-image:url("/thumb/{{.ProfileIMG.Name}}/large");
                 z-index: -1;
             }
         </style>
@@ -24,7 +23,7 @@
                 <div class="image-grid__gutter-sizer"></div>
                 {{range .Images}}
                     <div class="image-grid__item">
-                        <a href="/pic/{{.Name}}"> <img class="image-grid__image card-1" src="/thumb/{{.Name}}"></a>
+                        <a href="/album/pic/{{.Name}}"> <img class="image-grid__image card-1" src="/thumb/{{.Name}}"></a>
                     </div>
                 {{end}}
             </div>

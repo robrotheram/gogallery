@@ -18,11 +18,13 @@ type ServerConfiguration struct {
 }
 
 type GalleryConfiguration struct {
-	Name          string
-	Basepath      string
-	Url           string
-	Theme         string
-	ImagesPerPage int
+	Name             string
+	Basepath         string
+	Url              string
+	Theme            string
+	ImagesPerPage    int
+	AlbumBlacklist   []string
+	PictureBlacklist []string
 }
 
 type AboutConfiguration struct {

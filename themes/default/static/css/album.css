@@ -536,3 +536,12 @@ ul.icons li a:hover {
     background-color: #e5e5e5;
     color: #545050;
 }
+
+.navbar-toggler {
+    padding: .25rem .55rem;
+}
+
+.navbar-toggler-icon {
+    width: 1em;
+    height: 1em;
+}

@@ -1,4 +1,4 @@
-{{define "picturePage"}}
+{{define "albumPicturePage"}}
     <!DOCTYPE HTML>
     {{template "head" .}}
     <body>
@@ -6,11 +6,10 @@
 
     <div style="margin-top: 0px">
         {{ with .picture }}
-            <div id="gallery_single" class="img-container">
+            <div id="lg-share-demo" class="img-container">
                 <a id="galleryImage"
-
                         data-src="/img/{{.Name}}"
-                        href="">
+                        a href="">
                     <img src="/thumb/{{.Name}}/large">
                 </a>
             </div>
@@ -29,7 +28,7 @@
 
         <div class="gallery-nav">
             {{if .prePic}}
-                <a href="/pic/{{.prePic.Name}}" class="btn btn-outline-dark btn-circle">
+                <a href="/album/pic/{{.prePic.Name}}" class="btn btn-outline-dark btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
                         <path d="M4 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z" transform="translate(1)" style="fill:#FFF;" />
                     </svg>
@@ -38,7 +37,7 @@
                 <div></div>
             {{end}}
             {{if .nextPic}}
-                <a href="/pic/{{.nextPic.Name}}" class="btn btn-outline-dark btn-circle">
+                <a href="/album/pic/{{.nextPic.Name}}" class="btn btn-outline-dark btn-circle">
                     <svg width="20" height="20" viewBox="0 0 8 8">
                         <path d="M1.5 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z" transform="translate(1)"  style="fill:#FFF;"/>
                     </svg>
