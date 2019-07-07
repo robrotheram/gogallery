@@ -54,6 +54,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
+
+	if _, err := os.Stat(Config.Gallery.Basepath); os.IsNotExist(err) {
+		panic("GALLERY DIRECTORY NOT FOUND EXITING!")
+	}
+
 	worker.StartWorkers(Config.Server)
 	go setUpWatchers(Config.Gallery.Basepath)
 	datastore.Cache = datastore.NewDataStore(&Config.Database)

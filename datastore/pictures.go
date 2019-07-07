@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/araddon/dateparse"
 	"github.com/dgraph-io/badger"
 	"github.com/prometheus/common/log"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"github.com/rwcarlsen/goexif/tiff"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Exif struct {
@@ -216,7 +217,11 @@ func (uDs *pictureDataStore) GetAll() (interface{}, error) {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			data, err := item.Value()
+			var data []byte
+			err := item.Value(func(v []byte) error {
+				data = v
+				return nil
+			})
 			if err != nil {
 				return err
 			}
@@ -244,7 +249,11 @@ func (uDs *pictureDataStore) Query(field string, val interface{}, limit int) (in
 				return nil
 			}
 			item := it.Item()
-			data, err := item.Value()
+			var data []byte
+			err := item.Value(func(v []byte) error {
+				data = v
+				return nil
+			})
 			if err != nil {
 				return err
 			}
