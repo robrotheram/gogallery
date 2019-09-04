@@ -222,6 +222,7 @@ footer p {
     max-width: 100%;
     width: auto;
     height: auto;
+    cursor: pointer;
 }
 
 .img-container {
@@ -232,6 +233,16 @@ footer p {
     vertical-align:middle;
     text-align:center;
     background-color: #222222;
+
+    -webkit-transition: all 1000ms cubic-bezier(0.420, 0.000, 0.580, 1.000);
+    -moz-transition: all 1000ms cubic-bezier(0.420, 0.000, 0.580, 1.000);
+      -o-transition: all 1000ms cubic-bezier(0.420, 0.000, 0.580, 1.000);
+         transition: all 1000ms cubic-bezier(0.420, 0.000, 0.580, 1.000); /* ease-in-out */
+ 
+ -webkit-transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000);
+    -moz-transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000);
+      -o-transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000);
+         transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000); /* ease-in-out */
 }
 
 
@@ -545,3 +556,14 @@ ul.icons li a:hover {
     width: 1em;
     height: 1em;
 }
+
+.lightbox{
+    z-index: 999999;
+    position: fixed !important;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    height: 100%;
+}
+

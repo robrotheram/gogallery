@@ -4,8 +4,6 @@
     <script src="https://sachinchoolur.github.io/lightgallery.js/lightgallery/js/lightgallery.js"></script>
     <script src="https://sachinchoolur.github.io/lightgallery.js/lightgallery/js/lg-hash.js"></script>
     
-
-
     <script type="text/javascript">
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
@@ -21,11 +19,12 @@
     </script>
 
     <script type="text/javascript">
-        lightGallery(document.getElementById('gallery_single'));
-
-        function fullscreen() {
-            document.getElementById("galleryImage").click(); // Click on the checkbox
+       function showLightbox(){
+        var el = document.getElementById('gallery_single');
+        if(el) {
+            el.classList.toggle("lightbox");
         }
+       }
     </script>
 
 {{end}}

@@ -1,11 +1,15 @@
 package web
 
 import (
+	"bytes"
 	"crypto/subtle"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
+	"github.com/ahmdrz/goinsta/v2"
 	"github.com/fatih/structs"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -39,6 +43,8 @@ func registerAdmin(r *mux.Router) {
 		r.HandleFunc("/admin/IGLogin", BasicAuth(IGLogin))
 		r.HandleFunc("/admin/purge", BasicAuth(purgeTask))
 		r.HandleFunc("/admin/clear", BasicAuth(clearTask))
+		r.HandleFunc("/admin/backup", BasicAuth(backupTask))
+		r.HandleFunc("/admin/upload", BasicAuth(uploadTask))
 	}
 	r.Handle("/metrics", promhttp.Handler())
 }
@@ -146,6 +152,56 @@ func clearTask(w http.ResponseWriter, r *http.Request) {
 	log.Info(r.URL)
 	datastore.RemoveContents("cache")
 	http.Redirect(w, r, "/admin", http.StatusTemporaryRedirect)
+}
+
+type backup struct {
+	Albums    []datastore.Album   `json:"albums"`
+	Pictures  []datastore.Picture `json:"pictures"`
+	Instagram []goinsta.Item      `json:"instagram"`
+}
+
+func uploadTask(w http.ResponseWriter, r *http.Request) {
+	bk := backup{}
+	r.ParseMultipartForm(32 << 20)
+	file, _, err := r.FormFile("fileToUpload")
+	defer file.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		fmt.Println(err)
+		return
+	}
+	json.Unmarshal(buf.Bytes(), &bk)
+	for _, p := range bk.Pictures {
+		datastore.Cache.Tables("PICTURE").Save(p)
+	}
+	for _, a := range bk.Albums {
+		datastore.Cache.Tables("PICTURE").Save(a)
+	}
+	if config.IG.Enable {
+		for _, ig := range bk.Instagram {
+			datastore.IG.SavePost(ig)
+		}
+	}
+	http.Redirect(w, r, "/admin", http.StatusTemporaryRedirect)
+}
+
+func backupTask(w http.ResponseWriter, r *http.Request) {
+	bk := backup{}
+	pictures, _ := datastore.Cache.Tables("PICTURE").GetAll()
+	bk.Pictures = pictures.([]datastore.Picture)
+	albcache, _ := datastore.Cache.Tables("ALBUM").GetAll()
+	bk.Albums = albcache.([]datastore.Album)
+	if config.IG.Enable {
+		igCache, _ := datastore.IG.GetAllPosts()
+		bk.Instagram = igCache
+	}
+	w.Header().Set("Content-Disposition", "attachment; filename=Gallery-Backup.json")
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+	json.NewEncoder(w).Encode(bk)
 }
 
 func renderAdminPage(w http.ResponseWriter, r *http.Request) {

@@ -4,28 +4,34 @@
     <body>
     {{template "header" .}}
 
-    <div style="margin-top: 0px">
+    <div style="margin-top: 60px">
         {{ with .picture }}
             <div id="gallery_single" class="img-container">
-                <a id="galleryImage"
-
-                        data-src="/img/{{.Name}}"
-                        href="">
-                    <img src="/thumb/{{.Name}}/large">
-                </a>
+                    <img data-src="/img/{{.Name}}" src="/thumb/{{.Name}}/large" onclick="showLightbox()">
             </div>
+            <script>
+              function preloadImage(section) {
+                  var src = section.getAttribute('data-src');
+                  if (!src) { return; }
+                  if (section.tagName === 'IMG') {
+                      section.src =  src;
+                  } else {
+                      section.style.backgroundImage = 'url(' + src + ')';
+                  }
+              }
+              const config = { rootMargin: '0px 0px 50px 0px', threshold: 0 };
+              let observer = new IntersectionObserver(function(entries, self) {
+              entries.forEach(entry => {
+                  if(entry.isIntersecting) {
+                    preloadImage(entry.target);
+                    self.unobserve(entry.target);
+                  }
+              });
+              }, config);
+              const imgs = document.querySelectorAll('[data-src]');
+              imgs.forEach(img => {observer.observe(img); });
+            </script>
         {{ end }}
-
-        <a href="/album/{{.picture.Album}}" class="btn btn-outline-dark btn-circle" style="position: absolute; top: 75px; left: 10px">
-        <svg width="20" height="20" viewBox="0 0 12 16">
-            <path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z" style="fill: #FFF"/>
-        </svg>
-        </a>
-        <a  onclick="fullscreen()"  class="btn btn-outline-dark btn-circle" style="position: absolute; top: 75px; right: 10px">
-            <svg width="20" height="20"  viewBox="0 0 14 16">
-                <path fill-rule="evenodd" d="M13 10h1v3c0 .547-.453 1-1 1h-3v-1h3v-3zM1 10H0v3c0 .547.453 1 1 1h3v-1H1v-3zm0-7h3V2H1c-.547 0-1 .453-1 1v3h1V3zm1 1h10v8H2V4zm2 6h6V6H4v4zm6-8v1h3v3h1V3c0-.547-.453-1-1-1h-3z" style="fill:#FFF;"/>
-            </svg>
-        </a>
 
         <div class="gallery-nav">
             {{if .prePic}}

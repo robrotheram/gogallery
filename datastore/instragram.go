@@ -65,7 +65,7 @@ func (i *Instagram) UploadPhoto(path, caption string) error {
 	if uploadErr != nil {
 		return uploadErr
 	}
-	i.savePost(post)
+	i.SavePost(post)
 
 	return nil
 }
@@ -89,7 +89,7 @@ func (i *Instagram) SyncFrom() error {
 						fmt.Printf("Error Downloading from Instagram: %v", downloadERR)
 					} else {
 						fmt.Printf("Downloading Post ID : %s \n", item.ID)
-						i.savePost(item)
+						i.SavePost(item)
 						p := Picture{
 							Id:         i.GalleryPath + "/instagram/images/" + i.getImagePathName(item),
 							Name:       i.getImageName(item),
@@ -130,7 +130,7 @@ func (i *Instagram) SyncFrom() error {
 	return nil
 }
 
-func (i *Instagram) savePost(original goinsta.Item) error {
+func (i *Instagram) SavePost(original goinsta.Item) error {
 
 	err := i.db.Update(func(tx *badger.Txn) error {
 		return tx.Set([]byte(original.ID), serialize(original))
