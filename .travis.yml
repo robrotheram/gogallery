@@ -3,13 +3,15 @@ language: go
 go:
 - 1.11.x
 
+env:
+    global: 
+        - GO111MODULE=on
+
 go_import_path: github.com/robrotheram/gogallery
 
 sudo: false
 
-install:
-  - go get -u github.com/golang/dep/cmd/dep
-    && dep ensure -vendor-only -v
+install: true
 
 before_deploy:
   - PLATFORMS=(linux/386 linux/amd64 linux/arm)
