@@ -165,7 +165,11 @@ func (i *Instagram) GetAllPosts() ([]goinsta.Item, error) {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			data, err := item.Value()
+			var data []byte
+			err := item.Value(func(v []byte) error {
+				data = v
+				return nil
+			})
 			if err != nil {
 				return err
 			}

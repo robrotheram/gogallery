@@ -78,14 +78,10 @@ func (d DataStore) Tables(table string) DS {
 
 // Helper function
 func createDatastore(ds string) *badger.DB {
-	opts := badger.DefaultOptions
+
 	log.Println("DB location:" + config.Baseurl)
-	opts.Dir = config.Baseurl + ds
-	opts.ValueDir = config.Baseurl + ds
-
-	os.MkdirAll(opts.Dir, os.ModePerm)
-
-	db, err := badger.Open(opts)
+	os.MkdirAll(config.Baseurl+ds, os.ModePerm)
+	db, err := badger.Open(badger.DefaultOptions(config.Baseurl + ds))
 	if err != nil {
 		panic(err)
 	}

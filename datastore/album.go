@@ -143,7 +143,11 @@ func (uDs *albumDataStore) GetAll() (interface{}, error) {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			data, err := item.Value()
+			var data []byte
+			err := item.Value(func(v []byte) error {
+				data = v
+				return nil
+			})
 			if err != nil {
 				return err
 			}
@@ -171,7 +175,11 @@ func (uDs *albumDataStore) Query(field string, val interface{}, limit int) (inte
 				return nil
 			}
 			item := it.Item()
-			data, err := item.Value()
+			var data []byte
+			err := item.Value(func(v []byte) error {
+				data = v
+				return nil
+			})
 			if err != nil {
 				return err
 			}
