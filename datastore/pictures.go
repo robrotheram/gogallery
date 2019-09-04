@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/araddon/dateparse"
 	"github.com/dgraph-io/badger"
 	"github.com/prometheus/common/log"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"github.com/rwcarlsen/goexif/tiff"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Exif struct {
@@ -30,10 +31,12 @@ type Exif struct {
 type Picture struct {
 	Id         string `json:"id"`
 	Name       string `json:"name"`
+	Caption    string `json:"caption"`
 	Path       string `json:"path"`
 	FormatTime string `json:"format_time"`
 	Album      string `json:"album"`
 	Exif       Exif   `json:"exif"`
+	PostedToIG bool   `json:"posted_to_IG"`
 }
 
 func (u *Picture) serialize() []byte {

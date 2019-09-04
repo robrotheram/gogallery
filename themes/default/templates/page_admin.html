@@ -8,6 +8,11 @@
         .p-t-2 { padding-top: 1.5rem !important; }
         .a-b-50 {    position: absolute;    bottom: -50%;    left: 0;    right: 0;}
         .a-t-50 {    position: absolute;    top: -50%;    left: 0;    right: 0;}
+
+        .form-control { margin-top: 24px }
+        .form-group { margin-top: 28px }
+        .form-row {margin-top: 5px}
+
     </style>
 
     <main role="main" style="margin-top: 70px; padding: 10px;">
@@ -18,7 +23,7 @@
                     <div class="card bg-dark text-white p-t-2 m-1">
                         <div class="card-block card-title text-center">
                             <h1 class="m-b-2"><i class="fa fa-image display-4"></i></h1>
-                            <h6 class="text-light">{{ .data.stats.Photos}} Photos</h6>
+                            <h6 class="text-light">{{ .data.Stats.Photos}} Photos</h6>
                         </div>
                     </div>
                 </div>
@@ -26,7 +31,7 @@
                     <div class="card text-white bg-primary p-t-2 m-1">
                         <div class="card-block card-title text-center">
                             <h1 class="m-b-2"><i class="fa fa-folder-o  display-4"></i></h1>
-                            <h6 class="text-light">{{ .data.stats.Albums}} Albums</h6>
+                            <h6 class="text-light">{{ .data.Stats.Albums}} Albums</h6>
                         </div>
                     </div>
                 </div>
@@ -35,7 +40,7 @@
                     <div class="card text-white bg-success  p-t-2 m-1">
                         <div class="card-block card-title text-center">
                             <h1 class="m-b-2"><i class="fa fa-terminal display-4"></i></h1>
-                            <h6 class="text-light">{{ .data.stats.ProcessQue}} Process Que </h6>
+                            <h6 class="text-light">{{ .data.Stats.ProcessQue}} Process Que </h6>
                         </div>
                     </div>
                 </div>
@@ -43,7 +48,7 @@
                     <div class="card text-white bg-danger p-t-2 m-1" >
                         <div class="card-block card-title text-center" >
                             <h1 class="m-b-2"><i class="fa fa-eye display-4"></i></h1>
-                            <h6 class="text-light">{{ .data.stats.ViewCount}} Views Count</h6>
+                            <h6 class="text-light">{{ .data.Stats.ViewCount}} Views Count</h6>
                         </div>
                     </div>
                 </div>
@@ -64,49 +69,219 @@
                     </div>
                 </div>
                 <hr/>
-                <h3>Settings</h3>
-                <div class="row " style="margin-top: 20px">
-                <div class="col-sm-12 table-responsive">
-                            <table class="table table-bordered">
-                                <tr>
-                                    <td colspan="2" class="table-heading"><strong>Server</strong></td>
-                                </tr>
-                                {{ range $jkey, $jvalue := .data.Server }}
-                                    <tr>
-                                        <td> <strong>{{ $jkey }}</strong> </td>
-                                        <td >{{ $jvalue }} </td>
-                                    </tr>
-                                {{ end }}
-                                <tr>
-                                    <td colspan="2" class="table-heading"><strong>Database</strong></td>
-                                </tr>
-                                {{ range $jkey, $jvalue := .data.Database }}
-                                    <tr>
-                                        <td> <strong>{{ $jkey }}</strong> </td>
-                                        <td >{{ $jvalue }} </td>
-                                    </tr>
-                                {{ end }}
-                                <tr>
-                                    <td colspan="2" class="table-heading"><strong>Gallery</strong></td>
-                                </tr>
-                                {{ range $jkey, $jvalue := .data.Gallery }}
-                                    <tr>
-                                        <td> <strong>{{ $jkey }}</strong> </td>
-                                        <td >{{ $jvalue }} </td>
-                                    </tr>
-                                {{ end }}
-                                <tr>
-                                    <td colspan="2" class="table-heading"><strong>About</strong></td>
-                                </tr>
-                                {{ range $jkey, $jvalue := .data.About }}
-                                    <tr>
-                                        <td> <strong>{{ $jkey }}</strong> </td>
-                                        <td >{{ $jvalue }} </td>
-                                    </tr>
-                                {{ end }}
-                            </table>
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Home</a>
+                    </li>
+                   
+                    <li class="nav-item">
+                      <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
+                    </li>
+
+                    <li class="nav-item">
+                            <a class="nav-link" id="ig-tab" data-toggle="tab" href="#ig" role="tab" aria-controls="ig" aria-selected="false">Instagram Settings</a>
+                          </li>
+                  </ul>
+                  <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        <br/>
+
+                        <div id="accordion" role="tablist" aria-multiselectable="true">
+                            {{range .data.Albums}}
+                                {{if .ProfileIMG}}
+                                <div class="card">
+                                  <div class="card-header" role="tab" id="heading{{.Key}}">
+                                    <h5 class="mb-0">
+                                      <a data-toggle="collapse" data-parent="#accordion" href="#{{.Key}}" aria-expanded="true" aria-controls="{{.Key}}">
+                                        {{.Name}}
+                                      </a>
+                                    </h5>
+                                  </div>
+                              
+                                  <div id="{{.Key}}" class="collapse" role="tabpanel" aria-labelledby="heading{{.Key}}">
+                                    <div class="card-body">
+                                            {{range .Images}}
+                                            <form action="/admin/UpdateImage" method="POST">
+                                                <input type="hidden" name="id" value="{{.Id}}"/>
+                                                    <div class="form-row">
+                                                        <div class="col-1">
+                                                                <img data-src="/thumb/{{.Name}}" alt="..." class="img-thumbnail">
+                                                        </div>
+                                                    <div class="col">
+                                                        <input type="text" class="form-control" name="name" placeholder="Name" value="{{.Name}}">
+                                                    </div>
+                                                    <div class="col-7">
+                                                        <input type="text" class="form-control" name="caption" placeholder="Caption" value="{{.Caption}}" >
+                                                    </div>
+                                                    {{if $.data.IG.Enable }}
+                                                    <div class="col">
+                                                            <div class="form-group form-check">
+                                                                    <input type="checkbox" name="instagram" class="form-check-input" {{if .PostedToIG}} checked disabled {{end}} id="exampleCheck1">
+                                                                    <label class="form-check-label" for="exampleCheck1">Publish to Istagram</label>
+                                                                </div>
+                                                    </div>
+                                                    {{end}}
+                                                    <div class="col-1">
+                                                            <button type="submit" class="btn btn-primary form-control">Save</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                        {{end}}
+                                    </div>
+                                  </div>
+                                </div>
+                                {{end}}
+                                {{end}}
+                              </div>
+                              <script>
+                              document.addEventListener('submit', e => {
+   
+                                // Store reference to form to make later code easier to read
+                                const form = e.target;
+
+                                
+                                
+                                // Post data using the Fetch API
+                                fetch(form.action, {
+                                    method: form.method,
+                                    body: new FormData(form)
+                                })
+                                var elements = form.elements;
+                                for (var i = 0, len = elements.length; i < len; ++i) {
+                                    elements[i].readOnly = true;
+                                    elements[i].disabled = true;
+                                }
+                                // Prevent the default form submit
+                                e.preventDefault();
+                                
+                                });
+                              
+                             // create config object: rootMargin and threshold
+                            // are two properties exposed by the interface
+
+                            function preloadImage(section) {
+                                var src = section.getAttribute('data-src');
+                                if (!src) { return; }
+                                
+                                // If img tag change src, else add backgroundImage style
+                                if (section.tagName === 'IMG') {
+                                    section.src =  src;
+                                } else {
+                                    section.style.backgroundImage = 'url(' + src + ')';
+                                }
+                            }
+
+
+                            const config = {
+                            rootMargin: '0px 0px 50px 0px',
+                            threshold: 0
+                            };
+
+                            // register the config object with an instance
+                            // of intersectionObserver
+                            let observer = new IntersectionObserver(function(entries, self) {
+                            // iterate over each entry
+                            entries.forEach(entry => {
+                                // process just the images that are intersecting.
+                                // isIntersecting is a property exposed by the interface
+                                if(entry.isIntersecting) {
+                                // custom function that copies the path to the img
+                                // from data-src to src
+                                preloadImage(entry.target);
+                                // the image is now in place, stop watching
+                                self.unobserve(entry.target);
+                                }
+                            });
+                            }, config);
+
+                            const imgs = document.querySelectorAll('[data-src]');
+                            imgs.forEach(img => {
+                            observer.observe(img);
+                            });
+                              </script>
+
+
+
+
+
+
+
+
                     </div>
-                </div>
+                    <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">.
+                            
+                        {{with .data.Config}}
+                        <table class="table table-bordered">
+                            <tr>
+                                <td colspan="2" class="table-heading"><strong>Server</strong></td>
+                            </tr>
+                            {{ range $jkey, $jvalue := .Server }}
+                                <tr>
+                                    <td> <strong>{{ $jkey }}</strong> </td>
+                                    <td >{{ $jvalue }} </td>
+                                </tr>
+                            {{ end }}
+                            <tr>
+                                <td colspan="2" class="table-heading"><strong>Database</strong></td>
+                            </tr>
+                            {{ range $jkey, $jvalue := .Database }}
+                                <tr>
+                                    <td> <strong>{{ $jkey }}</strong> </td>
+                                    <td >{{ $jvalue }} </td>
+                                </tr>
+                            {{ end }}
+                            <tr>
+                                <td colspan="2" class="table-heading"><strong>Gallery</strong></td>
+                            </tr>
+                            {{ range $jkey, $jvalue := .Gallery }}
+                                <tr>
+                                    <td> <strong>{{ $jkey }}</strong> </td>
+                                    <td >{{ $jvalue }} </td>
+                                </tr>
+                            {{ end }}
+                            <tr>
+                                <td colspan="2" class="table-heading"><strong>About</strong></td>
+                            </tr>
+                            {{ range $jkey, $jvalue := .About }}
+                                <tr>
+                                    <td> <strong>{{ $jkey }}</strong> </td>
+                                    <td >{{ $jvalue }} </td>
+                                </tr>
+                            {{ end }}
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="tab-pane fade" id="ig" role="tabpanel" aria-labelledby="ig-tab">.
+                            <div class="card">
+                                    <div class="card-header">Login to instagram</div>
+                                    <div class="card-body">
+                                        <form action="/admin/IGLogin" method="POST">
+                                            <fieldset  {{if .data.IG.Enable }} disabled {{end}}>
+                                            <div class="form-group row">
+                                                <label for="email_address" class="col-md-4 col-form-label text-md-right">Usernamae:</label>
+                                                <div class="col-md-6">
+                                                    <input type="text" id="Usernamae" class="form-control" name="username" placeholder="usernamae" value="{{.data.IG.Username}}" required autofocus>
+                                                </div>
+                                            </div>
+                
+                                            <div class="form-group row">
+                                                <label for="password" class="col-md-4 col-form-label text-md-right">Password:</label>
+                                                <div class="col-md-6">
+                                                    <input type="password" id="password" class="form-control" name="password" placeholder="password" required>
+                                                </div>
+                                            </div>
+                
+                                            <div class="col-md-6 offset-md-4">
+                                                <button type="submit" class="btn btn-primary btn-block">
+                                                    Login
+                                                </button>
+                                            </div>
+                                    </div>
+                                </fieldset>
+                                    </form>
+                                </div>
+                            </div>
+                  </div>
             </div>
             <hr/>
         </main>

@@ -27,6 +27,7 @@ type DS interface {
 
 var config *galleryConfig.DatabaseConfiguration
 var Cache *DataStore
+var IG *Instagram
 
 func NewDataStore(conf *galleryConfig.DatabaseConfiguration) *DataStore {
 	config = conf

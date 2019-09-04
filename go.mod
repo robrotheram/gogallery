@@ -2,11 +2,13 @@ module github.com/robrotheram/gogallery
 
 require (
 	github.com/AndreasBriese/bbloom v0.0.0-20180913140656-343706a395b7
+	github.com/ahmdrz/goinsta/v2 v2.4.4
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/araddon/dateparse v0.0.0-20181123171228-21df004e09ca
 	github.com/dgraph-io/badger v1.5.4
 	github.com/dgryski/go-farm v0.0.0-20190104051053-3adb47b1fb0f
+	github.com/disintegration/imaging v1.6.1
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/golang/protobuf v1.2.0
@@ -24,6 +26,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a
 	github.com/rwcarlsen/goexif v0.0.0-20190107194617-b1fd11e07dc5
 	github.com/shirou/gopsutil v2.18.12+incompatible
+	github.com/simplereach/timeutils v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.0 // indirect
 	github.com/spf13/afero v1.2.1
 	github.com/spf13/cast v1.3.0
@@ -36,5 +39,6 @@ require (
 	golang.org/x/sys v0.0.0-20190130150945-aca44879d564
 	golang.org/x/text v0.3.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
+	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )

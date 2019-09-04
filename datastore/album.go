@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"time"
+
 	"github.com/dgraph-io/badger"
 	"github.com/prometheus/common/log"
-	"time"
 )
 
 type Album struct {
@@ -16,6 +17,7 @@ type Album struct {
 	Parent     string    `json:"parent"`
 	ProfileIMG *Picture  `json:"profile_image"`
 	Images     []Picture `json:"images"`
+	Key        string    `json:"key"`
 }
 
 type Directory struct {

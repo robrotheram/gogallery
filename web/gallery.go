@@ -166,7 +166,7 @@ func renderPicturePage(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-
+	fmt.Println(picture)
 	model := templateModel(picture, picture, -1)
 	model["prePic"] = prePic
 	model["nextPic"] = nextPic
@@ -194,7 +194,9 @@ func loadThumbnail(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		picArr := pic.([]datastore.Picture)
 		if len(picArr) == 0 {
+			fmt.Println("No Image Found:" + name)
 			return
+
 		}
 		cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picArr[0].Path))
 		if _, err := os.Stat(cachePath); err == nil {
@@ -203,7 +205,8 @@ func loadThumbnail(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, cachePath)
 			worker.MakeThumbnail(picArr[0].Path)
 		}
-
+	} else {
+		fmt.Println(err)
 	}
 }
 func loadLargeThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +235,7 @@ func renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	size := config.Gallery.ImagesPerPage
 
 	pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-	pictures := pics.([]datastore.Picture)
+	pictures := filterOutAlbum(pics.([]datastore.Picture), "instagram")
 
 	if len(pictures) == 0 {
 		http.Redirect(w, r, "/about", http.StatusTemporaryRedirect)
@@ -259,7 +262,7 @@ func renderIndexPaginationPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-	pictures := pics.([]datastore.Picture)
+	pictures := filterOutAlbum(pics.([]datastore.Picture), "instagram")
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})

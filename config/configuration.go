@@ -6,6 +6,7 @@ type Configuration struct {
 	About    AboutConfiguration
 	Gallery  GalleryConfiguration
 	Admin    AdminConfiguration
+	IG       InstagramConfiguration
 }
 
 type DatabaseConfiguration struct {
@@ -15,6 +16,13 @@ type DatabaseConfiguration struct {
 type ServerConfiguration struct {
 	Port    string
 	Workers int
+}
+
+type InstagramConfiguration struct {
+	Username string
+	Password string
+	Enable   bool
+	SyncRate int
 }
 
 type GalleryConfiguration struct {

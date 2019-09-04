@@ -68,6 +68,12 @@ func RemoveContents(dir string) error {
 }
 
 func IsAlbumInBlacklist(album string) bool {
+	if strings.EqualFold(album, "instagram") {
+		return true
+	}
+	if strings.EqualFold(album, "images") {
+		return true
+	}
 	for _, n := range gConfig.AlbumBlacklist {
 		if strings.EqualFold(album, n) {
 			return true
@@ -84,6 +90,14 @@ func IsPictureInBlacklist(pic string) bool {
 	}
 	return false
 }
+func doesPictureExist(p Picture) bool {
+	pics, err := Cache.Tables("PICTURE").Query("Id", p.Id, 0)
+	if err != nil {
+		return false
+	}
+	return len(pics.([]Picture)) > 0
+}
+
 func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*Node, error) {
 	log.Println("Scanning Folders at:" + path)
 	gConfig = g_config
@@ -107,7 +121,9 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 					Album: albumName,
 					Exif:  Exif{}}
 				p.CreateExif()
-				Cache.Tables("PICTURE").Save(p)
+				if !doesPictureExist(p) {
+					Cache.Tables("PICTURE").Save(p)
+				}
 
 				a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
 				album := a.(Album)
@@ -132,6 +148,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 		return nil
 	}
 	err = filepath.Walk(absRoot, walkFunc)
+	log.Println("Scanning Complete")
 	return parents, err
 }
 

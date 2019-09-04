@@ -4,14 +4,15 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/nfnt/resize"
-	galleryConfig "github.com/robrotheram/gogallery/config"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/nfnt/resize"
+	galleryConfig "github.com/robrotheram/gogallery/config"
 )
 
 var ThumbnailChan = make(chan string, 100)

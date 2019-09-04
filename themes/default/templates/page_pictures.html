@@ -52,6 +52,7 @@
     {{ with .picture }}
             <div class="col-12">
                 <h2 class="robotFont">{{.Name}}  <span class="badge badge-pill badge-light date-pill">{{.FormatTime}}</span> </h2>
+                <p>{{.Caption}}</p>
                 <table class="table" style="text-align: center; line-height: 50px; ">
                     <tbody>
                     {{if .Exif.Camera}}

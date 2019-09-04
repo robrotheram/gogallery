@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/robrotheram/gogallery/config"
@@ -47,6 +48,7 @@ func main() {
 	viper.SetEnvPrefix("GLLRY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
 	}
@@ -54,11 +56,27 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
+
 	worker.StartWorkers(Config.Server)
 	go setUpWatchers(Config.Gallery.Basepath)
 	datastore.Cache = datastore.NewDataStore(&Config.Database)
+
 	go func() {
 		datastore.ScanPath(Config.Gallery.Basepath, &Config.Gallery)
+	}()
+
+	go func() {
+		if Config.IG.SyncRate == 0 {
+			fmt.Println("Instagram Sync Cancled")
+			return
+		}
+		d := time.Duration(Config.IG.SyncRate) * time.Minute
+		for range time.Tick(d) {
+			if Config.IG.Enable {
+				fmt.Println("Running Task: Instagram Sync")
+				datastore.IG.SyncFrom()
+			}
+		}
 	}()
 
 	web.Serve(Config)

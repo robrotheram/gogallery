@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fatih/structs"
 	"github.com/robrotheram/gogallery/datastore"
 )
 
@@ -58,9 +57,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image 
 }
 
 func renderSettingsTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	results := structs.Map(config)
-	results["stats"] = structs.Map(data)
-	templates().ExecuteTemplate(w, tmpl, templateModel(results, datastore.Picture{}, -1))
+	templates().ExecuteTemplate(w, tmpl, templateModel(data, datastore.Picture{}, -1))
 }
 
 func renderGalleryTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture, numOfPic int) {
@@ -87,6 +84,16 @@ func maxPages(x []datastore.Picture) int {
 		page++
 	}
 	return page
+}
+
+func filterOutAlbum(pictures []datastore.Picture, album string) []datastore.Picture {
+	tmp := pictures[:0]
+	for _, p := range pictures {
+		if p.Album != album {
+			tmp = append(tmp, p)
+		}
+	}
+	return tmp
 }
 
 func paginate(x []datastore.Picture, skip int, size int) []datastore.Picture {
