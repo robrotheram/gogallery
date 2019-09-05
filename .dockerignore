@@ -1,0 +1,15 @@
+.git
+.gitignore
+.travis.yml
+Dockerfile
+go.*
+*.go
+LICENSE
+README.md
+.idea
+cache
+config
+datastore
+web
+WIP
+worker

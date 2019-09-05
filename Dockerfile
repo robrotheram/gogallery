@@ -1,8 +1,7 @@
 FROM ubuntu:latest
-
 MAINTAINER Robrotheram <robrotheram@gmail.com>
 
-
+RUN apt-get update; apt-get install -y ca-certificates;  update-ca-certificates
 
 # Copy the current directory contents into the container at /app
 COPY . /app

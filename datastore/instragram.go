@@ -38,6 +38,7 @@ func (i *Instagram) SetUpAlbum() {
 func (i *Instagram) Connect(username, password string) error {
 	insta := goinsta.New(username, password)
 	if err := insta.Login(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	i.insta = insta

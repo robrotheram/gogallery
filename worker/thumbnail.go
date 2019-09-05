@@ -10,12 +10,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/nfnt/resize"
-	galleryConfig "github.com/robrotheram/gogallery/config"
 )
 
-var ThumbnailChan = make(chan string, 100)
+var ThumbnailChan = make(chan string, 500)
 
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
@@ -78,8 +78,8 @@ func worker(id int, jobs <-chan string) {
 	}
 }
 
-func StartWorkers(conf galleryConfig.ServerConfiguration) {
-	for w := 1; w <= conf.Workers; w++ {
+func StartWorkers() {
+	for w := 1; w <= runtime.NumCPU(); w++ {
 		go worker(w, ThumbnailChan)
 	}
 }

@@ -61,7 +61,7 @@ func main() {
 		panic("GALLERY DIRECTORY NOT FOUND EXITING!")
 	}
 
-	worker.StartWorkers(Config.Server)
+	worker.StartWorkers()
 	go setUpWatchers(Config.Gallery.Basepath)
 	datastore.Cache = datastore.NewDataStore(&Config.Database)
 

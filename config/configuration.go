@@ -14,8 +14,7 @@ type DatabaseConfiguration struct {
 }
 
 type ServerConfiguration struct {
-	Port    string
-	Workers int
+	Port string
 }
 
 type InstagramConfiguration struct {

@@ -198,19 +198,19 @@
 
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                    <a class="nav-link active tab-link" id="home-tab" data-toggle="tab" href="#home" role="tab"
                         aria-controls="home" aria-selected="true">Edit Images</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="ig-tab" data-toggle="tab" href="#ig" role="tab" aria-controls="ig"
+                    <a class="nav-link tab-link" id="ig-tab" data-toggle="tab" href="#ig" role="tab" aria-controls="ig"
                         aria-selected="false">Instagram Settings</a>
                 </li>
                 <li class="nav-item">
-                        <a class="nav-link" id="maintenance-tab" data-toggle="tab" href="#maintenance" role="tab"
+                        <a class="nav-link tab-link" id="maintenance-tab" data-toggle="tab" href="#maintenance" role="tab"
                             aria-controls="maintenance" aria-selected="false">Maintenance</a>
                     </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
+                    <a class="nav-link tab-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
                         aria-controls="settings" aria-selected="false">Settings</a>
                 </li>
             </ul>
@@ -221,7 +221,7 @@
                     <div id="accordion" role="tablist" aria-multiselectable="true">
                         {{range .data.Albums}}
                         {{if .ProfileIMG}}
-                        <div class="card">
+                        <div class="card" style="margin: 10px">
                             <div class="card-header" role="tab" id="heading{{.Key}}">
                                 <h5 class="mb-0">
                                     <a data-toggle="collapse" data-parent="#accordion" href="#{{.Key}}"
@@ -238,7 +238,7 @@
                                         <input type="hidden" name="id" value="{{.Id}}" />
                                         <div class="form-row">
                                             <div class="col-1">
-                                                <img data-src="/thumb/{{.Name}}" alt="..." class="img-thumbnail">
+                                                <a href="/pic/{{.Name}}" target="_blank"><img data-src="/thumb/{{.Name}}" alt="..." class="img-thumbnail"></a>
                                             </div>
                                             <div class="col">
                                                 <input type="text" class="form-control" name="name" placeholder="Name"
@@ -429,7 +429,7 @@
                                                 <div class="form-label-group">
                                                     <input type="text" id="inputUserame" class="form-control"
                                                         name="username" placeholder="Username"
-                                                        value="{{.data.IG.Username}}" required autofocus>
+                                                        value="{{.data.IG.Username}}" required>
                                                     <label for="inputUserame">Username</label>
                                                 </div>
 
@@ -448,7 +448,7 @@
                         </div>
                     </div>
                 </div>
-                <hr />
+              
     </main>
     <!-- Modals -->
     <div class="modal fade alert-dark" id="scanDialog" tabindex="-1" role="dialog"

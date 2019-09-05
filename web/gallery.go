@@ -166,7 +166,6 @@ func renderPicturePage(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	fmt.Println(picture)
 	model := templateModel(picture, picture, -1)
 	model["prePic"] = prePic
 	model["nextPic"] = nextPic

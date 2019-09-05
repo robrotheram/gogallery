@@ -3,7 +3,6 @@ database:
 
 server:
   port: ":8800"
-  workers: 5
 
 gallery:
   name: "Gallery"
