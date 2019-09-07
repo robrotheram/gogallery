@@ -3,99 +3,74 @@ package datastore
 import (
 	"log"
 	"os"
-	"reflect"
+	"time"
 
-	"github.com/dgraph-io/badger"
-	galleryConfig "github.com/robrotheram/gogallery/config"
+	"github.com/ahmdrz/goinsta/v2"
+	"github.com/asdine/storm"
 )
 
+type Album struct {
+	Id         string    `json:"id" storm:"id"`
+	Name       string    `json:"name"`
+	ModTime    time.Time `json:"mod_time"`
+	Parent     string    `json:"parent"`
+	ProfileIMG *Picture  `json:"profile_image"`
+	Images     []Picture `json:"images"`
+	Key        string    `json:"key"`
+}
+
+type Directory struct {
+	Album    Album        `json:"album"`
+	Children []*Directory `json:"children"`
+}
+
+type Exif struct {
+	FStop        float64   `json:"f_stop"`
+	FocalLength  float64   `json:"focal_length"`
+	ShutterSpeed string    `json:"shutter_speed"`
+	ISO          string    `json:"iso"`
+	Dimension    string    `json:"dimension"`
+	Camera       string    `json:"camera"`
+	LensModel    string    `json: lens_model`
+	DateTaken    time.Time `json: date_taken`
+}
+
+type Picture struct {
+	Id         string `json:"id" storm:"id"`
+	Name       string `json:"name"`
+	Caption    string `json:"caption"`
+	Path       string `json:"path"`
+	FormatTime string `json:"format_time"`
+	Album      string `json:"album"`
+	Exif       Exif   `json:"exif"`
+	PostedToIG bool   `json:"posted_to_IG"`
+}
+
 type DataStore struct {
-	dataFactories map[string]DS
+	DB *storm.DB
 }
 
-type DS interface {
-	Close()
-	Initialize()
-	DeleteAll()
-	Get(id string) (interface{}, error)
-	Query(field string, val interface{}, limit int) (interface{}, error)
-	Edit(obj interface{}) error
-	Delete(obj interface{}) error
-	GetAll() (interface{}, error)
-	Save(obj interface{}) error
-}
-
-var config *galleryConfig.DatabaseConfiguration
 var Cache *DataStore
 var IG *Instagram
 
-func NewDataStore(conf *galleryConfig.DatabaseConfiguration) *DataStore {
-	config = conf
-	d := DataStore{}
-	d.dataFactories = make(map[string]DS)
-	d.RegisterData("ALBUM", albumDataStore{}.New())
-	d.RegisterData("PICTURE", pictureDataStore{}.New())
-	return &d
-}
+var dbVer = "1.0"
 
-func (d *DataStore) Load() {
-	for _, ds := range d.dataFactories {
-		ds.Initialize()
+func (d *DataStore) Open(dbPath string) {
+	os.MkdirAll(dbPath, os.ModePerm)
+	db, err := storm.Open(dbPath + "gogallery-V" + dbVer + ".db")
+	if err != nil {
+		log.Fatal(err)
 	}
-}
-
-func (d *DataStore) RegisterData(name string, factory DS) {
-	if factory == nil {
-		log.Panicf("datastore factory %s does not exist.", name)
-	}
-	_, registered := d.dataFactories[name]
-	if registered {
-		log.Printf("datastore factory %s already registered. Ignoring. \n", name)
-	}
-	d.dataFactories[name] = factory
+	d.DB = db
 }
 
 func (d *DataStore) Close() {
-	for _, v := range d.dataFactories {
-		v.Close()
-	}
-
+	d.DB.Close()
 }
 
 func (d *DataStore) RestDB() {
-	for _, v := range d.dataFactories {
-		v.DeleteAll()
-	}
+	d.DB.Drop(Picture{})
+	d.DB.Drop(Album{})
+	d.DB.Drop(goinsta.Item{})
 
-}
-func (d DataStore) DoesTableExist(table string) bool {
-	return d.dataFactories[table] != nil
-}
-
-func (d DataStore) Tables(table string) DS {
-	return d.dataFactories[table]
-}
-
-// Helper function
-func createDatastore(ds string) *badger.DB {
-
-	log.Println("DB location:" + config.Baseurl)
-	os.MkdirAll(config.Baseurl+ds, os.ModePerm)
-	db, err := badger.Open(badger.DefaultOptions(config.Baseurl + ds))
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
-
-func getFieldByName(str interface{}, field string) interface{} {
-	r := reflect.ValueOf(str)
-	f := reflect.Indirect(r).FieldByName(field)
-	switch f.Type().Name() {
-	case "int":
-		return f.Int()
-	case "string":
-		return f.String()
-	}
-	return nil
 }

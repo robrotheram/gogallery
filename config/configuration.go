@@ -14,7 +14,8 @@ type DatabaseConfiguration struct {
 }
 
 type ServerConfiguration struct {
-	Port string
+	Port  string
+	Debug bool
 }
 
 type InstagramConfiguration struct {
@@ -30,6 +31,7 @@ type GalleryConfiguration struct {
 	Url              string
 	Theme            string
 	ImagesPerPage    int
+	QueThreshold     int
 	AlbumBlacklist   []string
 	PictureBlacklist []string
 }

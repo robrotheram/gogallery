@@ -1,15 +1,14 @@
-{{define "indexPage"}}
-    <!DOCTYPE HTML>
-    {{template "head" .}}
-    <body>
-    {{template "header" .}}
-
-    <main role="main" style="margin-top: 48px; padding: 10px; background: #efefef;">
+{{extends "application.jet"}}
+{{import "header.jet"}}
+{{import "gallery.jet"}}
+{{block body()}}
+  {{yield header()}}  
+   <main role="main" style="margin-top: 48px; padding: 10px; background: #efefef;">
 
         <div class="image-grid are-images-unloaded" data-js="image-grid">
             <div class="image-grid__col-sizer"></div>
             <div class="image-grid__gutter-sizer"></div>
-            {{range .data}}
+            {{range data}}
                     <div class="image-grid__item">
                         <a href="/pic/{{.Name}}"> <img class="image-grid__image card-1" src="/thumb/{{.Name}}"></a>
                     </div>
@@ -29,11 +28,8 @@
             <p class="float-right">
                 <a href="#" onclick="topFunction()">Back to top</a>
             </p>
-            <p>{{.about.footer}}</p>
+            <p>{{about.footer}}</p>
         </div>
     </footer>
-    {{template "gallery" .}}
-    {{template "footer" .}}
-    </body>
-    </html>
+    {{yield gallery()}}
 {{end}}

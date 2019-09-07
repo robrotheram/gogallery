@@ -27,6 +27,19 @@ type Stats struct {
 	ViewCount  int
 }
 
+func MakeStats() Stats {
+	s := Stats{1, 1, 1, 1}
+	var pics []datastore.Picture
+	var albms []datastore.Album
+	datastore.Cache.DB.All(&pics)
+	datastore.Cache.DB.All(&albms)
+	s.Photos = len(pics)
+	s.Albums = len(albms)
+	s.ProcessQue = worker.QueSize()
+	s.ViewCount = ViewCount / 2
+	return s
+}
+
 type AdminModel struct {
 	Stats  Stats
 	Albums []datastore.Album
@@ -105,12 +118,11 @@ func updateImage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.FormValue("caption"))
 	fmt.Println(r.FormValue("instagram"))
 	if len(r.FormValue("id")) > 0 {
-		pics, err := datastore.Cache.Tables("PICTURE").Query("Id", r.FormValue("id"), 0)
+		var p datastore.Picture
+		err := datastore.Cache.DB.One("Id", r.FormValue("id"), &p)
 		if err != nil {
 			return
 		}
-		p := pics.([]datastore.Picture)[0]
-
 		if len(r.FormValue("caption")) > 0 {
 			p.Caption = r.FormValue("caption")
 		}
@@ -123,7 +135,7 @@ func updateImage(w http.ResponseWriter, r *http.Request) {
 			p.Caption = p.Caption + " 🖼️ " + config.Gallery.Url + "/pic/" + p.Name
 			datastore.IG.UploadPhoto(p.Path, p.Caption)
 		}
-		datastore.Cache.Tables("PICTURE").Save(p)
+		datastore.Cache.DB.Save(&p)
 		fmt.Println("Saved Image")
 	}
 }
@@ -141,6 +153,7 @@ func IGLogin(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("IG Login Failed")
 		}
 	}
+	http.Redirect(w, r, "/admin", http.StatusTemporaryRedirect)
 }
 
 func purgeTask(w http.ResponseWriter, r *http.Request) {
@@ -176,10 +189,10 @@ func uploadTask(w http.ResponseWriter, r *http.Request) {
 	}
 	json.Unmarshal(buf.Bytes(), &bk)
 	for _, p := range bk.Pictures {
-		datastore.Cache.Tables("PICTURE").Save(p)
+		datastore.Cache.DB.Save(&p)
 	}
 	for _, a := range bk.Albums {
-		datastore.Cache.Tables("PICTURE").Save(a)
+		datastore.Cache.DB.Save(&a)
 	}
 	if config.IG.Enable {
 		for _, ig := range bk.Instagram {
@@ -191,10 +204,9 @@ func uploadTask(w http.ResponseWriter, r *http.Request) {
 
 func backupTask(w http.ResponseWriter, r *http.Request) {
 	bk := backup{}
-	pictures, _ := datastore.Cache.Tables("PICTURE").GetAll()
-	bk.Pictures = pictures.([]datastore.Picture)
-	albcache, _ := datastore.Cache.Tables("ALBUM").GetAll()
-	bk.Albums = albcache.([]datastore.Album)
+	datastore.Cache.DB.All(&bk.Pictures)
+	datastore.Cache.DB.All(&bk.Albums)
+
 	if config.IG.Enable {
 		igCache, _ := datastore.IG.GetAllPosts()
 		bk.Instagram = igCache
@@ -205,29 +217,17 @@ func backupTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderAdminPage(w http.ResponseWriter, r *http.Request) {
-	s := Stats{1, 1, 1, 1}
-	pictures, err := datastore.Cache.Tables("PICTURE").GetAll()
-	if err == nil {
-		s.Photos = len(pictures.([]datastore.Picture))
-	}
-	albcache, err := datastore.Cache.Tables("ALBUM").GetAll()
-	albums := albcache.([]datastore.Album)
-	if err == nil {
-		s.Albums = len(albums)
-	}
-	for i := range albums {
-		album := &albums[i]
-		pics, err := datastore.Cache.Tables("PICTURE").Query("Album", album.Name, 0)
-		if err != nil {
-			return
-		}
-		album.Images = pics.([]datastore.Picture)
+
+	var albms []datastore.Album
+	datastore.Cache.DB.All(&albms)
+
+	for i := range albms {
+		album := &albms[i]
+		var apics []datastore.Picture
+		datastore.Cache.DB.Find("Album", album.Name, &apics)
+		album.Images = apics
 		album.Key = strings.Replace(album.Name, " ", "", -1)
-
 	}
 
-	s.ProcessQue = len(worker.ThumbnailChan)
-	s.ViewCount = ViewCount / 2
-
-	renderSettingsTemplate(w, "adminPage", AdminModel{Stats: s, Albums: albums, IG: config.IG, Config: structs.Map(config)})
+	renderSettingsTemplate(w, "adminPage", AdminModel{Stats: MakeStats(), Albums: albms, IG: config.IG, Config: structs.Map(config)})
 }

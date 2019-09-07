@@ -6,16 +6,23 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"log"
 	"os"
-	"path/filepath"
 	"runtime"
 
-	"github.com/nfnt/resize"
+	"github.com/disintegration/gift"
 )
 
-var ThumbnailChan = make(chan string, 500)
+var thumbnailChan = make(chan string)
+
+func QueSize() int {
+	return len(thumbnailChan)
+}
+func SendToThumbnail(image string) {
+	if !CheckCacheFolder(image) {
+		thumbnailChan <- image
+	}
+}
 
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
@@ -23,43 +30,63 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func generateThumbnail(path string, size uint, prefix string) {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+var img image.Image
 
-	if _, err := os.Stat(cachePath); err == nil {
-		return
+func loadImage(filename string) image.Image {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("os.Open failed: %v", err)
 	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		log.Println("image.Decode failed on image: %s with err: %v", filename, err)
+		return nil
+	}
+	return img
+}
+func saveImage(filename string, img image.Image) {
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatalf("os.Create failed: %v", err)
+	}
+	defer f.Close()
+	err = jpeg.Encode(f, img, nil)
+	if err != nil {
+		log.Fatalf("png.Encode failed: %v", err)
+	}
+}
+
+func makeCacheFolder() {
 	os.MkdirAll("cache", os.ModePerm)
-	file, err := os.Open(path)
-	if err != nil {
-		//fmt.Println(path)
-		return
-	}
-	// decode jpeg into image.Image
-	extension := filepath.Ext(path)
-	var img image.Image
-	var img_err error
-	switch extension {
-	case ".jpg":
-		img, img_err = jpeg.Decode(file)
-	case ".png":
-		img, img_err = png.Decode(file)
-	}
-	if img_err != nil {
-		return
-	}
-	file.Close()
+}
 
-	// resize to width 1000 using Lanczos resampling
-	// and preserve aspect ratio
-	log.Printf("Creating Thumbnail for user: %s", path)
-	m := resize.Resize(size, 0, img, resize.Bilinear)
-	out, err := os.Create(cachePath)
-	if err != nil {
-		log.Fatal(err)
+func doesThumbExists(path string, prefix string) bool {
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	if _, err := os.Stat(cachePath); err == nil {
+		return true
 	}
-	defer out.Close()
-	jpeg.Encode(out, m, nil)
+	return false
+}
+
+//Lets check to see if a cache image has already been made before adding it to the channel
+func CheckCacheFolder(path string) bool {
+	return doesThumbExists(path, "") && doesThumbExists(path, "large_")
+}
+
+func generateThumbnail(path string, size int, prefix string) {
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	src := loadImage(path)
+	if src == nil {
+		return
+	}
+	g := gift.New(gift.Resize(size, 0, gift.LanczosResampling))
+	dst := image.NewNRGBA(g.Bounds(src.Bounds()))
+	g.Draw(dst, src)
+	saveImage(cachePath, dst)
+
+	src = nil
+	dst = nil
 }
 
 func MakeThumbnail(path string) {
@@ -72,14 +99,16 @@ func MakeLargeThumbnail(path string) {
 
 func worker(id int, jobs <-chan string) {
 	log.Printf("Strarting Worker: %d \n", id)
+	makeCacheFolder()
 	for j := range jobs {
 		MakeThumbnail(j)
 		MakeLargeThumbnail(j)
+		runtime.GC()
 	}
 }
 
 func StartWorkers() {
 	for w := 1; w <= runtime.NumCPU(); w++ {
-		go worker(w, ThumbnailChan)
+		go worker(w, thumbnailChan)
 	}
 }

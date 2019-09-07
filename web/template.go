@@ -7,64 +7,90 @@ import (
 	"strings"
 
 	"github.com/robrotheram/gogallery/datastore"
-)
 
-type M map[string]interface{}
+	"github.com/CloudyKit/jet"
+)
 
 func themePath() string {
 	return fmt.Sprintf("themes/%s/", config.Gallery.Theme)
 }
-func templates() *template.Template {
-	return template.Must(template.ParseGlob(themePath() + "templates/*"))
-}
-func templateModel(data interface{}, image datastore.Picture, numOfPic int) map[string]interface{} {
 
-	model := M{
-		"name": config.Gallery.Name,
-		"site": config.Gallery.Url,
-		"about": M{
-			"enable":       config.About.Enable,
-			"twitter":      config.About.Twitter,
-			"blog":         config.About.Blog,
-			"website":      config.About.Website,
-			"facebook":     config.About.Facebook,
-			"email":        config.About.Email,
-			"instagram":    config.About.Instagram,
-			"photographer": config.About.Photographer,
-			"description":  config.About.Description,
-			"photo":        config.About.BackgroundPhoto,
-			"profilePhoto": config.About.ProfilePhoto,
-			"footer":       template.HTML(config.About.Footer),
-		},
-		"data": data}
+//
+
+type M map[string]interface{}
+
+func templateModel(data interface{}, image datastore.Picture, numOfPic int) jet.VarMap {
+	vars := make(jet.VarMap)
+	vars.Set("name", config.Gallery.Name)
+	vars.Set("site", config.Gallery.Url)
+	vars.Set("about", M{
+		"enable":       config.About.Enable,
+		"twitter":      config.About.Twitter,
+		"blog":         config.About.Blog,
+		"website":      config.About.Website,
+		"facebook":     config.About.Facebook,
+		"email":        config.About.Email,
+		"instagram":    config.About.Instagram,
+		"photographer": config.About.Photographer,
+		"description":  config.About.Description,
+		"photo":        config.About.BackgroundPhoto,
+		"profilePhoto": config.About.ProfilePhoto,
+		"footer":       template.HTML(config.About.Footer),
+	})
+	vars.Set("data", data)
+	vars.Set("socialImage", "")
+	vars.Set("imageWidth", "")
+	vars.Set("imageHeight", "")
+	vars.Set("imageMaxCount", 0)
 
 	if image.Name != "" {
-		model["socialImage"] = image.Name
+		vars.Set("socialImage", image.Name)
 	}
 	if image.Exif.Dimension != "" {
-		model["imageWidth"] = strings.Split(image.Exif.Dimension, "x")[0]
-		model["imageHeight"] = strings.Split(image.Exif.Dimension, "x")[1]
+		vars.Set("imageWidth", strings.Split(image.Exif.Dimension, "x")[0])
+		vars.Set("imageHeight", strings.Split(image.Exif.Dimension, "x")[1])
 	}
 
 	if numOfPic != -1 {
-		model["imageMaxCount"] = numOfPic
+		vars.Set("imageMaxCount", numOfPic)
 	}
-	return model
+	return vars
+}
+func executeTemplate(w http.ResponseWriter, tmpl string, model jet.VarMap) {
+	templateName := tmpl + ".jet"
+	fmt.Println(templateName)
+	t, _ := View.GetTemplate(templateName)
+	t.Execute(w, model, nil)
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture) {
-	templates().ExecuteTemplate(w, tmpl, templateModel(data, datastore.Picture{}, -1))
+	templateName := tmpl + ".jet"
+	fmt.Println(templateName)
+	t, _ := View.GetTemplate(templateName)
+	t.Execute(w, templateModel(data, datastore.Picture{}, -1), nil)
 }
 
+var View = jet.NewHTMLSet("themes/default/views")
+
 func renderSettingsTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	templates().ExecuteTemplate(w, tmpl, templateModel(data, datastore.Picture{}, -1))
+	templateName := tmpl + ".jet"
+	fmt.Println(templateName)
+	t, _ := View.GetTemplate(templateName)
+	t.Execute(w, templateModel(data, datastore.Picture{}, -1), nil)
 }
 
 func renderGalleryTemplate(w http.ResponseWriter, tmpl string, data interface{}, image datastore.Picture, numOfPic int) {
-	templates().ExecuteTemplate(w, tmpl, templateModel(data, image, numOfPic))
+	templateName := tmpl + ".jet"
+	fmt.Println(templateName)
+	t, _ := View.GetTemplate(templateName)
+
+	t.Execute(w, templateModel(data, image, numOfPic), nil)
 }
 func renderNonSocialTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	templates().ExecuteTemplate(w, tmpl, templateModel(data, datastore.Picture{}, -1))
+	templateName := tmpl + ".jet"
+	fmt.Println(templateName)
+	t, _ := View.GetTemplate(templateName)
+	t.Execute(w, templateModel(data, datastore.Picture{}, -1), nil)
 }
 
 func CacheControlWrapper(h http.Handler) http.Handler {

@@ -91,11 +91,8 @@ func IsPictureInBlacklist(pic string) bool {
 	return false
 }
 func doesPictureExist(p Picture) bool {
-	pics, err := Cache.Tables("PICTURE").Query("Id", p.Id, 0)
-	if err != nil {
-		return false
-	}
-	return len(pics.([]Picture)) > 0
+	err := Cache.DB.One("Id", p.Id, &Picture{})
+	return err == nil
 }
 
 func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*Node, error) {
@@ -122,23 +119,17 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 					Exif:  Exif{}}
 				p.CreateExif()
 				if !doesPictureExist(p) {
-					Cache.Tables("PICTURE").Save(p)
+					Cache.DB.Save(&p)
 				}
-
-				a, _ := Cache.Tables("ALBUM").Get(filepath.Dir(path))
-				album := a.(Album)
-				if album.ProfileIMG == nil {
-					album.ProfileIMG = &p
-					Cache.Tables("ALBUM").Edit(album)
-				}
-				worker.ThumbnailChan <- path
+				Cache.DB.UpdateField(&Album{Id: filepath.Dir(path)}, "ProfileIMG", &p)
+				worker.SendToThumbnail(path)
 			}
 		}
 
 		if info.IsDir() {
 			if !IsAlbumInBlacklist(info.Name()) {
 				info := fileInfoFromInterface(info)
-				Cache.Tables("ALBUM").Save(Album{
+				Cache.DB.Save(&Album{
 					Id:      path,
 					Name:    info.Name,
 					ModTime: info.ModTime,

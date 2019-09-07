@@ -470,7 +470,7 @@ main {
     width: 50px;
     height: 50px;
     text-align: center;
-    padding: 6px 0;
+    padding: 12px 0;
     font-size: 12px;
     line-height: 3;
     border-radius: 25px;
@@ -591,3 +591,11 @@ ul.icons li a:hover {
   a:hover, a:active, a:focus {
     outline: 0;
   }
+   .center{
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+   }

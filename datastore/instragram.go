@@ -15,7 +15,6 @@ import (
 type Instagram struct {
 	insta       *goinsta.Instagram
 	GalleryPath string
-	db          *badger.DB
 }
 
 func (i *Instagram) SetUpAlbum() {
@@ -25,9 +24,9 @@ func (i *Instagram) SetUpAlbum() {
 		Name: "instagram",
 		Path: "themes/default/static/img/instagram.png",
 	}
-	err := Cache.Tables("PICTURE").Save(p)
+	err := Cache.DB.Save(&p)
 	fmt.Println(err)
-	Cache.Tables("ALBUM").Save(Album{
+	Cache.DB.Save(&Album{
 		Id:         i.GalleryPath + "/instagram",
 		Name:       "instagram",
 		ProfileIMG: &p,
@@ -42,7 +41,6 @@ func (i *Instagram) Connect(username, password string) error {
 		return err
 	}
 	i.insta = insta
-	i.db = createDatastore("instagram")
 	return nil
 }
 
@@ -103,21 +101,12 @@ func (i *Instagram) SyncFrom() error {
 								DateTaken: time.Unix(item.TakenAt, 0),
 							}}
 
-						Cache.Tables("PICTURE").Save(p)
+						Cache.DB.Save(&p)
 						worker.MakeThumbnail(i.GalleryPath + "/instagram/images/" + i.getImageName(item))
 						worker.MakeLargeThumbnail(i.GalleryPath + "/instagram/images/" + i.getImageName(item))
 					}
 				} else {
-					pics, err := Cache.Tables("PICTURE").Query("Name", i.getImageName(item), 1)
-					if err != nil {
-						break
-					}
-					if len(pics.([]Picture)) == 0 {
-						break
-					}
-					picture := pics.([]Picture)[0]
-					picture.Caption = item.Caption.Text
-					Cache.Tables("PICTURE").Save(picture)
+					Cache.DB.UpdateField(&Picture{Name: i.getImageName(item)}, "Caption", item.Caption.Text)
 				}
 			}
 
@@ -132,56 +121,18 @@ func (i *Instagram) SyncFrom() error {
 }
 
 func (i *Instagram) SavePost(original goinsta.Item) error {
-
-	err := i.db.Update(func(tx *badger.Txn) error {
-		return tx.Set([]byte(original.ID), serialize(original))
-	})
-	return err
-
+	return Cache.DB.Save(original)
 }
 
 func (i *Instagram) GetPost(id string) (goinsta.Item, error) {
-	post := goinsta.Item{}
-	err := i.db.View(func(tx *badger.Txn) error {
-		item, err := tx.Get([]byte(id))
-		if err != nil {
-			return err
-		}
-		valCopy, err := item.ValueCopy(nil)
-		post, _ = deserialize(valCopy)
-		return nil
-	})
-	if err != nil {
-		return goinsta.Item{}, err
-	}
-	return post, nil
+	var post goinsta.Item
+	err := Cache.DB.One("ID", id, &post)
+	return post, err
 }
 
 func (i *Instagram) GetAllPosts() ([]goinsta.Item, error) {
-	posts := []goinsta.Item{}
-	err := i.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = 10
-		it := txn.NewIterator(opts)
-		defer it.Close()
-		for it.Rewind(); it.Valid(); it.Next() {
-			item := it.Item()
-			var data []byte
-			err := item.Value(func(v []byte) error {
-				data = v
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			u, error := deserialize(data)
-			if error != nil {
-				return error
-			}
-			posts = append(posts, u)
-		}
-		return nil
-	})
+	var posts []goinsta.Item
+	err := Cache.DB.All(&posts)
 	return posts, err
 }
 

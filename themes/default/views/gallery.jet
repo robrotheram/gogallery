@@ -1,6 +1,6 @@
-{{define "gallery"}}
+{{block gallery()}}
 <script>
-    var maxPages = {{.imageMaxCount}};
+    var maxPages = {{imageMaxCount}};
 
     var path = window.location.pathname;
     var grid = document.querySelector('.image-grid');

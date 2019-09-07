@@ -1,13 +1,10 @@
-{{define "albumPicturePage"}}
-    <!DOCTYPE HTML>
-    {{template "head" .}}
-    <body>
-    {{template "header" .}}
-
-    <div style="margin-top: 60px">
-        {{ with .picture }}
+{{extends "application.jet"}}
+{{import "header.jet"}}
+{{block body()}}
+  {{yield header()}}  
+      <div style="margin-top: 60px">
         <div id="gallery_single" class="img-container">
-            <img data-src="/img/{{.Name}}" src="/thumb/{{.Name}}/large" onclick="showLightbox()">
+            <img data-src="/img/{{picture.Name}}" src="/thumb/{{picture.Name}}/large" onclick="showLightbox()">
         </div>
         <script>
         function preloadImage(section) {
@@ -31,11 +28,10 @@
         const imgs = document.querySelectorAll('[data-src]');
         imgs.forEach(img => {observer.observe(img); });
         </script>
-        {{ end }}
 
         <div class="gallery-nav">
-            {{if .prePic}}
-                <a href="/album/pic/{{.prePic.Name}}" class="btn btn-outline-dark btn-circle">
+            {{if prePic}}
+                <a href="/album/pic/{{prePic.Name}}" class="btn btn-outline-dark btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 8 8">
                         <path d="M4 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z" transform="translate(1)" style="fill:#FFF;" />
                     </svg>
@@ -43,8 +39,8 @@
             {{else}}
                 <div></div>
             {{end}}
-            {{if .nextPic}}
-                <a href="/album/pic/{{.nextPic.Name}}" class="btn btn-outline-dark btn-circle">
+            {{if nextPic}}
+                <a href="/album/pic/{{nextPic.Name}}" class="btn btn-outline-dark btn-circle">
                     <svg width="20" height="20" viewBox="0 0 8 8">
                         <path d="M1.5 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z" transform="translate(1)"  style="fill:#FFF;"/>
                     </svg>
@@ -55,64 +51,58 @@
     </div>
     <div class="container" style="background-color: white; margin-top: 20px">
         <div class="row">
-    {{ with .picture }}
             <div class="col-12">
-                <h2 class="robotFont">{{.Name}}  <span class="badge badge-pill badge-light date-pill">{{.FormatTime}}</span> </h2>
-                <p>{{.Caption}}</p>
+                <h2 class="robotFont">{{picture.Name}}  <span class="badge badge-pill badge-light date-pill">{{picture.FormatTime}}</span> </h2>
+               
                 <table class="table" style="text-align: center; line-height: 50px; ">
                     <tbody>
-                    {{if .Exif.Camera}}
+                    {{if picture.Exif.Camera}}
                         <tr>
                             <th scope="row"><img src="/static/img/icons/camera.svg" width="50px"/></th>
-                            <td>{{.Exif.Camera}}</td>
+                            <td>{{picture.Exif.Camera}}</td>
                         </tr>
                     {{end}}
-                    {{if .Exif.LensModel}}
+                    {{if picture.Exif.LensModel}}
                     <tr>
                         <th scope="row"><img src="/static/img/icons/lens.svg" width="50px"/></th>
-                        <td>{{.Exif.LensModel}}</td>
+                        <td>{{picture.Exif.LensModel}}</td>
                     </tr>
                     {{end}}
-                    {{if .Exif.FocalLength}}
+                    {{if picture.Exif.FocalLength}}
                     <tr>
                         <th scope="row"><img src="/static/img/icons/focal-length.svg" width="50px"/></th>
-                        <td>{{.Exif.FocalLength}}mm</td>
+                        <td>{{picture.Exif.FocalLength}}mm</td>
                     </tr>
                     {{end}}
-                    {{if .Exif.FStop}}
+                    {{if picture.Exif.FStop}}
                         <tr>
                             <th scope="row"><img src="/static/img/icons/apature.svg" width="50px"/></th>
-                            <td>f{{.Exif.FStop}}</td>
+                            <td>{{picture.Exif.FStop}}</td>
                         </tr>
                     {{end}}
-                    {{if .Exif.ShutterSpeed}}
+                    {{if picture.Exif.ShutterSpeed}}
                         <tr>
                             <th scope="row"><img src="/static/img/icons/timer.svg" width="50px"/></th>
-                            <td>{{.Exif.ShutterSpeed}}</td>
+                            <td>{{picture.Exif.ShutterSpeed}}</td>
                         </tr>
                     {{end}}
-                    {{if .Exif.ISO}}
+                    {{if picture.Exif.ISO}}
                         <tr>
                             <th scope="row"><img src="/static/img/icons/iso.svg" width="50px"/></th>
-                            <td>{{.Exif.ISO}}</td>
+                            <td>{{picture.Exif.ISO}}</td>
                         </tr>
                     {{end}}
                     <tr>
                         <th scope="row">
                             <img src="/static/img/icons/albums.svg" width="50px"/>
                         </th>
-                        <td><a href="/album/{{.Album}}">{{.Album}}</a></td>
+                        <td><a href="/album/{{picture.Album}}">{{picture.Album}}</a></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-    {{end}}
+    
 
     </div>
-    <hr/>
-
-    {{template "footer" .}}
-    </body>
-    </html>
 {{end}}

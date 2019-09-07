@@ -1,4 +1,6 @@
 .idea
+*.db
+*.prof
 vendor
 cache
 config.yml

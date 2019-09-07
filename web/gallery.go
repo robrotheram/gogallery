@@ -13,34 +13,41 @@ import (
 )
 
 func renderAlbum(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	ViewCount++
-	al, _ := datastore.Cache.Tables("ALBUM").GetAll() //Query("Album","02")
-	sArr := al.([]datastore.Album)
-	if len(sArr) > 1 {
-		renderTemplate(w, "albumsPage", sArr, *sArr[1].ProfileIMG)
+	var albms []datastore.Album
+	datastore.Cache.DB.All(&albms)
+	if len(albms) > 1 {
+		renderTemplate(w, "albumsPage", albms, *albms[1].ProfileIMG)
 	}
 }
 
 func renderAlbumPage(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	ViewCount++
 	size := config.Gallery.ImagesPerPage
 
 	vars := mux.Vars(r)
 	name := vars["name"]
-	albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
+
+	var album datastore.Album
+	var pictures []datastore.Picture
+	err := datastore.Cache.DB.Find("Album", name, &pictures)
 	if err != nil {
+		fmt.Println(err)
+		renderSettingsTemplate(w, "errorPage", "No Images For the Album")
 		return
 	}
-	albums := albm.([]datastore.Album)
-	if len(albums) == 0 {
-		return
-	}
-	album := &albums[0]
-	pics, err := datastore.Cache.Tables("PICTURE").Query("Album", name, 0)
-	if err != nil {
-		return
-	}
-	pictures := pics.([]datastore.Picture)
+	datastore.Cache.DB.One("Name", name, &album)
+
 	max := maxPages(pictures)
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
@@ -51,10 +58,16 @@ func renderAlbumPage(w http.ResponseWriter, r *http.Request) {
 	if len(album.Images) == 0 {
 		return
 	}
+	fmt.Println(album.Name)
 	renderGalleryTemplate(w, "albumPage", album, *album.ProfileIMG, max)
 }
 
 func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	size := config.Gallery.ImagesPerPage
 
 	i, err := strconv.Atoi(mux.Vars(r)["page"])
@@ -66,20 +79,12 @@ func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	name := vars["name"]
-	albm, err := datastore.Cache.Tables("ALBUM").Query("Name", name, 1)
-	if err != nil {
-		return
-	}
-	albums := albm.([]datastore.Album)
-	if len(albums) == 0 {
-		return
-	}
-	album := &albums[0]
-	pics, err := datastore.Cache.Tables("PICTURE").Query("Album", name, 0)
-	if err != nil {
-		return
-	}
-	pictures := pics.([]datastore.Picture)
+
+	var album datastore.Album
+	datastore.Cache.DB.One("Name", name, &album)
+	var pictures []datastore.Picture
+	datastore.Cache.DB.Find("Album", name, &pictures)
+
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})
@@ -93,22 +98,27 @@ func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderAlbumPicturePage(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	ViewCount++
 	vars := mux.Vars(r)
 	name := vars["picture"]
-	pics, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
-	if err != nil {
-		return
-	}
-	if len(pics.([]datastore.Picture)) == 0 {
-		return
-	}
-	picture := pics.([]datastore.Picture)[0]
+	var picture datastore.Picture
+	datastore.Cache.DB.One("Name", name, &picture)
+
 	picture.FormatTime = picture.Exif.DateTaken.Format("01-02-2006 15:04:05")
 
-	/*Find next and previous picture*/
-	pics, err = datastore.Cache.Tables("PICTURE").Query("Album", picture.Album, 0)
-	pictures := pics.([]datastore.Picture)
+	var pictures []datastore.Picture
+	err := datastore.Cache.DB.Find("Album", picture.Album, &pictures)
+	if err != nil {
+		fmt.Println(err)
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like this Album has no photos"))
+		return
+	}
+
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})
@@ -127,29 +137,35 @@ func renderAlbumPicturePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	model := templateModel(picture, picture, -1)
-	model["prePic"] = prePic
-	model["nextPic"] = nextPic
-	model["picture"] = picture
-	templates().ExecuteTemplate(w, "albumPicturePage", model)
+	model.Set("prePic", prePic)
+	model.Set("nextPic", nextPic)
+	model.Set("picture", picture)
+	fmt.Println(picture.Exif)
+	executeTemplate(w, "albumPicturePage", model)
 }
 
 func renderPicturePage(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	ViewCount++
 	vars := mux.Vars(r)
 	name := vars["picture"]
-	pics, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
-	if err != nil {
-		return
-	}
-	if len(pics.([]datastore.Picture)) == 0 {
-		return
-	}
-	picture := pics.([]datastore.Picture)[0]
+	var picture datastore.Picture
+	datastore.Cache.DB.One("Name", name, &picture)
 	picture.FormatTime = picture.Exif.DateTaken.Format("01-02-2006 15:04:05")
 
 	/*Find next and previous picture*/
-	pics, err = datastore.Cache.Tables("PICTURE").GetAll()
-	pictures := pics.([]datastore.Picture)
+	var pictures []datastore.Picture
+	err := datastore.Cache.DB.Find("Album", picture.Album, &pictures)
+	if err != nil {
+		fmt.Println(err)
+		renderSettingsTemplate(w, "errorPage", "The seems the be a photo missing")
+		return
+	}
+
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})
@@ -167,74 +183,68 @@ func renderPicturePage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	model := templateModel(picture, picture, -1)
-	model["prePic"] = prePic
-	model["nextPic"] = nextPic
-	model["picture"] = picture
-	templates().ExecuteTemplate(w, "picturePage", model)
+	model.Set("prePic", prePic)
+	model.Set("nextPic", nextPic)
+	model.Set("picture", picture)
+	executeTemplate(w, "albumPicturePage", model)
 }
 
 func loadImage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
-	pic, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
-	if err == nil {
-		picArr := pic.([]datastore.Picture)
-		if len(picArr) > 0 {
-			http.ServeFile(w, r, picArr[0].Path)
-		}
-	}
+	var picture datastore.Picture
+	datastore.Cache.DB.One("Name", name, &picture)
+	http.ServeFile(w, r, picture.Path)
 }
 
 func loadThumbnail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=604800") // 7 days
 	vars := mux.Vars(r)
 	name := vars["name"]
-	pic, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
-	if err == nil {
-		picArr := pic.([]datastore.Picture)
-		if len(picArr) == 0 {
-			fmt.Println("No Image Found:" + name)
-			return
+	var picture datastore.Picture
+	datastore.Cache.DB.One("Name", name, &picture)
 
-		}
-		cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picArr[0].Path))
-		if _, err := os.Stat(cachePath); err == nil {
-			http.ServeFile(w, r, cachePath)
-		} else {
-			http.ServeFile(w, r, cachePath)
-			worker.MakeThumbnail(picArr[0].Path)
-		}
+	cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
+	if _, err := os.Stat(cachePath); err == nil {
+		http.ServeFile(w, r, cachePath)
 	} else {
-		fmt.Println(err)
+		http.ServeFile(w, r, "/static/img/placeholder.png")
+		worker.SendToThumbnail(picture.Path)
 	}
+
 }
 func loadLargeThumbnail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=604800") // 7 days
 	vars := mux.Vars(r)
 	name := vars["name"]
-	pic, err := datastore.Cache.Tables("PICTURE").Query("Name", name, 1)
-	if err == nil {
-		picArr := pic.([]datastore.Picture)
-		if len(picArr) == 0 {
-			return
-		}
-		cachePath := fmt.Sprintf("cache/large_%s.jpg", worker.GetMD5Hash(picArr[0].Path))
-		if _, err := os.Stat(cachePath); err == nil {
-			http.ServeFile(w, r, cachePath)
-		} else {
-			http.ServeFile(w, r, cachePath)
-			worker.MakeLargeThumbnail(picArr[0].Path)
-		}
+	var picture datastore.Picture
+	datastore.Cache.DB.One("Name", name, &picture)
 
+	cachePath := fmt.Sprintf("cache/large_%s.jpg", worker.GetMD5Hash(picture.Path))
+	if _, err := os.Stat(cachePath); err == nil {
+		http.ServeFile(w, r, cachePath)
+	} else {
+		http.ServeFile(w, r, "/static/img/placeholder.png")
+		worker.SendToThumbnail(picture.Path)
 	}
+}
+
+func renderErrorPage(w http.ResponseWriter, r *http.Request) {
+	renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 }
 
 func renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	ViewCount++
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	size := config.Gallery.ImagesPerPage
 
-	pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-	pictures := filterOutAlbum(pics.([]datastore.Picture), "instagram")
+	var pics []datastore.Picture
+	datastore.Cache.DB.All(&pics)
+	pictures := filterOutAlbum(pics, "instagram")
 
 	if len(pictures) == 0 {
 		http.Redirect(w, r, "/about", http.StatusTemporaryRedirect)
@@ -244,11 +254,15 @@ func renderIndexPage(w http.ResponseWriter, r *http.Request) {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})
 	pictures = paginate(pictures, 0, size)
-
-	renderGalleryTemplate(w, "indexPage", pictures, pictures[0], maxPages(pics.([]datastore.Picture)))
+	renderGalleryTemplate(w, "indexPage", pictures, pictures[0], maxPages(pics))
 }
 
 func renderIndexPaginationPage(w http.ResponseWriter, r *http.Request) {
+	if worker.QueSize() > config.Gallery.QueThreshold {
+		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
+		return
+	}
+
 	size := config.Gallery.ImagesPerPage
 
 	i, err := strconv.Atoi(mux.Vars(r)["name"])
@@ -260,8 +274,10 @@ func renderIndexPaginationPage(w http.ResponseWriter, r *http.Request) {
 		//i = i - 1
 	}
 
-	pics, _ := datastore.Cache.Tables("PICTURE").GetAll()
-	pictures := filterOutAlbum(pics.([]datastore.Picture), "instagram")
+	var pics []datastore.Picture
+	datastore.Cache.DB.All(&pics)
+
+	pictures := filterOutAlbum(pics, "instagram")
 	sort.Slice(pictures, func(i, j int) bool {
 		return pictures[i].Exif.DateTaken.Sub(pictures[j].Exif.DateTaken) > 0
 	})

@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/handlers"
+	_ "net/http/pprof"
+
 	"github.com/gorilla/mux"
 	galleryConfig "github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
@@ -17,6 +18,7 @@ var config *galleryConfig.Configuration
 func Serve(conf *galleryConfig.Configuration) {
 	config = conf
 	r := mux.NewRouter()
+	r.PathPrefix("/debug/pprof/").Handler(http.DefaultServeMux)
 	r.HandleFunc("/albums", renderAlbum)
 	r.HandleFunc("/album/pic/{picture}", renderAlbumPicturePage)
 	r.HandleFunc("/album/{name}", renderAlbumPage)
@@ -41,10 +43,12 @@ func Serve(conf *galleryConfig.Configuration) {
 	}
 
 	registerAdmin(r)
+
 	r.HandleFunc("/", renderIndexPage)
+	r.HandleFunc("/error", renderErrorPage)
 	r.HandleFunc("/{name}", renderIndexPaginationPage)
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", CacheControlWrapper(http.FileServer(http.Dir(themePath()+"static")))))
 
 	log.Println("Starting server on port" + config.Server.Port)
-	log.Fatal(http.ListenAndServe(config.Server.Port, handlers.CompressHandler(r)))
+	log.Fatal(http.ListenAndServe(config.Server.Port, (r)))
 }

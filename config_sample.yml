@@ -10,6 +10,8 @@ gallery:
   basepath: "/home/user/pictures/test"
   url:      "https://your.url.here"
   theme:    "default"
+  #Limit that when thumbnail que reaches it the gallery will throw a warning to allow it to catch up an generate the thumbnails.
+  QueThreshold: 50 
 
 about:
   enable: false

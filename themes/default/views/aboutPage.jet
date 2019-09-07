@@ -1,0 +1,32 @@
+{{extends "application.jet"}}
+{{import "header.jet"}}
+{{block body()}}
+  {{yield header()}}  
+     <style type="text/css">
+        .p-t-2 { padding-top: 1.5rem !important; }
+        .a-b-50 {    position: absolute;    bottom: -50%;    left: 0;    right: 0;}
+        .a-t-50 {    position: absolute;    top: -50%;    left: 0;    right: 0;}
+    </style>
+
+    <main role="main">
+        <style>
+            .hero-bg{
+                background-image:url("/thumb/{{about.photo}}/large");
+                z-index: -1;
+            }
+        </style>
+        <section class="jumbotron text-center hero-bg" style="bottom: 0px"></section>
+            <div class="hero-img">
+                <img src="{{about.profilePhoto}}" width="125px" class="img rounded-circle img-thumbnail"/>
+                <h1 class="jumbotron-heading">{{about.photographer}}</h1>
+                <ul class="icons">
+                    {{if about.twitter}}<li><a href="https://twitter.com/{{about.twitter}}" class="fab fa-twitter"></a></li> {{end}}
+                    {{if about.instagram}}<li><a href="https://instagram.com/{{about.instagram}}/" class="fab fa-instagram"></a>{{end}}
+                    {{if about.facebook}}<li><a href="https://facebook.com/{{about.facebook}}" class="fab fa-facebook"></a></li>{{end}}
+                    {{if about.email}}<li><a href="mailto:{{about.email}}" class="fab fa-envelope-o "></a></li>{{end}}
+                    {{if about.blog}}<li><a href="{{about.blog}}" class="fab  fa-pencil-square-o  "></a></li>{{end}}
+                    {{if about.website}}<li><a href="{{about.website}}" class="fab fa-globe"></a></li>{{end}}
+                </ul>
+            </div>
+    </main>
+{{end}}

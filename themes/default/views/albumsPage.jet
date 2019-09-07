@@ -1,14 +1,13 @@
-{{define "albumsPage"}}
-    <!DOCTYPE HTML>
-    {{template "head" . }}
-    <body>
-    {{template "header" . }}
-
-    <main role="main">
+{{extends "application.jet"}}
+{{import "header.jet"}}
+{{import "gallery.jet"}}
+{{block body()}}
+  {{yield header()}}  
+<main role="main">
         <div class="py-5 bg-light">
             <div class="container" style="margin-top: 48px">
                 <div class="row">
-                    {{range .data}}
+                    {{range data}}
                         {{if .ProfileIMG}}
                         <div class="col-md-4">
                             <div class="card mb-4 shadow-sm">
@@ -31,10 +30,8 @@
             <p class="float-right">
                 <a href="#" onclick="topFunction()">Back to top</a>
             </p>
-            <p>{{.about.footer}}</p>
+            <p>{{about.footer}}</p>
         </div>
     </footer>
-    {{template "footer" .}}
-    </body>
-    </html>
+    {{yield gallery()}}
 {{end}}

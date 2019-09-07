@@ -1,9 +1,9 @@
-{{define "header"}}
+{{block header()}}
     <header class="fixed-top">
         <nav class="navbar navbar-expand-lg navbar-light bg-light shadow">
             <a class="navbar-brand mx-auto" href="/">
                 <img src="/static/img/iconfinder_document-06_1622830.png" width="30px" style="margin-right: 10px">
-                <strong>{{.name}}</strong>
+                <strong>{{ name}}</strong>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -25,5 +25,3 @@
         </nav>
     </header>
 {{end}}
-
-
