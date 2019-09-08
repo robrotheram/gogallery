@@ -13,6 +13,7 @@ import (
 
 var validExtension = []string{"jpg", "png", "gif"}
 var gConfig *Config.GalleryConfiguration
+var IsScanning bool
 
 //albumInBlacklist []string
 
@@ -97,6 +98,7 @@ func doesPictureExist(p Picture) bool {
 
 func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*Node, error) {
 	log.Println("Scanning Folders at:" + path)
+	IsScanning = true
 	gConfig = g_config
 	absRoot, err := filepath.Abs(path)
 	if err != nil {
@@ -140,6 +142,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 	}
 	err = filepath.Walk(absRoot, walkFunc)
 	log.Println("Scanning Complete")
+	IsScanning = false
 	return parents, err
 }
 

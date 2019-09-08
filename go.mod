@@ -7,10 +7,13 @@ require (
 	github.com/ahmdrz/goinsta/v2 v2.4.4
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
+	github.com/anthonynsimon/bild v0.10.0
 	github.com/araddon/dateparse v0.0.0-20181123171228-21df004e09ca
 	github.com/asdine/storm v2.1.2+incompatible
+	github.com/davidbyttow/govips v0.0.0-20190304175058-d272f04c0fea
 	github.com/dgraph-io/badger v1.6.0
 	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2
+	github.com/discordapp/lilliput v0.0.0-20190402233613-eaffdc08248b
 	github.com/disintegration/gift v1.2.1
 	github.com/disintegration/imaging v1.6.1
 	github.com/fatih/structs v1.1.0
@@ -24,6 +27,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/pelletier/go-toml v1.2.0
+	github.com/pixiv/go-libjpeg v0.0.0-20190822045933-3da21a74767d // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/profile v1.3.0
 	github.com/prometheus/client_golang v0.9.2
@@ -45,6 +49,9 @@ require (
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 	golang.org/x/text v0.3.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
+	gopkg.in/h2non/bimg.v1 v1.0.19
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	gopkg.in/yaml.v2 v2.2.2
 )
+
+go 1.13

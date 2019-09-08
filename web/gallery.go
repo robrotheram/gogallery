@@ -13,7 +13,7 @@ import (
 )
 
 func renderAlbum(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -27,7 +27,7 @@ func renderAlbum(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderAlbumPage(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -63,7 +63,7 @@ func renderAlbumPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -98,7 +98,7 @@ func renderAlbumPagination(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderAlbumPicturePage(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -145,7 +145,7 @@ func renderAlbumPicturePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderPicturePage(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -220,7 +220,7 @@ func loadLargeThumbnail(w http.ResponseWriter, r *http.Request) {
 	var picture datastore.Picture
 	datastore.Cache.DB.One("Name", name, &picture)
 
-	cachePath := fmt.Sprintf("cache/large_%s.jpg", worker.GetMD5Hash(picture.Path))
+	cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
 	if _, err := os.Stat(cachePath); err == nil {
 		http.ServeFile(w, r, cachePath)
 	} else {
@@ -235,7 +235,7 @@ func renderErrorPage(w http.ResponseWriter, r *http.Request) {
 
 func renderIndexPage(w http.ResponseWriter, r *http.Request) {
 	ViewCount++
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}
@@ -258,7 +258,7 @@ func renderIndexPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderIndexPaginationPage(w http.ResponseWriter, r *http.Request) {
-	if worker.QueSize() > config.Gallery.QueThreshold {
+	if datastore.IsScanning {
 		renderSettingsTemplate(w, "errorPage", fmt.Sprintf("Looks like the gallery is rebuilding only got %d photos left to look at", worker.QueSize()))
 		return
 	}

@@ -34,6 +34,7 @@ type GalleryConfiguration struct {
 	QueThreshold     int
 	AlbumBlacklist   []string
 	PictureBlacklist []string
+	Renderer         string
 }
 
 type AboutConfiguration struct {

@@ -8,12 +8,15 @@ import (
 	"image/jpeg"
 	"log"
 	"os"
+	"os/exec"
 	"runtime"
 
 	"github.com/disintegration/gift"
+	galleryConfig "github.com/robrotheram/gogallery/config"
 )
 
-var thumbnailChan = make(chan string)
+var thumbnailChan = make(chan string, 1000)
+var Config *galleryConfig.GalleryConfiguration
 
 func QueSize() int {
 	return len(thumbnailChan)
@@ -40,7 +43,7 @@ func loadImage(filename string) image.Image {
 	defer f.Close()
 	img, _, err := image.Decode(f)
 	if err != nil {
-		log.Println("image.Decode failed on image: %s with err: %v", filename, err)
+		log.Printf("image.Decode failed on image: %s with err: %v \n", filename, err)
 		return nil
 	}
 	return img
@@ -53,8 +56,33 @@ func saveImage(filename string, img image.Image) {
 	defer f.Close()
 	err = jpeg.Encode(f, img, nil)
 	if err != nil {
-		log.Fatalf("png.Encode failed: %v", err)
+		log.Fatalf("image encode failed: %v", err)
 	}
+}
+
+func sendToCommand(path string, size int, prefix string) {
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	_, err := exec.Command("convert", path, "-trim", "-resize", "800", cachePath).Output()
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+	fmt.Println("Command Thumbnail generatet: " + path)
+	// output := string(out[:])
+	// fmt.Println(output)
+
+}
+
+func generateThumbnail(path string, size int, prefix string) {
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	src := loadImage(path)
+	if src == nil {
+		return
+	}
+	g := gift.New(gift.Resize(size, 0, gift.LanczosResampling))
+	dst := image.NewNRGBA(g.Bounds(src.Bounds()))
+	g.Draw(dst, src)
+	saveImage(cachePath, dst)
+	fmt.Println("Internal Thumbnail generate: " + path)
 }
 
 func makeCacheFolder() {
@@ -69,32 +97,17 @@ func doesThumbExists(path string, prefix string) bool {
 	return false
 }
 
-//Lets check to see if a cache image has already been made before adding it to the channel
+// CheckCacheFolder Lets check to see if a cache image has already been made before adding it to the channel
 func CheckCacheFolder(path string) bool {
 	return doesThumbExists(path, "") && doesThumbExists(path, "large_")
 }
 
-func generateThumbnail(path string, size int, prefix string) {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
-	src := loadImage(path)
-	if src == nil {
-		return
-	}
-	g := gift.New(gift.Resize(size, 0, gift.LanczosResampling))
-	dst := image.NewNRGBA(g.Bounds(src.Bounds()))
-	g.Draw(dst, src)
-	saveImage(cachePath, dst)
-
-	src = nil
-	dst = nil
-}
-
 func MakeThumbnail(path string) {
-	generateThumbnail(path, 400, "")
-}
-
-func MakeLargeThumbnail(path string) {
-	generateThumbnail(path, 1200, "large_")
+	if Config.Renderer == "imagemagick" {
+		sendToCommand(path, 400, "")
+	} else {
+		generateThumbnail(path, 400, "")
+	}
 }
 
 func worker(id int, jobs <-chan string) {
@@ -102,12 +115,12 @@ func worker(id int, jobs <-chan string) {
 	makeCacheFolder()
 	for j := range jobs {
 		MakeThumbnail(j)
-		MakeLargeThumbnail(j)
 		runtime.GC()
 	}
 }
 
-func StartWorkers() {
+func StartWorkers(config *galleryConfig.GalleryConfiguration) {
+	Config = config
 	for w := 1; w <= runtime.NumCPU(); w++ {
 		go worker(w, thumbnailChan)
 	}

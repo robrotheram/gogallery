@@ -12,6 +12,7 @@ gallery:
   theme:    "default"
   #Limit that when thumbnail que reaches it the gallery will throw a warning to allow it to catch up an generate the thumbnails.
   QueThreshold: 50 
+  Renderer: "imagemagick"
 
 about:
   enable: false

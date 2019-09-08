@@ -103,7 +103,7 @@ func (i *Instagram) SyncFrom() error {
 
 						Cache.DB.Save(&p)
 						worker.MakeThumbnail(i.GalleryPath + "/instagram/images/" + i.getImageName(item))
-						worker.MakeLargeThumbnail(i.GalleryPath + "/instagram/images/" + i.getImageName(item))
+
 					}
 				} else {
 					Cache.DB.UpdateField(&Picture{Name: i.getImageName(item)}, "Caption", item.Caption.Text)
