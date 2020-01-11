@@ -1,19 +1,7 @@
-.idea
-*.db
-*.prof
-vendor
-cache
-config.yml
-gogallery
-WIP
-_old/**
-
-temp
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-**/node_modules
+/node_modules
 /.pnp
 .pnp.js
 
