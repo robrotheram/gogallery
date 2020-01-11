@@ -10,7 +10,7 @@ all: test build
 
 test:
 	cd server && $(GOTEST) -v ./...
-	
+
 build: build-dashboard build-server
 
 build-dashboard:
@@ -18,8 +18,8 @@ build-dashboard:
 	cd client/dashboard && npm run build
 
 build-ui:
-	cd client/dashboard && npm install
-	cd client/dashboard && npm run build
+	cd client/frontend && npm install
+	cd client/frontend && npm run build
 
 build-server:
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
