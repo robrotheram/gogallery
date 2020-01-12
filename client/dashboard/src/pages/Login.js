@@ -1,14 +1,10 @@
 import React from 'react';
 import './Login.css'
-import { Form, Icon, Input, Button, Alert, Divider } from 'antd';
+import { Form, Icon, Input, Button, Alert } from 'antd';
 import {  Card } from 'antd';
 import { Row, Col } from 'antd';
 
 import {
-  BrowserRouter as Router,
-  Route,
-  Link,
-  Redirect,
   withRouter
 } from 'react-router-dom'
 
@@ -22,7 +18,6 @@ class extends React.Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
         console.log('Received values of form: ', values);
-        const { dispatch } = this.props;
         if (values.username && values.password) {
           console.log('sending: ', values);
           this.props.onDone(values)

@@ -2,24 +2,12 @@ import React from 'react';
 import {
     Form,
     Input,
-    Tooltip,
-    Icon,
-    Cascader,
-    Select,
-    Row,
-    Col,
     Divider,
     Button,
-    AutoComplete,
   } from 'antd';
   import { connect } from 'react-redux';
 import { settingsActions } from '../../store/actions';
-
-
-  const { Option } = Select;
-  const AutoCompleteOption = AutoComplete.Option;
-
-  
+ 
 
   class ProfileForm extends React.Component {
     state = {
@@ -101,7 +89,6 @@ import { settingsActions } from '../../store/actions';
   
     render() {
       const { getFieldDecorator } = this.props.form;
-      const { autoCompleteResult } = this.state;
   
     
 
@@ -127,19 +114,6 @@ import { settingsActions } from '../../store/actions';
           },
         },
       };
-      
-      const prefixSelector = getFieldDecorator('prefix', {
-        initialValue: '86',
-      })(
-        <Select style={{ width: 70 }}>
-          <Option value="86">+86</Option>
-          <Option value="87">+87</Option>
-        </Select>,
-      );
-  
-      const websiteOptions = autoCompleteResult.map(website => (
-        <AutoCompleteOption key={website}>{website}</AutoCompleteOption>
-      ));
       console.log("REGISTRATION STATWE",this.props)
       return (
         <div>

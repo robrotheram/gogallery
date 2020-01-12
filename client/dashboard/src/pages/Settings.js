@@ -1,8 +1,6 @@
 import React from 'react';
-import Selection from 'react-ds';
 import './Main.css';
-import { Layout, Statistic, Card, Input, Icon, Button, Row, Col}  from 'antd';
-import moment from 'moment';
+import { Layout, Statistic, Card, Icon, Row, Col}  from 'antd';
 import { connect } from 'react-redux';
 import Header from '../components/header'
 import RegistrationForm from '../components/settings/RegistrationForm'

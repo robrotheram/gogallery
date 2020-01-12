@@ -8,7 +8,6 @@ export * from './settings';
 export * from './tasks';
 
 export function getOptions(){
-  let options = {}; 
   if(localStorage.getItem('token')){
       return{headers: {Authorization:localStorage.getItem('token')}}
   }
@@ -17,8 +16,8 @@ export function getOptions(){
 export function notify(type, description){
   let message = ""
   switch(type){
-    case "warning": message = "Oh dear something went wong!"
-    default: message = "Completed successfully"
+    case "warning": message = "Oh dear something went wong!"; break
+    default: message = "Completed successfully" ; break
   }
 
   notification[type]({

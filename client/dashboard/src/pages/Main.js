@@ -1,7 +1,7 @@
 import React from 'react';
 import Selection from 'react-ds';
 import './Main.css';
-import { Layout, Menu, Icon, Input, Radio, Avatar, Row, Col}  from 'antd';
+import { Layout, Menu, Icon, Radio, Row, Col}  from 'antd';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { collectionActions, photoActions } from '../store/actions';
@@ -18,7 +18,6 @@ import { config } from '../store';
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
-const { Search } = Input;
 
 class Main extends React.PureComponent {
 

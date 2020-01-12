@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 
 import * as serviceWorker from './serviceWorker';
@@ -14,8 +14,6 @@ import {
 } from 'react-router-dom'
 
 import { userActions } from './store/actions';
-
-import { Layout } from 'antd';
 
 import Main from './pages/Main';
 import Login from './pages/Login';

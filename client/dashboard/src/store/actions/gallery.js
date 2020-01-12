@@ -1,7 +1,4 @@
 
-import axios from 'axios';
-import { history, config} from '../index';
-
 export const galleryActions = {
     showAdd,
     hideAdd,

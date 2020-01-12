@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 import { history, config} from '../index';
-
+import {getOptions} from './index'
 export const userActions = {
     login,
     reauth,
@@ -9,17 +9,9 @@ export const userActions = {
     update
 };
 
-function getOptions(){
-    let options = {}; 
-    if(localStorage.getItem('token')){
-        return{headers: {Authorization:localStorage.getItem('token')}}
-    }
-}
-
 function login(username, password){
     console.log('login: ', username);
     return dispatch => {
-        let apiEndpoint = 'auths';
         let payload = {
             username: username,
             password: password

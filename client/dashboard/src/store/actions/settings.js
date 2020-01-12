@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { history, config} from '../index';
+import {config} from '../index';
 import {getOptions, notify} from './index';
 export const settingsActions = {
     stats,

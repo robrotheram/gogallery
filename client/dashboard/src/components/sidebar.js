@@ -6,7 +6,7 @@ import moment from 'moment';
 
 import { connect } from 'react-redux';
 import { config } from '../store';
-import { userActions, photoActions } from '../store/actions';
+import { photoActions } from '../store/actions';
 
 
 const { Panel } = Collapse;

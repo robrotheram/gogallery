@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, Button, Icon, Form, Select } from 'antd';
 
 import { connect } from 'react-redux';
-import { userActions, collectionActions } from '../store/actions';
+import { collectionActions } from '../store/actions';
 
 
 

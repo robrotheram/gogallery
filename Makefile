@@ -6,7 +6,7 @@ GOGET=$(GOCMD) get
 BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
 
-all: test build
+all: clean test build
 
 dep:
 	go get -u github.com/gobuffalo/packr/v2/packr2
@@ -19,11 +19,13 @@ build: build-dashboard build-ui build-server
 build-dashboard:
 	cd client/dashboard && npm install
 	cd client/dashboard && npm run build
+	mkdir -p server/ui/dashboard
 	cp -r client/dashboard/build/* server/ui/dashboard/.
 
 build-ui:
 	cd client/frontend && npm install
 	cd client/frontend && npm run build
+	mkdir -p server/ui/frontend
 	cp -r client/frontend/build/* server/ui/frontend/.
 
 build-server:
