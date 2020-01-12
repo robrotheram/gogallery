@@ -16,7 +16,7 @@ function Gallery({ images}) {
     images.map((x,i) =>  items.push(
         <figure key={x.id} className="masonry-brick masonry-brick--h">
             <Link to={"/photo/"+x.id} >
-                <LazyImage src={config.baseUrl+"/img/"+x.id} className="masonry-LazyImage" alt={x.name} />
+                <LazyImage src={config.imageUrl+x.id} className="masonry-LazyImage" alt={x.name} />
             </Link>
         </figure>
     ));

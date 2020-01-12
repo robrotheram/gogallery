@@ -12,7 +12,7 @@ export const galleryActions = {
 function getAllPhotos(){
   return dispatch => {
       
-      axios.get(config.baseUrl+"/api/photos").then((response)=>{
+      axios.get(config.baseUrl+"/photos").then((response)=>{
           dispatch(setPhotosDetails(response.data));
       }).catch((err)=>{})
   }
@@ -20,14 +20,14 @@ function getAllPhotos(){
 function getAllCollections(){
   return dispatch => {
       
-      axios.get(config.baseUrl+"/api/collections").then((response)=>{
+      axios.get(config.baseUrl+"/albums").then((response)=>{
           dispatch(setCollectionsDetails(response.data));
       }).catch((err)=>{})
   }
 }
 function getProfile(){
   return dispatch => {
-      axios.get(config.baseUrl+"/api/profile").then((response)=>{
+      axios.get(config.baseUrl+"/profile").then((response)=>{
           dispatch(setProfileDetails(response.data));
       }).catch((err)=>{})
   }

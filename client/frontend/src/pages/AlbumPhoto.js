@@ -11,7 +11,7 @@ class AlbumPhotoPage extends React.PureComponent {
   let {collections, photos} = this.props
   const id = this.props.match.params.id
   const collection = collections.filter(c => c.id === id)[0] || {};
-  let backgroundImage = config.baseUrl+"/img/"+collection.profile_image
+  let backgroundImage = config.imageUrl+collection.profile_image
   const photoList = photos.filter(c => c.album === collection.name) || [];
   return (
     <main>

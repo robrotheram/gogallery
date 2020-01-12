@@ -16,7 +16,7 @@ class AlbumsPage extends React.PureComponent {
                       <div className="col-md-4">
                             <div className="card mb-4 shadow-sm">
                                 <Link to={"album/"+value.id}>
-                                    <img src={config.baseUrl+"/img/"+value.profile_image} alt={value.name} width="100%" height="250px" style={{"object-fit": "cover"}}/>
+                                    <img src={config.imageUrl+value.profile_image} alt={value.name} width="100%" height="250px" style={{"object-fit": "cover"}}/>
                                 </Link>
                                 <div className="card-body">
                                     <p className="card-text text-center">{value.name}</p>

@@ -41,18 +41,15 @@ class Photo extends React.Component {
 
       console.log(album_id, photo.album)
       console.log(album_id, photo.album)
-
-
-
-
     }
+
     console.log(album_id)
 
     return (
       <main>
         <div>
           <div id="gallery_single" className="img-container">
-            <img src={config.baseUrl + "/img/" + photo.id} alt={photo.name} />
+            <img src={config.imageUrl+ photo.id} alt={photo.name} />
           </div>
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
             <div className="">
