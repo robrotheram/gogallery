@@ -16,7 +16,7 @@ type Album struct {
 	Name       string    `json:"name"`
 	ModTime    time.Time `json:"mod_time"`
 	Parent     string    `json:"parent"`
-	ProfileIMG *Picture  `json:"profile_image"`
+	ProfileID string  `json:"profile_image"`
 	Images     []Picture `json:"images"`
 	Key        string    `json:"key"`
 }
@@ -54,22 +54,22 @@ type Exif struct {
 }
 
 type PictureMeta struct {
-	PostedToIG   bool      `json:"posted_to_IG"`
-	Visibility   string    `json:"visibility"`
-	DateAdded    time.Time `json: date_added`
-	DateModified time.Time `json: date_modified`
+	PostedToIG   bool      `json:"posted_to_IG,omitempty"`
+	Visibility   string    `json:"visibility,omitempty"`
+	DateAdded    time.Time `json: date_added,omitempty`
+	DateModified time.Time `json: date_modified,omitempty`
 }
 
 type Picture struct {
 	Id         string      `json:"id" storm:"id"`
 	Name       string      `json:"name"`
 	Caption    string      `json:"caption"`
-	Path       string      `json:"path"`
+	Path       string      `json:"path,omitempty"`
 	FormatTime string      `json:"format_time"`
 	Album      string      `json:"album"`
 	Exif       Exif        `json:"exif"`
-	Meta       PictureMeta `json:"meta"`
-	RootPath   string
+	Meta       PictureMeta `json:"meta,omitempty"`
+	RootPath   string	   `json:"root_path,omitempty"`
 }
 
 type User struct {

@@ -158,7 +158,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 				if !doesPictureExist(p) {
 					Cache.DB.Save(&p)
 				}
-				Cache.DB.UpdateField(&Album{Id: filepath.Dir(path)}, "ProfileIMG", &p)
+				Cache.DB.UpdateField(&Album{Id: GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
 				//worker.SendToThumbnail(path)
 			}
 		}
