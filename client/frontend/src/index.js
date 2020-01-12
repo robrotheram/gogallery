@@ -22,6 +22,12 @@ import { connect } from 'react-redux';
 
 import { galleryActions } from './store/actions';
 
+history.listen((location, action) => {
+  if (action === 'PUSH') {
+    window.scrollTo(0, 0);
+  }
+});
+
 class AppComponent extends React.Component {
     componentDidMount() {
       this.props.dispatch(galleryActions.getAllCollections());

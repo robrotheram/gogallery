@@ -1,6 +1,7 @@
 html, body {
   height: 100%;
   color: white;
+  overflow: hidden;
 }
 .App {
   text-align: center;
@@ -183,4 +184,20 @@ html, body {
 
 .maintenance .ant-upload {
   width: 100%;
+}
+
+.ant-menu-submenu ul {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.ant-menu-submenu-popup::-webkit-scrollbar {
+  display: none;
+}
+.ant-menu-submenu-popup{
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+  
+  scrollbar-width: none;
 }

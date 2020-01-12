@@ -12,11 +12,11 @@ export const history = createBrowserHistory({
 
 const Constants = {
   prod : {
-    baseUrl: "/api",
+    baseUrl: "/api/admin",
     imageUrl: "/img/"
    },
    dev : {
-    baseUrl: "http://localhost:8800/api",
+    baseUrl: "http://localhost:8800/api/admin",
     imageUrl: "http://localhost:8800/img/"
    }
 }

@@ -39,7 +39,7 @@ class AppComponent extends React.Component {
     counter: 0
   };
   componentDidMount() {
-    let timer = setInterval(this.tick, 1000);
+    let timer = setInterval(this.tick, 20000);
     this.setState({ timer });
   }
   componentWillUnmount() {

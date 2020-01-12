@@ -126,9 +126,8 @@ class SideBar extends React.PureComponent {
                 <Panel header="Visability" key="2">
                   <Form.Item label="Access" hasFeedback>
                     <Select placeholder="Please select a country" value={this.state.data.meta.visibility} name="visibility" onChange={this.handleVisablityChange}>
-                      <Option value="public">Public</Option>
-                      <Option value="private">Private</Option>
-                      <Option value="hidden">Hidden</Option>
+                      <Option value="PUBLIC">PUBLIC</Option>
+                      <Option value="PRIVATE">PRIVATE</Option>
                     </Select>
                   </Form.Item>
                   <Form.Item label="link">

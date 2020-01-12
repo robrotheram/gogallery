@@ -15,6 +15,7 @@ import AddCollection from '../components/addCollection'
 import UploadPhotos from '../components/upload'
 import { galleryActions } from '../store/actions/gallery';
 import { config } from '../store';
+import { LazyImage } from '../components/Lazyloading';
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
@@ -242,7 +243,7 @@ class Main extends React.PureComponent {
                         className={`item`}
                       >
                         <figure className="galleryImg" style={this.getStyle(el.id)} onClick={(e) => this.selectPhoto(e, el)}>
-                          <img src={config.imageUrl + el.id} width="100%" height="100%" alt="thumbnail" />
+                          <LazyImage src={config.imageUrl + el.id+"?size=tiny"} width="100%" height="100%" alt="thumbnail" />
                         </figure>
                       </div>
                     </Col>
