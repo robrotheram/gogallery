@@ -99,17 +99,16 @@ func doesThumbExists(path string, prefix string) bool {
 
 // CheckCacheFolder Lets check to see if a cache image has already been made before adding it to the channel
 func CheckCacheFolder(path string) bool {
-	return doesThumbExists(path, "") && doesThumbExists(path, "_tiny")
+	return doesThumbExists(path, "")
 }
 
 func MakeThumbnail(path string) {
 	if(!CheckCacheFolder(path)){
 		if Config.Renderer == "imagemagick" {
-			sendToCommand(path, 1200, "")
-			sendToCommand(path, 450, "_tiny")
+			sendToCommand(path, 1024, "")
 		} else {
-			generateThumbnail(path, 1200, "")
-			generateThumbnail(path, 450, "_tiny")
+			generateThumbnail(path, 1024, "")
+
 		}
 	}
 }

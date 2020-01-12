@@ -90,7 +90,7 @@ func loadImage(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if size == "tiny" {
-			cachePath := fmt.Sprintf("cache/%s_%s.jpg", worker.GetMD5Hash(picture.Path), size)
+			cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
 			if _, err := os.Stat(cachePath); err == nil {
 				http.ServeFile(w, r, cachePath)
 				return
