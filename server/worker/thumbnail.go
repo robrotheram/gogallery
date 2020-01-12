@@ -73,7 +73,7 @@ func sendToCommand(path string, size int, prefix string) {
 }
 
 func generateThumbnail(path string, size int, prefix string) {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", GetMD5Hash(path), prefix)
 	src := loadImage(path)
 	if src == nil {
 		return
@@ -90,7 +90,7 @@ func makeCacheFolder() {
 }
 
 func doesThumbExists(path string, prefix string) bool {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", GetMD5Hash(path), prefix)
 	if _, err := os.Stat(cachePath); err == nil {
 		return true
 	}
@@ -99,15 +99,17 @@ func doesThumbExists(path string, prefix string) bool {
 
 // CheckCacheFolder Lets check to see if a cache image has already been made before adding it to the channel
 func CheckCacheFolder(path string) bool {
-	return doesThumbExists(path, "")
+	return doesThumbExists(path, "") && doesThumbExists(path, "_tiny")
 }
 
 func MakeThumbnail(path string) {
 	if(!CheckCacheFolder(path)){
 		if Config.Renderer == "imagemagick" {
 			sendToCommand(path, 1200, "")
+			sendToCommand(path, 450, "_tiny")
 		} else {
 			generateThumbnail(path, 1200, "")
+			generateThumbnail(path, 450, "_tiny")
 		}
 	}
 }

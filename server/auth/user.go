@@ -77,8 +77,8 @@ var regenTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 })
 
 func InitAuthRoutes(router *mux.Router) *mux.Router {
-	router.HandleFunc("/api/login", authenticateUser).Methods("POST")
-	router.Handle("/api/auth/update", AuthMiddleware(registerUser)).Methods("POST")
-	router.Handle("/api/authorised", AuthMiddleware(regenTokenHandler))
+	router.HandleFunc("/api/admin/login", authenticateUser).Methods("POST")
+	router.Handle("/api/admin/auth/update", AuthMiddleware(registerUser)).Methods("POST")
+	router.Handle("/api/admin/authorised", AuthMiddleware(regenTokenHandler))
 	return router
 }
