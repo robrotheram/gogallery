@@ -11,9 +11,11 @@ import (
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 
+
 	"net/http"
 
 	"github.com/gorilla/handlers"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 )
 
@@ -35,7 +37,7 @@ func main() {
 	defer datastore.Cache.Close()
 
 	// Let provide a tiny cli to allow users to reset the accound.
-	cliPtr := flag.Bool("reset-admin", false, " Help text.")
+	cliPtr := flag.Bool("reset-admin", false, "Resets Admin account with a new random password")
 	flag.Parse()
 	if *cliPtr {
 		log.Printf("Resetting Admin Account...")
@@ -74,10 +76,15 @@ func Serve() {
 
 	// PUBLIC ROUTES
 
+	fbox := packr.New("Frontend Box", "./ui/frontend")
+	bbox := packr.New("Dashboard Box", "./ui/dashboard")
 	r.HandleFunc("/img/{id}", loadImage)
 
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
+
+	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard",spaHandler{staticPath: bbox, indexPath: "index.html"}))
+	r.PathPrefix("/").Handler(spaHandler{staticPath: fbox, indexPath: "index.html"})
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})

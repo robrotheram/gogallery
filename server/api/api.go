@@ -34,36 +34,36 @@ func InitApiRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 	Config = config
 
 	
-	r.Handle("/api/collections", (getAllCollectionsHandler)).Methods("GET")
+	r.Handle("/api/albums", (getAllCollectionsHandler)).Methods("GET")
 	r.Handle("/api/photos", (getAllPhotosHandler)).Methods("GET")
 	r.Handle("/api/profile", (getProfileInfo)).Methods("GET")
 
 
 
-	r.Handle("/photos", auth.AuthMiddleware(getAllAdminPhotosHandler))
-	r.Handle("/photo/{id}", auth.AuthMiddleware(getPhotoHandler)).Methods("GET")
-	r.Handle("/photo/{id}", auth.AuthMiddleware(editPhotoHandler)).Methods("POST")
+	r.Handle("/api/photos", auth.AuthMiddleware(getAllAdminPhotosHandler))
+	r.Handle("/api/photo/{id}", auth.AuthMiddleware(getPhotoHandler)).Methods("GET")
+	r.Handle("/api/photo/{id}", auth.AuthMiddleware(editPhotoHandler)).Methods("POST")
 
-	r.Handle("/collection/move", auth.AuthMiddleware(moveCollectionHandler)).Methods("POST")
-	r.Handle("/collection/uploadFile", auth.AuthMiddleware(uploadFileHandler)).Methods("POST")
-	r.Handle("/collection/upload", auth.AuthMiddleware(uploadHandler)).Methods("POST")
+	r.Handle("/api/collection/move", auth.AuthMiddleware(moveCollectionHandler)).Methods("POST")
+	r.Handle("/api/collection/uploadFile", auth.AuthMiddleware(uploadFileHandler)).Methods("POST")
+	r.Handle("/api/collection/upload", auth.AuthMiddleware(uploadHandler)).Methods("POST")
 
-	r.Handle("/collections", auth.AuthMiddleware(getCollectionsHandler)).Methods("GET")
-	r.Handle("/collection", auth.AuthMiddleware(createCollectionHandler)).Methods("POST")
-	r.Handle("/collection/{id}/photos", auth.AuthMiddleware(getCollectionPhotosHandler)).Methods("GET")
-	r.Handle("/collection/{id}", auth.AuthMiddleware(getCollectionHandler)).Methods("GET")
+	r.Handle("/api/collections", auth.AuthMiddleware(getCollectionsHandler)).Methods("GET")
+	r.Handle("/api/collection", auth.AuthMiddleware(createCollectionHandler)).Methods("POST")
+	r.Handle("/api/collection/{id}/photos", auth.AuthMiddleware(getCollectionPhotosHandler)).Methods("GET")
+	r.Handle("/api/collection/{id}", auth.AuthMiddleware(getCollectionHandler)).Methods("GET")
 
-	r.Handle("/settings/stats", auth.AuthMiddleware(statsHandler)).Methods("GET")
-	r.Handle("/settings/gallery", auth.AuthMiddleware(getGallerySettings)).Methods("GET")
-	r.Handle("/settings/profile", auth.AuthMiddleware(getProfileInfo)).Methods("GET")
+	r.Handle("/api/settings/stats", auth.AuthMiddleware(statsHandler)).Methods("GET")
+	r.Handle("/api/settings/gallery", auth.AuthMiddleware(getGallerySettings)).Methods("GET")
+	r.Handle("/api/settings/profile", auth.AuthMiddleware(getProfileInfo)).Methods("GET")
 
-	r.Handle("/settings/gallery", auth.AuthMiddleware(setGallerySettings)).Methods("POST")
-	r.Handle("/settings/profile", auth.AuthMiddleware(setProfileInfo)).Methods("POST")
+	r.Handle("/api/settings/gallery", auth.AuthMiddleware(setGallerySettings)).Methods("POST")
+	r.Handle("/api/settings/profile", auth.AuthMiddleware(setProfileInfo)).Methods("POST")
 
-	r.Handle("/tasks/purge", auth.AuthMiddleware(purgeTaskHandler)).Methods("GET")
-	r.Handle("/tasks/clear", auth.AuthMiddleware(clearTaskHandler)).Methods("GET")
-	r.Handle("/tasks/backup", auth.AuthMiddleware(backupTaskHandler)).Methods("GET")
-	r.Handle("/tasks/upload", auth.AuthMiddleware(uploadTaskHandler)).Methods("POST")
+	r.Handle("/api/tasks/purge", auth.AuthMiddleware(purgeTaskHandler)).Methods("GET")
+	r.Handle("/api/tasks/clear", auth.AuthMiddleware(clearTaskHandler)).Methods("GET")
+	r.Handle("/api/tasks/backup", auth.AuthMiddleware(backupTaskHandler)).Methods("GET")
+	r.Handle("/api/tasks/upload", auth.AuthMiddleware(uploadTaskHandler)).Methods("POST")
 
 	return r
 }

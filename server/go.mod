@@ -19,11 +19,14 @@ require (
 	github.com/disintegration/imaging v1.6.1
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/gobuffalo/logger v1.0.1
+	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.7.0
 	github.com/hashicorp/hcl v1.0.0
 	github.com/magiconair/properties v1.8.0
+	github.com/markbates/pkger v0.14.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
@@ -38,7 +41,6 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190107194617-b1fd11e07dc5
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/simplereach/timeutils v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.4.0 // indirect
 	github.com/spf13/afero v1.2.1
 	github.com/spf13/cast v1.3.0
 	github.com/spf13/jwalterweatherman v1.0.0
@@ -46,14 +48,14 @@ require (
 	github.com/spf13/viper v1.3.2
 	github.com/zserge/metric v0.1.0
 	go.etcd.io/bbolt v1.3.3 // indirect
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 	golang.org/x/text v0.3.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/h2non/bimg.v1 v1.0.19
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.7
 )
 
 go 1.13
