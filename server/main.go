@@ -14,6 +14,7 @@ import (
 
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/handlers"
@@ -63,6 +64,16 @@ func checkAndCreateAdmin() {
 
 }
 
+func checkAuth(r *http.Request) bool {
+	tokenString := r.Header.Get("Authorization")
+	if len(tokenString) == 0 {
+		return false
+	}
+	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+	_, err := auth.VerifyToken(tokenString)
+	return err == nil
+}
+
 func loadImage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=604800") // 7 days
 	vars := mux.Vars(r)
@@ -70,7 +81,8 @@ func loadImage(w http.ResponseWriter, r *http.Request) {
 	var picture datastore.Picture
 	datastore.Cache.DB.One("Id", name, &picture)
 	size := r.URL.Query().Get("size")
-	if (picture.Meta.Visibility == "PUBLIC") {
+
+	if (picture.Meta.Visibility == "PUBLIC") || (checkAuth(r)) {
 		if size == "" {
 			cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
 			if _, err := os.Stat(cachePath); err == nil {
@@ -109,13 +121,13 @@ func Serve() {
 	fbox := packr.New("Frontend Box", "./ui/frontend")
 	bbox := packr.New("Dashboard Box", "./ui/dashboard")
 	pbox = packr.New("Placeholder Box", "./ui/placeholders")
-	
+
 	r.HandleFunc("/img/{id}", loadImage)
 
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
 
-	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard",setupSpaHandler(bbox)))
+	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard", setupSpaHandler(bbox)))
 	r.PathPrefix("/").Handler(setupSpaHandler(fbox))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})

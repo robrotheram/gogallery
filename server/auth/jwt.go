@@ -17,7 +17,7 @@ func getToken(id string) (string, error) {
 	return tokenString, err
 }
 
-func verifyToken(tokenString string) (jwt.Claims, error) {
+func VerifyToken(tokenString string) (jwt.Claims, error) {
 	signingKey := []byte("keymaker")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return signingKey, nil

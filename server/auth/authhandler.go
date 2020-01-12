@@ -17,7 +17,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-		claims, err := verifyToken(tokenString)
+		claims, err := VerifyToken(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Error verifying JWT token: " + err.Error()))
