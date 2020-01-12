@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
+	"github.com/robrotheram/gogallery/worker"
 	Config "github.com/robrotheram/gogallery/config"
 )
 
@@ -159,7 +159,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 					Cache.DB.Save(&p)
 				}
 				Cache.DB.UpdateField(&Album{Id: GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
-				//worker.SendToThumbnail(path)
+				worker.SendToThumbnail(path)
 			}
 		}
 

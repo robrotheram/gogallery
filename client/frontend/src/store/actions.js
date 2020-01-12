@@ -1,7 +1,6 @@
 
 import axios from 'axios';
 import {config} from './index';
-
 export const galleryActions = {
   //getAll,
   getAllPhotos,
@@ -19,8 +18,8 @@ function getAllPhotos(){
 }
 function getAllCollections(){
   return dispatch => {
-      
       axios.get(config.baseUrl+"/albums").then((response)=>{
+        response.data.sort((a, b) => a.name.localeCompare(b.name))
           dispatch(setCollectionsDetails(response.data));
       }).catch((err)=>{})
   }

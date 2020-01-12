@@ -5,10 +5,6 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="stylesheet" href="%PUBLIC_URL%/css/vendor.css">
     <!--
@@ -25,7 +21,20 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>{{.name}}</title>
+    <!--Social META -->
+    <meta property="og:url"  content="{{.site}}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="{{.name}}">
+    <meta name="og:description" content="{{.description}}">
+    <meta property="og:image" content="{{.site}}/img/{{.socialImage}}">
+    <meta property="og:image:width" content="{{.imageWidth}}">
+    <meta property="og:image:height" content="{{.imageHeight}}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{.name}}">
+    <meta name="twitter:description" content="{{.description}}">
+    <meta name="twitter:image" content="{{.site}}/img/{{.socialImage}}">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

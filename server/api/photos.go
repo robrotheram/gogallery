@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"sort"
 
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/datastore"
@@ -76,6 +77,9 @@ var getAllPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 			
 		}
 	}
+	sort.Slice(filterPics, func(i, j int) bool {
+		return filterPics[i].Exif.DateTaken.Sub(filterPics[j].Exif.DateTaken) > 0
+	})
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(filterPics)
 })

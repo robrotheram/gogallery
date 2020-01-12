@@ -10,12 +10,13 @@ import (
 	"github.com/robrotheram/gogallery/auth"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	"github.com/robrotheram/gogallery/worker"
 
-
+	"html/template"
 	"net/http"
 
-	"github.com/gorilla/handlers"
 	"github.com/gobuffalo/packr/v2"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -29,7 +30,7 @@ func main() {
 
 	fmt.Printf("%+v\n", Config.Gallery)
 
-	//worker.StartWorkers(&Config.Gallery)
+	worker.StartWorkers(&Config.Gallery)
 	//go setUpWatchers(Config.Gallery.Basepath)
 
 	datastore.Cache = &datastore.DataStore{}
@@ -63,12 +64,33 @@ func checkAndCreateAdmin() {
 }
 
 func loadImage(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "max-age=604800") // 7 days
 	vars := mux.Vars(r)
 	name := vars["id"]
 	var picture datastore.Picture
 	datastore.Cache.DB.One("Id", name, &picture)
 
-	http.ServeFile(w, r, picture.Path)
+	size := r.URL.Query().Get("size")
+	if size == "" {
+		cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
+		if _, err := os.Stat(cachePath); err == nil {
+			http.ServeFile(w, r, cachePath)
+		}
+	} else if size == "original" {
+		http.ServeFile(w, r, picture.Path)
+		return
+	}
+	index, _ := pbox.Find("placeholder.png")
+	w.Write(index)
+}
+
+var pbox *packr.Box
+
+func setupSpaHandler(box *packr.Box) spaHandler {
+	index, _ := box.FindString("index.html")
+	t := template.New("T")
+	t.Parse(index)
+	return spaHandler{staticPath: box, indexTemplate: t}
 }
 
 func Serve() {
@@ -78,13 +100,15 @@ func Serve() {
 
 	fbox := packr.New("Frontend Box", "./ui/frontend")
 	bbox := packr.New("Dashboard Box", "./ui/dashboard")
+	pbox = packr.New("Placeholder Box", "./ui/placeholders")
+	
 	r.HandleFunc("/img/{id}", loadImage)
 
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
 
-	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard",spaHandler{staticPath: bbox, indexPath: "index.html"}))
-	r.PathPrefix("/").Handler(spaHandler{staticPath: fbox, indexPath: "index.html"})
+	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard",setupSpaHandler(bbox)))
+	r.PathPrefix("/").Handler(setupSpaHandler(fbox))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
