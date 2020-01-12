@@ -1,0 +1,34 @@
+database:
+  baseurl: "/tmp/gallery/"
+
+server:
+  port: ":8800"
+
+gallery:
+  name: "Gallery"
+  imagesPerPage: 50
+  basepath: "/run/user/1000/gvfs/dav:host=cloud.exceptionerror.io,ssl=true,user=robrotheram,prefix=%2Fremote.php%2Fwebdav/Photos"
+  url:      "https://your.url.here"
+  theme:    "default"
+  #Limit that when thumbnail que reaches it the gallery will throw a warning to allow it to catch up an generate the thumbnails.
+  QueThreshold: 50 
+  Renderer: "imagemagick"
+
+about:
+  enable: false
+  photographer: "Joe Blogs"
+  backgroundPhoto: "/img/galleryimagename"
+  profilePhoto: "url to profile e.g gravatar"
+  twitter: "@twitter"
+  facebook: "facebook_username"
+  instagram: "instagram_username"
+  email: "me@example.com"
+  blog: "https://blog.example.com"
+  website: "https://example.com"
+  description: "Hello there, here is my gallery containing a number of photos from a number of years"
+  footer: "Photos ©photographer"
+
+admin:
+  enable: false
+  username: admin
+  password: <<GENERATED PASSWORD>>

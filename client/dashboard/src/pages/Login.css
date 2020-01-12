@@ -1,0 +1,14 @@
+body{
+    background-image: url("login.png");
+}
+
+.login-form {
+    max-width: 350px;
+    
+  }
+.login-form-forgot {
+    float: right;
+  }
+ .login-form-button {
+    width: 100%;
+  }
