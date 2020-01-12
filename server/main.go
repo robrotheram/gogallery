@@ -65,7 +65,7 @@ func checkAndCreateAdmin() {
 }
 
 func checkAuth(r *http.Request) bool {
-	tokenString := r.Header.Get("Authorization")
+	tokenString := r.URL.Query().Get("token")
 	if len(tokenString) == 0 {
 		return false
 	}
