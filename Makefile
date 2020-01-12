@@ -45,5 +45,5 @@ run:
 # Cross compilation
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
-docker-build:
-		docker run --rm -it -v "$(GOPATH)":/go -w /go/src/bitbucket.org/rsohlich/makepost golang:latest go build -o "$(BINARY_UNIX)" -v
+docker:
+		docker build . -t robrotheram/gogallery:latest
