@@ -50,7 +50,7 @@
 
 .img-container {
     width:100vw;
-    height: calc(100vh - 120px);
+    height: calc(100vh - 200px);
     padding: 30px;
     display:table-cell;
     vertical-align:middle;

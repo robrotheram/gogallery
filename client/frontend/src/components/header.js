@@ -20,9 +20,10 @@ let name = "GoGallery"
                 <img src={logo} width="30px" alt="Gallery Logo" style={{"marginRight": "10px"}}/>
                 <strong>{name}</strong>
             </Link>
-            <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <input type="checkbox" id="navbar-toggle-cbox"/>
+            <label for="navbar-toggle-cbox" className="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
-            </button>
+            </label>
 
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul className="navbar-nav mr-auto">
