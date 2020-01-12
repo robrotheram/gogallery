@@ -5,6 +5,7 @@ import { Collapse } from 'antd';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
+import { config } from '../store';
 import { userActions, photoActions } from '../store/actions';
 
 
@@ -102,7 +103,7 @@ class SideBar extends React.PureComponent {
   
     return (
           <Sider width={width} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
-            <img src={"http://localhost:8800/img/"+this.state.data.id} width="100%" alt="thumbnail" />
+            <img src={config.imageUrl+this.state.data.id} width="100%" alt="thumbnail" />
             <Form {...formItemLayout} style={{ padding: "0px 5px" }}>
               <Collapse bordered={false} defaultActiveKey={['1', '2', '3']}>
                 <Panel header="Properties" key="1">

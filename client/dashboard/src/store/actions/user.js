@@ -25,7 +25,7 @@ function login(username, password){
             password: password
         }
         console.log('dispathc: ', username);
-        axios.post(config.baseUrl+"/api/login", payload).then((response)=>{
+        axios.post(config.baseUrl+"/login", payload).then((response)=>{
             console.log(response.data);
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
@@ -44,7 +44,7 @@ function login(username, password){
 }
 function update(user){
     return dispatch => {
-        axios.post(config.baseUrl+"/api/auth/update", user, getOptions()).then((response)=>{
+        axios.post(config.baseUrl+"/auth/update", user, getOptions()).then((response)=>{
             
             localStorage.setItem('email', response.data.email);
             localStorage.setItem('username', response.data.username);
@@ -60,7 +60,7 @@ function update(user){
 
 function reauth(){
     return dispatch => {
-        axios.get(config.baseUrl+"/api/authorised",getOptions()).then((response)=>{
+        axios.get(config.baseUrl+"/authorised",getOptions()).then((response)=>{
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('email', response.data.email);

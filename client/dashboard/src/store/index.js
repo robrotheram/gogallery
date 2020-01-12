@@ -6,17 +6,23 @@ import { createLogger } from 'redux-logger'
 
 import { createBrowserHistory } from 'history';
 
-export const history = createBrowserHistory();
+export const history = createBrowserHistory({
+  basename: process.env.PUBLIC_URL
+});
 
-export const config = {
-    baseUrl: "http://localhost:8800"
+const Constants = {
+  prod : {
+    baseUrl: "/api",
+    imageUrl: "/img/"
+   },
+   dev : {
+    baseUrl: "http://localhost:8800/api",
+    imageUrl: "http://localhost:8800/img/"
+   }
 }
-
+export const config = process.env.NODE_ENV === 'development' ? Constants["dev"] :Constants["prod"];
 
 const loggerMiddleware = createLogger()
-
-
-
 export default function configureStore(preloadedState) {
     return createStore(
       rootReducer,
