@@ -151,3 +151,16 @@ ul.icons li a:hover {
     }
 
 }
+
+.downloadLink{
+    color:#FFF;
+    position: absolute;
+    bottom: 140px;
+    right: 0px;
+    width: 200px;
+    height: 30px;
+}
+.downloadLink a {
+    color: #FFF;
+    text-decoration: none;
+}

@@ -30,3 +30,28 @@ export default function configureStore(preloadedState) {
       applyMiddleware(thunkMiddleware, loggerMiddleware)
     )
   }
+
+export function formatTree(element){
+    const keys = Object.keys(element)
+    for (const key of keys) {
+      //console.log(element[key].id)
+      element[key].title = element[key].name
+      element[key].value = element[key].id
+      
+      formatTree(element[key].children)
+      element[key].children = Object.values(element[key].children)
+    }
+  }
+
+export function IDFromTree(collections, key){
+  formatTree(collections)
+  let tree = Object.values(collections)
+
+  key = key.split("-")
+  key.shift()
+  let el = {children:tree}
+  key.forEach(k => {
+    el = el.children[parseInt(k)]
+  })
+  return el.id
+}

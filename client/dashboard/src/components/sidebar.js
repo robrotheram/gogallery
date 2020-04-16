@@ -1,11 +1,11 @@
 import React from 'react';
 // as an array
-import { Layout, Form,  Input,  Select } from 'antd';
+import { Layout, Form,  Input,  Select, TreeSelect } from 'antd';
 import { Collapse } from 'antd';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { config } from '../store';
+import { config, formatTree } from '../store';
 import { photoActions } from '../store/actions';
 
 
@@ -72,7 +72,8 @@ class SideBar extends React.PureComponent {
     this.setState({data});
     this.triggerChange(data)
   }
-   handleCollectionChange = (value) => {
+   handleCollectionChange = value => {
+     console.log(value)
     var data = {...this.state.data}
     data["album"] = value
     this.setState({data});
@@ -101,6 +102,8 @@ class SideBar extends React.PureComponent {
         return formattedDate;
       }
   
+    formatTree(this.props.collections)
+    const collections = Object.values(this.props.collections)
     return (
           <Sider width={width} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
             <img src={config.imageUrl+this.state.data.id+"?size=tiny&token="+localStorage.getItem('token')} width="100%" alt="thumbnail" />
@@ -117,9 +120,17 @@ class SideBar extends React.PureComponent {
                     <Input value={this.state.data.caption} name="caption" onChange={this.handleChange}  onKeyDown={this.handleKeyDown}/>
                   </Form.Item>
                   <Form.Item label="Collection">
-                    <Select placeholder="Select Collection" value={this.state.data.album} onChange={this.handleCollectionChange}>
+                  <TreeSelect
+                    value={this.state.data.album}
+                    treeData={collections}
+                    placeholder="Select Collection"
+                    onChange={this.handleCollectionChange}
+                  />
+
+
+                    {/* <Select placeholder="Select Collection" value={this.state.data.album} onChange={this.handleCollectionChange}>
                     {this.props.collections.map((el, index) => (<Option key={el.name}>{el.name}</Option> ))}
-                    </Select>
+                    </Select> */}
           
                   </Form.Item>
                 </Panel>
@@ -127,6 +138,7 @@ class SideBar extends React.PureComponent {
                   <Form.Item label="Access" hasFeedback>
                     <Select placeholder="Please select a country" value={this.state.data.meta.visibility} name="visibility" onChange={this.handleVisablityChange}>
                       <Option value="PUBLIC">PUBLIC</Option>
+                      <Option value="HIDDEN">HIDDEN</Option>
                       <Option value="PRIVATE">PRIVATE</Option>
                     </Select>
                   </Form.Item>

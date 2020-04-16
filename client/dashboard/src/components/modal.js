@@ -1,12 +1,10 @@
 import React from 'react';
-import { Modal, Button, Icon, Form, Select } from 'antd';
+import { Modal, Button, Icon, Form, TreeSelect } from 'antd';
 
 import { connect } from 'react-redux';
 import { collectionActions } from '../store/actions';
+import { formatTree } from '../store';
 
-
-
-const { Option } = Select;
 const { confirm } = Modal;
 const ButtonGroup = Button.Group;
 
@@ -25,6 +23,9 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
     render() {
       const { visible, onCancel, onCreate, form } = this.props;
       const { getFieldDecorator } = form;
+
+      formatTree(this.props.collections)
+      const collections = Object.values(this.props.collections)
       return (
         <Modal
           visible={visible}
@@ -38,9 +39,12 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
               {getFieldDecorator('album', {
                 rules: [{ required: true, message: 'Please select the collection to upload photos to!' }],
               })(
-                <Select placeholder="Please select a collection">
-                  {this.props.collections.map((el, index) => (<Option key={el.name}>{el.name}</Option> ))}
-                </Select>,
+                <TreeSelect
+                    treeData={collections}
+                    placeholder="Select Collection"
+                    onChange={this.handleCollectionChange}
+                  />
+                
               )}
             </Form.Item>
           </Form>
@@ -94,10 +98,10 @@ class MoveModal extends React.Component {
         okType: 'danger',
         cancelText: 'No',
         onOk() {
-          _this.props.dispatch(collectionActions.move({
-            album: "rubish",
-            photos: _this.props.selectedPhotos
-          }))
+          _this.props.selectedPhotos.forEach(photo => {
+            _this.props.dispatch(collectionActions.remove(photo.id))
+          })
+          
           console.log('OK');
         },
         onCancel() {

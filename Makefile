@@ -5,6 +5,7 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
+DOCKER_VERSION=latest
 
 all: clean test build
 
@@ -46,4 +47,6 @@ run:
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 docker:
-		docker build . -t robrotheram/gogallery:latest
+		docker build . -t robrotheram/gogallery:$(DOCKER_VERSION)
+docker-publish:
+		docker push robrotheram/gogallery:$(DOCKER_VERSION)

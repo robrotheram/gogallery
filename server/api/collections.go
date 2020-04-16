@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 )
 
@@ -28,26 +29,32 @@ var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 
 var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var album datastore.Album
-	_ = json.NewDecoder(r.Body).Decode(&album)
-	path := fmt.Sprintf("%s/%s", Config.Gallery.Basepath, album.Name)
+	var newAlbum datastore.Album
 
-	album.Id = datastore.GetMD5Hash(path)
-	album.Parent = filepath.Dir(path)
+	_ = json.NewDecoder(r.Body).Decode(&album)
+	datastore.Cache.DB.One("Id", album.Id, &newAlbum)
+
+	path := fmt.Sprintf("%s/%s/%s", newAlbum.ParenetPath, newAlbum.Name, album.Name)
+
+	album.Id = config.GetMD5Hash(path)
+	album.ParenetPath = filepath.Dir(path)
 	album.ModTime = time.Now()
+	album.Children = make(map[string]datastore.Album)
 
 	fmt.Println(album)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, 0755)
 	}
+
 	datastore.Cache.DB.Save(&album)
 })
 
 var getAllCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var albms []datastore.Album
 	datastore.Cache.DB.All(&albms)
-
+	newalbms := datastore.SliceToTree(albms, Config.Gallery.Basepath)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(albms)
+	json.NewEncoder(w).Encode(newalbms)
 })
 
 var getCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -71,6 +78,7 @@ var getCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	datastore.Cache.DB.All(&pics)
 	var albms []datastore.Album
 	datastore.Cache.DB.All(&albms)
+	newalbms := datastore.SliceToTree(albms, Config.Gallery.Basepath)
 	dates := []string{}
 	uploadDates := []string{}
 	for _, pic := range pics {
@@ -98,5 +106,5 @@ var getCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(datastore.Collections{CaptureDates: dates, UploadDates: uploadDates, Albums: albms})
+	json.NewEncoder(w).Encode(datastore.Collections{CaptureDates: dates, UploadDates: uploadDates, Albums: newalbms})
 })

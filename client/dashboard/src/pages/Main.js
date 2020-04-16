@@ -1,7 +1,7 @@
 import React from 'react';
 import Selection from 'react-ds';
 import './Main.css';
-import { Layout, Menu, Icon, Radio, Row, Col}  from 'antd';
+import { Layout, Menu, Icon, Radio, Row, Col, Tree}  from 'antd';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { collectionActions, photoActions } from '../store/actions';
@@ -14,12 +14,12 @@ import Header from '../components/header'
 import AddCollection from '../components/addCollection'
 import UploadPhotos from '../components/upload'
 import { galleryActions } from '../store/actions/gallery';
-import { config } from '../store';
+import { config, formatTree, IDFromTree } from '../store';
 import { LazyImage } from '../components/Lazyloading';
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
-
+const { DirectoryTree } = Tree;
 class Main extends React.PureComponent {
 
   constructor() {
@@ -130,6 +130,10 @@ class Main extends React.PureComponent {
     this.setState({ filter: event.target.value })
   }
 
+  onTreeSelect = (selectedKeys, info) => {
+    console.log('selected', info); //.node.props.id);
+  };
+
   filterPhotos = (item) => {
     switch (item.key) {
       case "all":
@@ -145,7 +149,13 @@ class Main extends React.PureComponent {
         this.setState({ filter: "", uploaded_filter: this.props.uploadDates.sort().reverse()[0] })
         break;
       default:
-        this.setState({ filter: item.key, uploaded_filter: "" })
+        if (item.key !== undefined){
+          this.setState({ filter: item.key, uploaded_filter: "" })
+        }else{
+          let name = IDFromTree(this.props.collections, item["0"])
+          this.setState({ filter: name, uploaded_filter: "" })
+          
+        }
         break;
     }
   }
@@ -154,7 +164,9 @@ class Main extends React.PureComponent {
     const selectedElements = this.state.selectedElements.map(s => this.props.photos[s]);
     const lowercasedFilter = this.state.filter.toLowerCase();
 
-    console.log(this.props)
+    formatTree(this.props.collections)
+    const collections = Object.values(this.props.collections)
+
 
     const filteredData = this.props.photos.filter(item => {
       return search(item, this.state.uploaded_filter, lowercasedFilter)
@@ -183,7 +195,7 @@ class Main extends React.PureComponent {
 
     return (
       <Layout style={{ minHeight: '100vh' }}>
-        <Header/>
+        <Header search={this.filterPhotos}/>
         <Layout>
           <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse} style={{ overflowY: "auto" }}>
             <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={this.filterPhotos}>
@@ -215,11 +227,18 @@ class Main extends React.PureComponent {
                   </span>
                 }
               >
-                {this.props.collections.map((el, index) => (<Menu.Item key={el.name}>{el.name}</Menu.Item>))}
+                <DirectoryTree
+                className="draggable-tree"
+                defaultExpandedKeys={this.state.expandedKeys}
+                draggable
+                blockNode
+                onSelect={this.onTreeSelect()}
+                treeData={collections}
+              />
               </SubMenu>
             </Menu>
             <AddCollection />
-            <UploadPhotos />
+            <UploadPhotos /> 
             <Menu theme="dark" mode="inline" selectable={false}>
               <Menu.Item onClick={() => this.props.dispatch(galleryActions.showAdd())} key="add" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 50 }}><Icon type="plus" /> <span>Add Collection</span></Menu.Item>
               <Menu.Item onClick={() => this.props.dispatch(galleryActions.showUpload())} key="upload" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 100 }}><Icon type="upload" /> <span>Upload</span></Menu.Item>
@@ -263,7 +282,7 @@ class Main extends React.PureComponent {
               </Radio.Group>
             </Footer>
           </Layout>
-          <SideBar data={this.props.photos[this.state.selectedPhoto]} />
+          <SideBar data={this.props.photos[this.state.selectedPhoto]} /> 
         </Layout>
       </Layout>
     );

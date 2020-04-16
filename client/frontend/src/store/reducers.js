@@ -40,7 +40,7 @@ export function ProfileReducer(state =  { profile: {}, isUpdating: false }, acti
           return state
   }
 }
-export function CollectionsReducer(state =  { collections: [], isUpdating: false }, action) {
+export function CollectionsReducer(state =  { collections: {}, isUpdating: false }, action) {
   switch (action.type) {
       case 'COLLECTIONS_FETCHING':
           return {

@@ -8,7 +8,7 @@ import (
 
 func getToken(id string) (string, error) {
 	signingKey := []byte("keymaker")
-	ttl := 30 * time.Second
+	ttl := 300 * time.Second
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  id,
 		"exp": time.Now().UTC().Add(ttl).Unix(),
