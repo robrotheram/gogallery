@@ -6,19 +6,44 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
+	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	"github.com/robrotheram/gogallery/worker"
 )
 
 var uploadHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var uploadCollection datastore.UploadCollection
 	_ = json.NewDecoder(r.Body).Decode(&uploadCollection)
+	var album datastore.Album
+	datastore.Cache.DB.One("Id", uploadCollection.Album, &album)
 	for _, photo := range uploadCollection.Photos {
-		albumPath := fmt.Sprintf("%s/%s", Config.Gallery.Basepath, uploadCollection.Album)
-		os.Rename(fmt.Sprintf("./temp/%s", datastore.GetMD5Hash(photo)), fmt.Sprintf("%s/%s", albumPath, photo))
-		datastore.ScanPath(albumPath, &Config.Gallery)
+		albumPath := fmt.Sprintf("%s/%s", album.ParenetPath, album.Name)
+		newPath := fmt.Sprintf("%s/%s", albumPath, photo)
+		oldPath := fmt.Sprintf("./temp/%s", config.GetMD5Hash(photo))
+		err := datastore.MoveFile(oldPath, newPath)
+		if err == nil {
+			picName := strings.TrimSuffix(photo, filepath.Ext(photo))
+			p := datastore.Picture{
+				Id:       config.GetMD5Hash(newPath),
+				Name:     picName,
+				Path:     newPath,
+				Album:    album.Id,
+				Exif:     datastore.Exif{},
+				RootPath: Config.Gallery.Basepath,
+				Meta: datastore.PictureMeta{
+					PostedToIG:   false,
+					Visibility:   "PUBLIC",
+					DateAdded:    time.Now(),
+					DateModified: time.Now()}}
+			p.CreateExif()
+			datastore.Cache.DB.Save(&p)
+			worker.SendToThumbnail(newPath)
+		}
 	}
-	fmt.Println(uploadCollection)
 })
 
 var uploadFileHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +74,7 @@ var uploadFileHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 		os.Mkdir("temp", 0755)
 	}
 
-	tfile, err := os.OpenFile("./temp/"+datastore.GetMD5Hash(handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
+	tfile, err := os.OpenFile("./temp/"+config.GetMD5Hash(handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Println(err)
 		return

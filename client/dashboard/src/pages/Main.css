@@ -189,6 +189,8 @@ html, body {
 .ant-menu-submenu ul {
   max-height: 500px;
   overflow-y: auto;
+  width: 500px;
+  overflow-x: hidden;
 }
 
 .ant-menu-submenu-popup::-webkit-scrollbar {

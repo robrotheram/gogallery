@@ -1,29 +1,20 @@
 package datastore
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"github.com/robrotheram/gogallery/worker"
+
 	Config "github.com/robrotheram/gogallery/config"
+	"github.com/robrotheram/gogallery/worker"
 )
 
 var validExtension = []string{"jpg", "png", "gif"}
 var gConfig *Config.GalleryConfiguration
 var IsScanning bool
-
-//albumInBlacklist []string
-
-func GetMD5Hash(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
 
 // FileInfo is a struct created from os.FileInfo interface for serialization.
 type FileInfo struct {
@@ -143,10 +134,10 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 			picName := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
 			if !IsAlbumInBlacklist(albumName) && !IsPictureInBlacklist(picName) {
 				p := Picture{
-					Id:       GetMD5Hash(path),
+					Id:       Config.GetMD5Hash(path),
 					Name:     picName,
 					Path:     path,
-					Album:    albumName,
+					Album:    Config.GetMD5Hash(filepath.Dir(path)),
 					Exif:     Exif{},
 					RootPath: g_config.Basepath,
 					Meta: PictureMeta{
@@ -158,20 +149,24 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 				if !doesPictureExist(p) {
 					Cache.DB.Save(&p)
 				}
-				Cache.DB.UpdateField(&Album{Id: GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
+				Cache.DB.UpdateField(&Album{Id: Config.GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
 				worker.SendToThumbnail(path)
 			}
 		}
 
 		if info.IsDir() {
 			if !IsAlbumInBlacklist(info.Name()) {
-				if filepath.Dir(path) == g_config.Basepath {
+				if filepath.Base(filepath.Dir(path)) != g_config.Basepath {
 					info := fileInfoFromInterface(info)
+					fmt.Printf("%s, %s \n", info.Name, Config.GetMD5Hash(path))
 					Cache.DB.Save(&Album{
-						Id:      GetMD5Hash(path),
-						Name:    info.Name,
-						ModTime: info.ModTime,
-						Parent:  filepath.Base(filepath.Dir(path))})
+						Id:          Config.GetMD5Hash(path),
+						Name:        info.Name,
+						ModTime:     info.ModTime,
+						Parent:      filepath.Base(filepath.Dir(path)),
+						ParenetPath: (filepath.Dir(path)),
+						Children:    make(map[string]Album)})
+
 				}
 			}
 		}

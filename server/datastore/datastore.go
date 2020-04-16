@@ -4,21 +4,27 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/ahmdrz/goinsta/v2"
 	"github.com/asdine/storm"
+	Config "github.com/robrotheram/gogallery/config"
 )
 
 type Album struct {
-	Id         string    `json:"id" storm:"id"`
-	Name       string    `json:"name"`
-	ModTime    time.Time `json:"mod_time"`
-	Parent     string    `json:"parent"`
-	ProfileID string  `json:"profile_image"`
-	Images     []Picture `json:"images"`
-	Key        string    `json:"key"`
+	Id          string           `json:"id" storm:"id"`
+	Name        string           `json:"name"`
+	ModTime     time.Time        `json:"mod_time"`
+	Parent      string           `json:"parent"`
+	ParenetPath string           `json:"parentPath,omitempty"`
+	ProfileID   string           `json:"profile_image"`
+	Images      []Picture        `json:"images"`
+	Key         string           `json:"key"`
+	Children    map[string]Album `json:"children"`
 }
 
 type UploadCollection struct {
@@ -27,9 +33,9 @@ type UploadCollection struct {
 }
 
 type Collections struct {
-	CaptureDates []string `json:"dates"`
-	UploadDates  []string `json:"uploadDates"`
-	Albums       []Album  `json:"albums"`
+	CaptureDates []string         `json:"dates"`
+	UploadDates  []string         `json:"uploadDates"`
+	Albums       map[string]Album `json:"albums"`
 }
 
 type MoveCollection struct {
@@ -69,7 +75,7 @@ type Picture struct {
 	Album      string      `json:"album"`
 	Exif       Exif        `json:"exif"`
 	Meta       PictureMeta `json:"meta,omitempty"`
-	RootPath   string	   `json:"root_path,omitempty"`
+	RootPath   string      `json:"root_path,omitempty"`
 }
 
 type User struct {
@@ -112,11 +118,10 @@ func (d *DataStore) RestDB() {
 
 func (picture *Picture) MoveToAlbum(newAlbum string) {
 	oldPath := picture.Path
-	basepath := filepath.Dir(filepath.Dir(oldPath))
-	if filepath.Dir(oldPath) == picture.RootPath {
-		basepath = (filepath.Dir(oldPath))
-	}
-	newName := fmt.Sprintf("%s/%s/%s%s", basepath, newAlbum, picture.Name, filepath.Ext(oldPath))
+	var album Album
+	Cache.DB.One("Id", newAlbum, &album)
+
+	newName := fmt.Sprintf("%s/%s/%s%s", album.ParenetPath, album.Name, picture.Name, filepath.Ext(oldPath))
 	picture.Path = newName
 	picture.Album = newAlbum
 
@@ -125,4 +130,48 @@ func (picture *Picture) MoveToAlbum(newAlbum string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (picture *Picture) Delete() {
+	err := os.Remove(picture.Path)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func SliceToTree(albms []Album, basepath string) map[string]Album {
+	newalbms := make(map[string]Album)
+	sort.Slice(albms, func(i, j int) bool {
+		return albms[i].ParenetPath < albms[j].ParenetPath
+	})
+	for _, ab := range albms {
+		if ab.ParenetPath == basepath {
+			ab.ParenetPath = ""
+			newalbms[ab.Name] = ab
+		}
+	}
+	for _, ab := range albms {
+		if (ab.ParenetPath != basepath) && (ab.Id != Config.GetMD5Hash(basepath)) {
+			s := strings.Split(strings.Replace(ab.ParenetPath, basepath, "", 1), "/")
+			copy(s, s[1:])
+			s = s[:len(s)-1]
+			pth := basepath
+			var alb Album
+			for i, p := range s {
+				if i == 0 {
+					alb = newalbms[p]
+				} else {
+					alb = alb.Children[p]
+				}
+				pth = path.Join(pth, p)
+				if i == len(s)-1 {
+					if alb.Children != nil {
+						ab.ParenetPath = ""
+						alb.Children[ab.Name] = ab
+					}
+				}
+			}
+		}
+	}
+	return newalbms
 }

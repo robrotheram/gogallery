@@ -5,9 +5,10 @@ const placeHolder =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUW0RjgAAAAASUVORK5CYII="
 
 const Image = styled.img`
-  display: block;
+  
   height: 100%;
   width: 100%;
+  z-index: 2;
   object-fit: cover;
   // Add a smooth animation on loading
   @keyframes loaded {

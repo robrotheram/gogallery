@@ -16,6 +16,10 @@ class HeaderComponent extends React.PureComponent {
     this.props.dispatch(userActions.logout())
   }
 
+  search = (e) => {
+    this.props.search({key:e.target.value})
+  }
+
   render() {
     let email = this.props.auth.email || "test@test.com";
     function get_gravatar(size) {

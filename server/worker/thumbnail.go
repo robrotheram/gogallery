@@ -1,8 +1,6 @@
 package worker
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -25,12 +23,6 @@ func SendToThumbnail(image string) {
 	if !CheckCacheFolder(image) {
 		thumbnailChan <- image
 	}
-}
-
-func GetMD5Hash(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 var img image.Image
@@ -61,7 +53,7 @@ func saveImage(filename string, img image.Image) {
 }
 
 func sendToCommand(path string, size int, prefix string) {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, GetMD5Hash(path))
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", prefix, galleryConfig.GetMD5Hash(path))
 	_, err := exec.Command("convert", path, "-trim", "-resize", "800", cachePath).Output()
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -73,7 +65,8 @@ func sendToCommand(path string, size int, prefix string) {
 }
 
 func generateThumbnail(path string, size int, prefix string) {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", GetMD5Hash(path), prefix)
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", galleryConfig.GetMD5Hash(path), prefix)
+
 	src := loadImage(path)
 	if src == nil {
 		return
@@ -82,7 +75,7 @@ func generateThumbnail(path string, size int, prefix string) {
 	dst := image.NewNRGBA(g.Bounds(src.Bounds()))
 	g.Draw(dst, src)
 	saveImage(cachePath, dst)
-	fmt.Println("Internal Thumbnail generate: " + path)
+	fmt.Println("Internal Thumbnail generate: "+path, "ID: "+galleryConfig.GetMD5Hash(path))
 }
 
 func makeCacheFolder() {
@@ -90,7 +83,7 @@ func makeCacheFolder() {
 }
 
 func doesThumbExists(path string, prefix string) bool {
-	cachePath := fmt.Sprintf("cache/%s%s.jpg", GetMD5Hash(path), prefix)
+	cachePath := fmt.Sprintf("cache/%s%s.jpg", galleryConfig.GetMD5Hash(path), prefix)
 	if _, err := os.Stat(cachePath); err == nil {
 		return true
 	}
@@ -103,7 +96,7 @@ func CheckCacheFolder(path string) bool {
 }
 
 func MakeThumbnail(path string) {
-	if(!CheckCacheFolder(path)){
+	if !CheckCacheFolder(path) {
 		if Config.Renderer == "imagemagick" {
 			sendToCommand(path, 1024, "")
 		} else {

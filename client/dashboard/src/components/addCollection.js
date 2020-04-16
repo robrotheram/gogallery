@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal,  Input , Form} from 'antd';
+import { Modal,  Input , Form, TreeSelect} from 'antd';
 
+import { formatTree} from "../store";
 import { connect } from 'react-redux';
 
 import {galleryActions, collectionActions} from '../store/actions'
@@ -11,6 +12,11 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
     render() {
       const { visible, onCancel, onCreate, form } = this.props;
       const { getFieldDecorator } = form;
+
+
+      formatTree(this.props.collections)
+      const collections = Object.values(this.props.collections)
+
       return (
         <Modal
           visible={visible}
@@ -20,6 +26,17 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
           onOk={onCreate}
         >
           <Form layout="vertical">
+            <Form.Item label="Choose collection" hasFeedback>
+                {getFieldDecorator('id', {
+                  rules: [{ required: true, message: 'Please select the collection to upload photos to!' }],
+                })(
+                  <TreeSelect
+                      treeData={collections}
+                      placeholder="Select Collection"
+                      onChange={this.enableUpload}
+                    />
+                )}
+            </Form.Item>
             <Form.Item label="Collection Name">
               {getFieldDecorator('name', {
                 rules: [{ required: true, message: 'Please input the name of collection!' }],
@@ -63,6 +80,7 @@ class AddCollection extends React.Component {
           visible={this.props.addCollectionModalVisable}
           onCancel={this.handleCancel}
           onCreate={this.handleCreate}
+          collections ={this.props.collections}
         />
     );
   }

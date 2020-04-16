@@ -28,9 +28,7 @@ func main() {
 	if _, err := os.Stat(Config.Gallery.Basepath); os.IsNotExist(err) {
 		panic("GALLERY DIRECTORY NOT FOUND EXITING!")
 	}
-
 	fmt.Printf("%+v\n", Config.Gallery)
-
 	worker.StartWorkers(&Config.Gallery)
 	//go setUpWatchers(Config.Gallery.Basepath)
 
@@ -51,7 +49,9 @@ func main() {
 	go func() {
 		datastore.ScanPath(Config.Gallery.Basepath, &Config.Gallery)
 	}()
+
 	Serve()
+
 }
 
 // Check to see if there is a admin account if not create a new one
@@ -81,16 +81,15 @@ func loadImage(w http.ResponseWriter, r *http.Request) {
 	var picture datastore.Picture
 	datastore.Cache.DB.One("Id", name, &picture)
 	size := r.URL.Query().Get("size")
-
-	if (picture.Meta.Visibility == "PUBLIC") || (checkAuth(r)) {
+	if (picture.Meta.Visibility == "PUBLIC") || (picture.Meta.Visibility == "HIDDEN") || (checkAuth(r)) {
 		if size == "" {
-			cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
+			cachePath := fmt.Sprintf("cache/%s.jpg", (picture.Id))
 			if _, err := os.Stat(cachePath); err == nil {
 				http.ServeFile(w, r, cachePath)
 				return
 			}
 		} else if size == "tiny" {
-			cachePath := fmt.Sprintf("cache/%s.jpg", worker.GetMD5Hash(picture.Path))
+			cachePath := fmt.Sprintf("cache/%s.jpg", (picture.Id))
 			if _, err := os.Stat(cachePath); err == nil {
 				http.ServeFile(w, r, cachePath)
 				return
@@ -131,7 +130,7 @@ func Serve() {
 	r.PathPrefix("/").Handler(setupSpaHandler(fbox))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT", "HEAD", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	log.Println("Starting server on port" + Config.Server.Port)

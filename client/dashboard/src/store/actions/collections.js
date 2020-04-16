@@ -8,6 +8,7 @@ export const collectionActions = {
     getAll,
     create,
     move,
+    remove,
     upload
 };
 
@@ -49,6 +50,17 @@ function move (collection){
     return dispatch => {
         axios.post(config.baseUrl + '/collection/move',  collection, getOptions()).then(result => {
             dispatch(photoActions.getAll());
+            notify("success", "Photo deleted successfully")
+        }).catch((err)=>{
+            notify("warning", "Error from server: "+err)
+        })
+    }
+}
+
+function remove (photoID){
+    return dispatch => {
+        axios.delete(config.baseUrl + '/photo/'+photoID, getOptions()).then(result => {
+            dispatch(photoActions.getAll());
             notify("success", "Collections moved successfully")
         }).catch((err)=>{
             notify("warning", "Error from server: "+err)
@@ -66,7 +78,7 @@ function collectionUpdating(){
 function setPhotoDetails(data){
     return{
         type: "COLLECTIONS_RECEIVED",
-        collections: [...data.albums],
+        collections: data.albums,
         dates: [...data.dates],
         uploadDates: [...data.uploadDates]
     }

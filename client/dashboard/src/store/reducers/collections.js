@@ -1,5 +1,5 @@
 const initialState = {
-    collections: [],
+    collections: {},
     dates: [],
     uploadDates: [],
     isUpdating: false

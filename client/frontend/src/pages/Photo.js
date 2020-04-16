@@ -4,18 +4,28 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 
+import Lightbox from "react-image-lightbox";
+import "react-image-lightbox/style.css";
+
 import camera from '../img/icons/camera.svg'
 import lens from '../img/icons/lens.svg'
 import focal from '../img/icons/focal-length.svg'
 import apature from '../img/icons/apature.svg'
 import timer from '../img/icons/timer.svg'
 import iso from '../img/icons/iso.svg'
-import album from '../img/icons/albums.svg'
-import { config } from "../store";
+import albumSVG from '../img/icons/albums.svg'
+import { config, searchTree } from "../store";
 
 import './photo.css'
+import { LazyImage } from "../components/Lazyloading";
 
 class Photo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isOpen: false
+    };
+  }
 
   render() {
     let { collections, photos } = this.props
@@ -26,11 +36,12 @@ class Photo extends React.Component {
     let post_index = ""
 
     let album_id = ""
-    if (collections !== undefined && photo.album !== undefined && collections.length > 0) {
-      let album = (collections.filter(c => c.name === photo.album)[0])
+    let album = {}
+    if (collections !== undefined && photo.album !== undefined) {
+      album = searchTree(collections, photo.album )
       album_id = album.id
 
-      const photoList = photos.filter(c => c.album === album.name) || [];
+      const photoList = photos.filter(c => c.album === album.id) || [];
       let index = photoList.findIndex(x => x.id === id);
       if (index -1 >= 0){
         pre_index = photoList[index-1].id
@@ -43,13 +54,21 @@ class Photo extends React.Component {
       console.log(album_id, photo.album)
     }
 
-    console.log(album_id)
-
+    
+    const { isOpen } = this.state;
+    console.log()
     return (
       <main>
         <div>
-          <div id="gallery_single" className="img-container">
-            <img src={config.imageUrl+ photo.id} alt={photo.name} />
+        {isOpen && (
+          <Lightbox
+            mainSrc={config.imageUrl+ photo.id+"?size=original"}
+            onCloseRequest={() => this.setState({ isOpen: false })}
+          />
+        )}
+          <div id="gallery_single" className="img-container" onClick={() => this.setState({ isOpen: true })}>
+            <LazyImage src={config.imageUrl+ photo.id} alt={photo.name} />
+            <div className="downloadLink"><a href={config.imageUrl+ photo.id+"?size=original"} target="_blank" rel="noopener noreferrer" download={photo.name}>Download Orginal</a></div>
           </div>
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
             <div className="">
@@ -78,12 +97,12 @@ class Photo extends React.Component {
           </nav>
 
         </div>
-        <div className="container" style={{ "background-color": "white", "margin-top": "20px" }}>
+        <div className="container" style={{ "backgroundColor": "white", "marginTop": "20px" }}>
           <div className="row">
             <div className="col-12">
               <h2 className="robotFont">{photo.name}  <span className="badge badge-pill badge-light date-pill">{photo.format_time}</span> </h2>
 
-              <table className="table" style={{ "text-align": "center", "line-height": "50px" }}>
+              <table className="table" style={{ "textAlign": "center", "lineHeight": "50px" }}>
                 <tbody>
 
                   <tr>
@@ -118,9 +137,9 @@ class Photo extends React.Component {
 
                   <tr>
                     <th scope="row">
-                      <img src={album} width="50px" alt="album icon"/>
+                      <img src={albumSVG} width="50px" alt="album icon"/>
                     </th>
-                    <td><Link to={"/album/" + album_id}>{photo.album}</Link></td>
+                    <td><Link to={"/album/" + album_id}>{album.name}</Link></td>
                   </tr>
                 </tbody>
               </table>

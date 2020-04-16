@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/datastore"
@@ -35,6 +35,16 @@ var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(picture)
 })
 
+var deletePhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	photoID := mux.Vars(r)["id"]
+	var oldPicture datastore.Picture
+	datastore.Cache.DB.One("Id", photoID, &oldPicture)
+	datastore.Cache.DB.DeleteStruct(&oldPicture)
+	oldPicture.Delete()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(oldPicture)
+})
+
 var getPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
 	var picture datastore.Picture
@@ -52,6 +62,9 @@ var getAllAdminPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *h
 			filterPics = append(filterPics, pic)
 		}
 	}
+	sort.Slice(filterPics, func(i, j int) bool {
+		return filterPics[i].Exif.DateTaken.Sub(filterPics[j].Exif.DateTaken) > 0
+	})
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(filterPics)
 })
@@ -62,19 +75,19 @@ var getAllPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	datastore.Cache.DB.All(&pics)
 	for _, pic := range pics {
 		if !datastore.IsAlbumInBlacklist(pic.Album) {
-			if (pic.Meta.Visibility == "PUBLIC") {
+			if pic.Meta.Visibility == "PUBLIC" {
 				cleanpic := datastore.Picture{
-					Id: pic.Id,
-					Name: pic.Name,
-					Caption: pic.Caption,
-					Album: pic.Album,
+					Id:         pic.Id,
+					Name:       pic.Name,
+					Caption:    pic.Caption,
+					Album:      pic.Album,
 					FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
-					Exif: pic.Exif,
-					Meta: pic.Meta,
+					Exif:       pic.Exif,
+					Meta:       pic.Meta,
 				}
 				filterPics = append(filterPics, cleanpic)
 			}
-			
+
 		}
 	}
 	sort.Slice(filterPics, func(i, j int) bool {

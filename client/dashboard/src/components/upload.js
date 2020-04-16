@@ -1,13 +1,12 @@
 import React from 'react';
-import { Modal, Icon, Form, Select } from 'antd';
-import {config} from "../store";
+import { Modal, Icon, Form, TreeSelect } from 'antd';
+import {config, formatTree} from "../store";
 import { Upload } from 'antd';
 import axios from "axios"
 
 import { connect } from 'react-redux';
 import {galleryActions, collectionActions, getOptions} from '../store/actions'
 
-const { Option } = Select;
 const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
   // eslint-disable-next-line
   class extends React.Component {
@@ -44,9 +43,13 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
 			
     }
     
+    
     render() {
       const { visible, onCancel, onCreate, form } = this.props;
       const { getFieldDecorator } = form;
+
+      formatTree(this.props.collections)
+      const collections = Object.values(this.props.collections)
       return (
         <Modal
           visible={visible}
@@ -60,9 +63,11 @@ const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
               {getFieldDecorator('select', {
                 rules: [{ required: true, message: 'Please select the collection to upload photos to!' }],
               })(
-                <Select placeholder="Please select a collection" onChange={this.enableUpload}>
-                  {this.props.collections.map((el, index) => (<Option key={el.name}>{el.name}</Option> ))}
-                </Select>,
+                <TreeSelect
+                    treeData={collections}
+                    placeholder="Select Collection"
+                    onChange={this.enableUpload}
+                  />
               )}
           </Form.Item>
             <Form.Item>

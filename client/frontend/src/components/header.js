@@ -14,14 +14,14 @@ import {Link} from "react-router-dom";
 function Header() {
 let name = "GoGallery"
   return (
-  <header className="fixed-top">
+  <header className="fixed-top" style={{"zIndex":"999"}}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow">
             <Link to="/" className="navbar-brand mx-auto">
                 <img src={logo} width="30px" alt="Gallery Logo" style={{"marginRight": "10px"}}/>
                 <strong>{name}</strong>
             </Link>
             <input type="checkbox" id="navbar-toggle-cbox"/>
-            <label for="navbar-toggle-cbox" className="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <label htmlFor="navbar-toggle-cbox" className="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
             </label>
 
