@@ -1,6 +1,8 @@
 .idea
 *.db
 *.prof
+*.tar.gz
+*.tgz
 vendor
 cache
 config.yml

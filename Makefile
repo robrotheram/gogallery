@@ -7,6 +7,7 @@ BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
 DOCKER_VERSION=latest
 
+
 all: clean test build
 
 dep:
@@ -30,19 +31,22 @@ build-ui:
 	cp -r client/frontend/build/* server/ui/frontend/.
 
 build-server:
-	cd server && ${HOME}/go/bin/packr2
+	cd server && /go/bin/packr2
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
-	cd server && ${HOME}/go/bin/packr2 clean
+	cd server && /go/bin/packr2 clean
 	
 clean: 
 	cd server && $(GOCLEAN)
 	cd server && rm -f $(BINARY_NAME)
 	cd server && rm -f $(BINARY_UNIX)
-	cd server && ${HOME}/go/bin/packr2 clean
+	cd server && /go/bin/packr2 clean
+	rm -rf *.tar.gz
 run:
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v ./...
 	./$(BINARY_NAME)
 
+package:
+	tar -czvf gogallery-linux-amd64.tgz gogallery server/config_sample.yml
 # Cross compilation
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
