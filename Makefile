@@ -21,7 +21,7 @@ build: build-dashboard build-ui build-server
 build-dashboard:
 	cd client/dashboard && npm install
 	cd client/dashboard && npm run build
-	mkdir -p server/ui/frontend
+	mkdir -p server/ui/dashboard
 	cp -r client/dashboard/build/* server/ui/dashboard/.
 
 build-ui:
