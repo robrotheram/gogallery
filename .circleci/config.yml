@@ -10,3 +10,7 @@ jobs:
       - run: make build-dashboard 
       - run: make build-ui 
       - run: make build-server
+      - run: make package
+      - store_artifacts:
+          path: gogallery-linux-amd64.tgz
+          destination: gogallery-linux-amd64.tgz
