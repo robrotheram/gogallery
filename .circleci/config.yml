@@ -15,3 +15,7 @@ jobs:
       - store_artifacts:
           path: gogallery-linux-amd64.tgz
           destination: gogallery-linux-amd64.tgz
+
+      - run: echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+      - run: make docker
+      - run: make docker-publish
