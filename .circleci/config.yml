@@ -9,4 +9,4 @@ jobs:
       # specify any bash command here prefixed with `run: `
       - run: make build-dashboard 
       - run: make build-ui 
-      - run: build-server
+      - run: make build-server
