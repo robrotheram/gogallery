@@ -5,7 +5,7 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
-DOCKER_VERSION=latest
+CIRCLE_BRANCH:=latest
 
 
 all: clean test build
@@ -46,11 +46,11 @@ run:
 	./$(BINARY_NAME)
 
 package:
-	tar -czvf gogallery-linux-amd64.tgz gogallery server/config_sample.yml
+	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml
 # Cross compilation
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 docker:
-		docker build . -t robrotheram/gogallery:$(DOCKER_VERSION)
+		docker build . -t robrotheram/gogallery:$CIRCLE_BRANCH
 docker-publish:
-		docker push robrotheram/gogallery:$(DOCKER_VERSION)
+		docker push robrotheram/gogallery:$CIRCLE_BRANCH

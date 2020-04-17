@@ -5,6 +5,7 @@ jobs:
       - image: robrotheram/gogoallery_ci:1.13
     steps:
       - checkout
+      - setup_remote_docker
 
       # specify any bash command here prefixed with `run: `
       - run: make build-dashboard 
