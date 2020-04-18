@@ -6,14 +6,11 @@ import placeholder from "../img/placeholder.png"
 import './album.css'
 import { Link } from "react-router-dom";
 
-
-
-
 function AlbumList(props){
   let albums = props.albums
-  let classSize = "col-12"
+  let classSize = "col-md-12"
   if (props.inline){
-    classSize = "col-3"
+    classSize = "col-md-3"
   }
   return (
     albums.map((k,i) => (
@@ -35,10 +32,7 @@ function AlbumList(props){
   )
 }
 
-
-
 class AlbumPhotoPage extends React.PureComponent {
-
   render(){
   let {collections, photos} = this.props
   const id = this.props.match.params.id
@@ -51,8 +45,8 @@ class AlbumPhotoPage extends React.PureComponent {
     }
   }
   const photoList = photos.filter(c => c.album === collection.id) || [];
-  let albumclass = "col-2"
-  let photoclass = "col-10"
+  let albumclass = "col-lg-2"
+  let photoclass = "col-lg-10"
   let albums = []
   if (collection.children !== undefined){
     albums = Object.values(collection.children);
@@ -62,7 +56,7 @@ class AlbumPhotoPage extends React.PureComponent {
     photoclass = "col-12"
   }
   if (photoList.length === 0){
-    albumclass = "col-12"
+    albumclass = "col-lg-12"
     photoclass = "col-0"
   }
 
