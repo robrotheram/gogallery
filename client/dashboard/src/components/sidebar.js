@@ -107,7 +107,7 @@ class SideBar extends React.PureComponent {
     return (
           <Sider width={width} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
             <img src={config.imageUrl+this.state.data.id+"?size=tiny&token="+localStorage.getItem('token')} width="100%" alt="thumbnail" />
-            <Form {...formItemLayout} style={{ padding: "0px 5px" }}>
+            <Form {...formItemLayout}>
               <Collapse bordered={false} defaultActiveKey={['1', '2', '3']}>
                 <Panel header="Properties" key="1">
                   <Form.Item label="id">
@@ -137,7 +137,7 @@ class SideBar extends React.PureComponent {
                     </Select>
                   </Form.Item>
                   <Form.Item label="link">
-                   <a href={"/photo/"+this.state.data.id}>{this.state.data.id} </a>
+                   <a href={"/photo/"+this.state.data.id}>{this.state.data.name} </a>
                   </Form.Item>
                 </Panel>
                 <Panel header="History" key="3">

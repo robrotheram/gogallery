@@ -124,7 +124,7 @@ import {
       const collections = Object.values(this.props.collections)
       return (
         <Row>
-          <Col span={8}>
+          <Col span={8} style={{"overflowY": "auto","maxHeight": "500px"}} >
             <DirectoryTree
               className="draggable-tree"
               defaultExpandedKeys={this.state.expandedKeys}
@@ -133,7 +133,7 @@ import {
               treeData={collections}
             />
           </Col>
-          <Col span={16}>
+          <Col span={16} style={{"paddingLeft":"30px"}}>
             <Form {...formItemLayout} onSubmit={this.handleSubmit}>
               < Divider/>
               <Form.Item label="Album Name">
