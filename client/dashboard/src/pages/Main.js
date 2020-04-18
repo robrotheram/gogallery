@@ -153,7 +153,7 @@ class Main extends React.PureComponent {
           this.setState({ filter: item.key, uploaded_filter: "" })
         }else{
           let name = IDFromTree(this.props.collections, item["0"])
-          this.setState({ filter: name, uploaded_filter: "" })
+          this.setState({ filter: name.id, uploaded_filter: "" })
           
         }
         break;

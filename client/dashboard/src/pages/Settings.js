@@ -7,6 +7,7 @@ import RegistrationForm from '../components/settings/RegistrationForm'
 import ProfileForm from '../components/settings/ProfileForm'
 import SettingsForm from '../components/settings/SettingsForm'
 import Maintenance from '../components/settings/maintenance'
+import AlbumSettings from '../components/settings/AlbumSettings'
 import { settingsActions } from '../store/actions/settings';
 
 const { Content } = Layout;
@@ -24,6 +25,10 @@ const tabListNoTitle = [
     tab: <span><Icon style={{"margin-right":"5px"}}  type="setting" />Site Settings</span>,
   },
   {
+    key: 'album',
+    tab: <span><Icon style={{"margin-right":"5px"}}  type="folder-open" />Album Settings</span>,
+  },
+  {
     key: 'maintenance',
     tab: <span><Icon style={{"margin-right":"5px"}}  type="tool" /> Maintenance</span>,
   },
@@ -33,6 +38,7 @@ const contentListNoTitle = {
   user: <RegistrationForm/>,
   profile: <ProfileForm/>,
   settings: <SettingsForm/>,
+  album: <AlbumSettings/>,
   maintenance: <Maintenance/>
 };
 

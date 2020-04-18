@@ -45,9 +45,6 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "resolutions": {
-    "react-dev-utils": "10.1.0"
-  },
   "browserslist": {
     "production": [
       ">0.2%",

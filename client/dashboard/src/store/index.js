@@ -53,5 +53,5 @@ export function IDFromTree(collections, key){
   key.forEach(k => {
     el = el.children[parseInt(k)]
   })
-  return el.id
+  return el
 }

@@ -9,7 +9,8 @@ export const collectionActions = {
     create,
     move,
     remove,
-    upload
+    upload,
+    update
 };
 
 function getAll(){
@@ -23,6 +24,17 @@ function getAll(){
         })
     }
 };
+
+function update (collection){
+    return dispatch => {
+        axios.post(config.baseUrl + '/collection/'+collection.id, collection, getOptions()).then(result => {
+            dispatch(getAll());
+            notify("success", "Collections updated successfully")
+        }).catch((err)=>{
+            notify("warning", "Error from server: "+err)
+        })
+    }
+}
 
 function create (collection) {
     return dispatch => {

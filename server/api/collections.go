@@ -27,6 +27,29 @@ var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 	}
 })
 
+var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	albumID := mux.Vars(r)["id"]
+	var oldAlbum datastore.Album
+	var album datastore.Album
+	datastore.Cache.DB.One("Id", albumID, &oldAlbum)
+	_ = json.NewDecoder(r.Body).Decode(&album)
+
+	if oldAlbum.Name != album.Name {
+		oldPath := fmt.Sprintf("%s/%s", filepath.Dir(oldAlbum.ParenetPath), oldAlbum.Name)
+		newPath := fmt.Sprintf("%s/%s", filepath.Dir(oldAlbum.ParenetPath), album.Name)
+		os.Rename(oldPath, newPath)
+		oldAlbum.Name = album.Name
+	}
+
+	if oldAlbum.ProfileID != album.ProfileID {
+		oldAlbum.ProfileID = album.ProfileID
+	}
+
+	datastore.Cache.DB.Save(&oldAlbum)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(oldAlbum)
+})
+
 var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var album datastore.Album
 	var newAlbum datastore.Album

@@ -125,13 +125,7 @@ class SideBar extends React.PureComponent {
                     treeData={collections}
                     placeholder="Select Collection"
                     onChange={this.handleCollectionChange}
-                  />
-
-
-                    {/* <Select placeholder="Select Collection" value={this.state.data.album} onChange={this.handleCollectionChange}>
-                    {this.props.collections.map((el, index) => (<Option key={el.name}>{el.name}</Option> ))}
-                    </Select> */}
-          
+                  />          
                   </Form.Item>
                 </Panel>
                 <Panel header="Visability" key="2">
@@ -143,7 +137,7 @@ class SideBar extends React.PureComponent {
                     </Select>
                   </Form.Item>
                   <Form.Item label="link">
-                   {this.state.data.id} 
+                   <a href={"/photo/"+this.state.data.id}>{this.state.data.id} </a>
                   </Form.Item>
                 </Panel>
                 <Panel header="History" key="3">
