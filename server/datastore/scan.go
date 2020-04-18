@@ -159,14 +159,15 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 				if filepath.Base(filepath.Dir(path)) != g_config.Basepath {
 					info := fileInfoFromInterface(info)
 					fmt.Printf("%s, %s \n", info.Name, Config.GetMD5Hash(path))
-					Cache.DB.Save(&Album{
+					album := Album{}
+					Cache.DB.One("ID", Config.GetMD5Hash(path), &album)
+					album.Update(Album{
 						Id:          Config.GetMD5Hash(path),
 						Name:        info.Name,
 						ModTime:     info.ModTime,
 						Parent:      filepath.Base(filepath.Dir(path)),
-						ParenetPath: (filepath.Dir(path)),
-						Children:    make(map[string]Album)})
-
+						ParenetPath: (filepath.Dir(path))})
+					Cache.DB.Save(album)
 				}
 			}
 		}

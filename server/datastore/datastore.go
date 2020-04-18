@@ -23,7 +23,6 @@ type Album struct {
 	ParenetPath string           `json:"parentPath,omitempty"`
 	ProfileID   string           `json:"profile_image"`
 	Images      []Picture        `json:"images"`
-	Key         string           `json:"key"`
 	Children    map[string]Album `json:"children"`
 }
 
@@ -174,4 +173,23 @@ func SliceToTree(albms []Album, basepath string) map[string]Album {
 		}
 	}
 	return newalbms
+}
+
+func (a *Album) Update(alb Album) {
+	if a.Name != alb.Name && alb.Name != "" {
+		a.Name = alb.Name
+	}
+	if a.Parent != alb.Parent && alb.Parent != "" {
+		a.Parent = alb.Parent
+	}
+	if a.ParenetPath != alb.ParenetPath && alb.ParenetPath != "" {
+		a.ParenetPath = alb.ParenetPath
+	}
+	if a.ProfileID != alb.ProfileID && alb.ProfileID != "" {
+		a.ProfileID = alb.ProfileID
+	}
+	if a.Children == nil {
+		a.Children = make(map[string]Album)
+	}
+
 }
