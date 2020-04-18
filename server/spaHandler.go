@@ -57,7 +57,7 @@ type M map[string]interface{}
 func getTemplateData(url *url.URL) map[string]interface{} {
 	model := M{
 		"name":        Config.Gallery.Name,
-		"site":        Config.Gallery.Url,
+		"site":        Config.Gallery.Url + url.String(),
 		"description": Config.About.Description,
 		"imageWidth":  1024,
 		"imageHeight": 683,
