@@ -51,6 +51,6 @@ package:
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 docker:
-		docker build . -t robrotheram/gogallery:$CIRCLE_BRANCH
+		docker build . -t robrotheram/gogallery:$(CIRCLE_BRANCH)
 docker-publish:
-		docker push robrotheram/gogallery:$CIRCLE_BRANCH
+		docker push robrotheram/gogallery:$(CIRCLE_BRANCH)
