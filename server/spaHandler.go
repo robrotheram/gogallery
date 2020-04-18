@@ -27,6 +27,8 @@ type spaHandler struct {
 // is suitable behavior for serving an SPA (single page application).
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get the absolute path to prevent directory traversal
+	fmt.Println(cleanURL(r.Host, r.URL))
+
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
 		// if we failed to get the absolute path respond with a 400 bad request
@@ -44,7 +46,7 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//if os.IsNotExist(err) {
 		// file does not exist, serve index.html+
 
-		h.indexTemplate.Execute(w, getTemplateData(r.URL))
+		h.indexTemplate.Execute(w, getTemplateData(r.Host, r.URL))
 		// index, _ := h.staticPath.Find(h.indexPath)
 		// w.Write(index)
 		return
@@ -55,10 +57,10 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 type M map[string]interface{}
 
-func getTemplateData(url *url.URL) map[string]interface{} {
+func getTemplateData(host string, url *url.URL) map[string]interface{} {
 	model := M{
 		"name":        Config.Gallery.Name,
-		"site":        cleanURL(url),
+		"site":        cleanURL(host, url),
 		"description": Config.About.Description,
 		"imageWidth":  1024,
 		"imageHeight": 683,
@@ -67,32 +69,32 @@ func getTemplateData(url *url.URL) map[string]interface{} {
 	if len(urls) >= 3 {
 		switch gtype := urls[1]; gtype {
 		case "photo":
-			model["socialImage"] = photoImgURL(urls[2])
+			model["socialImage"] = photoImgURL(host, urls[2])
 		case "album":
-			model["socialImage"] = albumImgURL(urls[2])
+			model["socialImage"] = albumImgURL(host, urls[2])
 		default:
-			model["socialImage"] = defaultImgURL()
+			model["socialImage"] = defaultImgURL(host)
 		}
 	} else {
-		model["socialImage"] = defaultImgURL()
+		model["socialImage"] = defaultImgURL(host)
 	}
 	fmt.Println(url.String())
 	return model
 }
 
-func cleanURL(url *url.URL) string {
-	return fmt.Sprintf("%s://%s%s", url.Scheme, url.Host, url.Path)
+func cleanURL(host string, url *url.URL) string {
+	return fmt.Sprintf("https://%s%s", host, url.Path)
 }
-func albumImgURL(id string) string {
+func albumImgURL(host string, id string) string {
 	var album datastore.Album
 	datastore.Cache.DB.One("Id", id, &album)
-	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, album.ProfileID)
+	return fmt.Sprintf("https://%s/img/%s", host, album.ProfileID)
 }
-func photoImgURL(id string) string {
+func photoImgURL(host string, id string) string {
 	var photo datastore.Picture
 	datastore.Cache.DB.One("Id", id, &photo)
-	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, photo.Id)
+	return fmt.Sprintf("https://%s/img/%s", host, photo.Id)
 }
-func defaultImgURL() string {
-	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, Config.About.BackgroundPhoto)
+func defaultImgURL(host string) string {
+	return fmt.Sprintf(Config.About.BackgroundPhoto)
 }
