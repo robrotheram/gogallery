@@ -5,8 +5,10 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
-CIRCLE_BRANCH:=latest
 
+ifndef CIRCLE_BRANCH
+override CIRCLE_BRANCH = latest
+endif
 
 all: clean test build
 
