@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/packr/v2"
+	"github.com/robrotheram/gogallery/datastore"
 )
 
 // spaHandler implements the http.Handler interface, so we can use it
@@ -57,7 +58,7 @@ type M map[string]interface{}
 func getTemplateData(url *url.URL) map[string]interface{} {
 	model := M{
 		"name":        Config.Gallery.Name,
-		"site":        Config.Gallery.Url + url.String(),
+		"site":        cleanURL(url),
 		"description": Config.About.Description,
 		"imageWidth":  1024,
 		"imageHeight": 683,
@@ -66,15 +67,32 @@ func getTemplateData(url *url.URL) map[string]interface{} {
 	if len(urls) >= 3 {
 		switch gtype := urls[1]; gtype {
 		case "photo":
-			model["socialImage"] = urls[2]
+			model["socialImage"] = photoImgURL(urls[2])
 		case "album":
-			model["socialImage"] = urls[2]
+			model["socialImage"] = albumImgURL(urls[2])
 		default:
-			model["socialImage"] = "profile"
+			model["socialImage"] = defaultImgURL()
 		}
 	} else {
-		model["socialImage"] = "profile"
+		model["socialImage"] = defaultImgURL()
 	}
 	fmt.Println(url.String())
 	return model
+}
+
+func cleanURL(url *url.URL) string {
+	return fmt.Sprintf("%s://%s%s", url.Scheme, url.Host, url.Path)
+}
+func albumImgURL(id string) string {
+	var album datastore.Album
+	datastore.Cache.DB.One("Id", id, &album)
+	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, album.ProfileID)
+}
+func photoImgURL(id string) string {
+	var photo datastore.Picture
+	datastore.Cache.DB.One("Id", id, &photo)
+	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, photo.Id)
+}
+func defaultImgURL() string {
+	return fmt.Sprintf("%s/img/%s", Config.Gallery.Basepath, Config.About.BackgroundPhoto)
 }
