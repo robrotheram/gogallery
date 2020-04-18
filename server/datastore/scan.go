@@ -167,7 +167,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 						ModTime:     info.ModTime,
 						Parent:      filepath.Base(filepath.Dir(path)),
 						ParenetPath: (filepath.Dir(path))})
-					Cache.DB.Save(album)
+					Cache.DB.Save(&album)
 				}
 			}
 		}

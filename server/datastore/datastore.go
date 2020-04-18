@@ -176,6 +176,7 @@ func SliceToTree(albms []Album, basepath string) map[string]Album {
 }
 
 func (a *Album) Update(alb Album) {
+
 	if a.Name != alb.Name && alb.Name != "" {
 		a.Name = alb.Name
 	}
@@ -190,6 +191,9 @@ func (a *Album) Update(alb Album) {
 	}
 	if a.Children == nil {
 		a.Children = make(map[string]Album)
+	}
+	if a.Id == "" {
+		a.Id = alb.Id
 	}
 
 }
