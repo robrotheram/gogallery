@@ -12,7 +12,7 @@ import {
   import { connect } from 'react-redux';
   import { collectionActions } from '../../store/actions';
   import {formatTree, IDFromTree} from '../../store'
-  import {getOptions, notify} from '../../store/actions';
+  import {notify} from '../../store/actions';
   const { DirectoryTree } = Tree;
   const { Option } = Select;
 
@@ -97,7 +97,6 @@ import {
     };
   
     render() {
-      const { getFieldDecorator } = this.props.form;
       const formItemLayout = {
         labelCol: {
           xs: { span: 24 },
