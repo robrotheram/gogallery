@@ -27,7 +27,6 @@ type spaHandler struct {
 // is suitable behavior for serving an SPA (single page application).
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get the absolute path to prevent directory traversal
-	fmt.Println(cleanURL(r.Host, r.URL))
 
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
@@ -78,7 +77,6 @@ func getTemplateData(host string, url *url.URL) map[string]interface{} {
 	} else {
 		model["socialImage"] = defaultImgURL(host)
 	}
-	fmt.Println(url.String())
 	return model
 }
 
