@@ -158,9 +158,8 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 			if !IsAlbumInBlacklist(info.Name()) {
 				if filepath.Base(filepath.Dir(path)) != g_config.Basepath {
 					info := fileInfoFromInterface(info)
-					fmt.Printf("%s, %s \n", info.Name, Config.GetMD5Hash(path))
 					album := Album{}
-					Cache.DB.One("ID", Config.GetMD5Hash(path), &album)
+					Cache.DB.One("Id", Config.GetMD5Hash(path), &album)
 					album.Update(Album{
 						Id:          Config.GetMD5Hash(path),
 						Name:        info.Name,
