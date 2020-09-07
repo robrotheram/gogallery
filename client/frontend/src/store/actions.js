@@ -5,17 +5,27 @@ export const galleryActions = {
   //getAll,
   getAllPhotos,
   getAllCollections,
-  getProfile
+  getProfile,
+  getConfig
 };
 
 function getAllPhotos(){
   return dispatch => {
-      
       axios.get(config.baseUrl+"/photos").then((response)=>{
           dispatch(setPhotosDetails(response.data));
       }).catch((err)=>{})
   }
 }
+
+function getConfig(){
+  return dispatch => {
+      axios.get(config.baseUrl+"/config").then((response)=>{
+          dispatch(setConfigDetails(response.data));
+      }).catch((err)=>{})
+  }
+}
+
+
 function getAllCollections(){
   return dispatch => {
       axios.get(config.baseUrl+"/albums").then((response)=>{
@@ -50,5 +60,12 @@ function setCollectionsDetails(collections){
   return{
       type: "COLLECTIONS_RECEIVED",
       collections: collections,
+  }
+}
+
+function setConfigDetails(config){
+  return{
+      type: "CONFIG_RECEIVED",
+      config: config,
   }
 }

@@ -3,7 +3,8 @@ import { combineReducers } from 'redux'
 export default combineReducers({
   PhotosReducer,
   CollectionsReducer,
-  ProfileReducer
+  ProfileReducer,
+  ConfigReducer
   })
 
 export function PhotosReducer(state =  { photos: [], isUpdating: false }, action) {
@@ -57,3 +58,20 @@ export function CollectionsReducer(state =  { collections: {}, isUpdating: false
           return state
   }
 }
+export function ConfigReducer(state =  { config: {}, isUpdating: false }, action) {
+    switch (action.type) {
+        case 'CONFIG_FETCHING':
+            return {
+            ...state,
+            isUpdating: true
+            };
+        case 'CONFIG_RECEIVED':
+            return {
+                ...state,
+                isUpdating: false,
+                config: action.config
+            };
+        default:
+            return state
+    }
+  }

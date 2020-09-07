@@ -33,6 +33,7 @@ class AppComponent extends React.Component {
       this.props.dispatch(galleryActions.getAllCollections());
       this.props.dispatch(galleryActions.getAllPhotos());
       this.props.dispatch(galleryActions.getProfile());
+      this.props.dispatch(galleryActions.getConfig());
     }
     render() {
     return(

@@ -1,24 +1,25 @@
 
 
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons'
 import './header.css'
 import logo from '../img/logo.png'
 import albums from '../img/icons/albums.svg'
-
+import { useSelector } from 'react-redux';
 
 import {Link} from "react-router-dom";
 
-function Header() {
-let name = "GoGallery"
+function Header(props) {
+const state = useSelector(state => state.ConfigReducer.config)
+console.log("Fired", state)
   return (
   <header className="fixed-top" style={{"zIndex":"999"}}>
         <nav className="navbar navbar-expand-lg navbar-light bg-light shadow">
             <Link to="/" className="navbar-brand mx-auto">
                 <img src={logo} width="30px" alt="Gallery Logo" style={{"marginRight": "10px"}}/>
-                <strong>{name}</strong>
+                <strong>{state.name}</strong>
             </Link>
             <input type="checkbox" id="navbar-toggle-cbox"/>
             <label htmlFor="navbar-toggle-cbox" className="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
