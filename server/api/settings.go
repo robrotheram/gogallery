@@ -15,6 +15,7 @@ var getProfileInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Config.About)
 })
+
 var setProfileInfo = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var about = config.AboutConfiguration{}
 	_ = json.NewDecoder(r.Body).Decode(&about)
@@ -27,6 +28,15 @@ var getGallerySettings = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Config.Gallery)
 })
+
+var getPublicGallerySettings = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	config := map[string]string{
+		"name": Config.Gallery.Name,
+	}
+	json.NewEncoder(w).Encode(config)
+})
+
 var setGallerySettings = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var gallery = config.GalleryConfiguration{}
 	_ = json.NewDecoder(r.Body).Decode(&gallery)
