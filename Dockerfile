@@ -1,11 +1,11 @@
 FROM ubuntu:latest
-MAINTAINER Robrotheram <robrotheram@gmail.com>
 
 RUN apt-get update; apt-get install -y ca-certificates imagemagick;  update-ca-certificates
 RUN mkdir /app
 # Copy the current directory contents into the container at /app
 COPY gogallery /app/gogallery
-COPY server/config_sample.yml /app/config.yml
+COPY config_sample.yml /app/config.yml
+ADD ui /app/ui
 RUN chmod +x /app/gogallery
 EXPOSE 80
 ENV GLLRY_SERVER_PORT ":80"

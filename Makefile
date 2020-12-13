@@ -13,7 +13,7 @@ endif
 all: clean test build
 
 dep:
-	go get -u github.com/gobuffalo/packr/v2/packr2
+	npm install -g yarn
 
 test:
 	cd server && $(GOTEST) -v ./...
@@ -21,34 +21,32 @@ test:
 build: build-dashboard build-ui build-server
 
 build-dashboard:
-	cd client/dashboard && npm install
-	cd client/dashboard && npm run build
-	mkdir -p server/ui/dashboard
-	cp -r client/dashboard/build/* server/ui/dashboard/.
+	cd client/dashboard && yarn
+	cd client/dashboard && yarn run build
+	mkdir -p ui/dashboard
+	cp -r client/dashboard/build/* ui/dashboard/.
 
 build-ui:
-	cd client/frontend && npm install
-	cd client/frontend && npm run build
-	mkdir -p server/ui/frontend
-	cp -r client/frontend/build/* server/ui/frontend/.
+	cd client/frontend && yarn
+	cd client/frontend && yarn run build
+	mkdir -p ui/frontend
+	cp -r client/frontend/build/* ui/frontend/.
 
 build-server:
-	cd server && /go/bin/packr2
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
-	cd server && /go/bin/packr2 clean
 	
 clean: 
 	cd server && $(GOCLEAN)
 	cd server && rm -f $(BINARY_NAME)
 	cd server && rm -f $(BINARY_UNIX)
-	cd server && /go/bin/packr2 clean
-	rm -rf *.tar.gz
+	rm -rf ui/frontend
+	rm -rf ui/dashboard
 run:
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v ./...
 	./$(BINARY_NAME)
 
 package:
-	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml
+	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
 # Cross compilation
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v

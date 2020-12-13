@@ -5,10 +5,10 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/robrotheram/gogallery/datastore"
 )
 
@@ -17,7 +17,7 @@ import (
 // path to the index file within that static directory are used to
 // serve the SPA in the given static directory.
 type spaHandler struct {
-	staticPath    *packr.Box
+	staticPath    string
 	indexTemplate *template.Template
 }
 
@@ -36,22 +36,28 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// prepend the path with the path to the static directory
-	//path = filepath.Join(h.staticPath, path)
+	path = filepath.Join(h.staticPath, path)
 
 	// check whether a file exists at the given path
-	_, e := h.staticPath.Find(path)
-	if e != nil {
+	_, err = os.Stat(path)
+	// fmt.Println(path)
+	// fmt.Println(err)
+	// fmt.Println(os.IsNotExist(err))
+	if os.IsNotExist(err) {
 		//if os.IsNotExist(err) {
 		// file does not exist, serve index.html+
-
 		h.indexTemplate.Execute(w, getTemplateData(r.Host, r.URL))
 		// index, _ := h.staticPath.Find(h.indexPath)
 		// w.Write(index)
 		return
+	} else if err != nil {
+		// if we got an error (that wasn't that the file doesn't exist) stating the
+		// file, return a 500 internal server error and stop
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// otherwise, use http.FileServer to serve the static dir
-	http.FileServer(h.staticPath).ServeHTTP(w, r)
+	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
 type M map[string]interface{}
