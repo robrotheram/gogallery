@@ -8,6 +8,7 @@ jobs:
       - setup_remote_docker
 
       # specify any bash command here prefixed with `run: `
+      - run: make dep
       - run: make build-dashboard 
       - run: make build-ui 
       - run: make build-server
