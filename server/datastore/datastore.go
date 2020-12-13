@@ -24,6 +24,7 @@ type Album struct {
 	ProfileID   string           `json:"profile_image"`
 	Images      []Picture        `json:"images"`
 	Children    map[string]Album `json:"children"`
+	GPS         GPS              `json: gps`
 }
 
 type UploadCollection struct {
@@ -56,6 +57,12 @@ type Exif struct {
 	Camera       string    `json:"camera"`
 	LensModel    string    `json: lens_model`
 	DateTaken    time.Time `json: date_taken`
+	GPS          GPS       `json: gps`
+}
+
+type GPS struct {
+	Lat float64 `json:"latitude"`
+	Lng float64 `json:"longitude"`
 }
 
 type PictureMeta struct {

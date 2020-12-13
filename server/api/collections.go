@@ -45,6 +45,10 @@ var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		oldAlbum.ProfileID = album.ProfileID
 	}
 
+	if oldAlbum.GPS.Lat != album.GPS.Lat || oldAlbum.GPS.Lng != album.GPS.Lng {
+		oldAlbum.GPS = album.GPS
+	}
+
 	datastore.Cache.DB.Save(&oldAlbum)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(oldAlbum)

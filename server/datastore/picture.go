@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/araddon/dateparse"
 	"github.com/rwcarlsen/goexif/exif"
@@ -58,6 +59,37 @@ func convertTime(str string) time.Time {
 	return t
 }
 
+func trimFirstRune(s string) string {
+	_, i := utf8.DecodeRuneInString(s)
+	return s[i:]
+}
+
+func strToInt(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
+}
+
+func convertExifGPSToFloat(x string, ref string) float64 {
+	parse := strings.TrimSuffix(trimFirstRune(x), "]")
+	locStr := strings.Split(parse, ",")
+
+	degStr := strings.Split(locStr[0], "/")
+	minsStr := strings.Split(locStr[1], "/")
+	secStr := strings.Split(locStr[2], "/")
+
+	deg := strToInt(degStr[0]) / strToInt(degStr[1])
+	mins := strToInt(minsStr[0]) / strToInt(minsStr[1])
+	secs := strToInt(secStr[0]) / strToInt(secStr[1])
+
+	loc := float64(deg) + float64(mins)/60 + float64(secs)/3600
+
+	//If the location ref is either South or West then the location needs to negative.
+	if ref == "S" || ref == "W" {
+		return -loc
+	}
+	return loc
+}
+
 func (u *Picture) CreateExif() {
 	f, err := os.Open(u.Path)
 	if err == nil {
@@ -72,7 +104,18 @@ func (u *Picture) CreateExif() {
 				fmt.Sprintf("%sx%s", decodeExifTag(x, exif.PixelXDimension), decodeExifTag(x, exif.PixelYDimension)),
 				decodeExifTag(x, exif.Make),
 				decodeExifTag(x, exif.LensModel),
-				convertTime(decodeExifTag(x, exif.DateTime))}
+				convertTime(decodeExifTag(x, exif.DateTime)),
+				GPS{},
+			}
+			lat := convertExifGPSToFloat(decodeExifTag(x, exif.GPSLatitude), decodeExifTag(x, exif.GPSLatitudeRef))
+			lng := convertExifGPSToFloat(decodeExifTag(x, exif.GPSLongitude), decodeExifTag(x, exif.GPSLongitudeRef))
+			if lat != 0 && lng != 0 {
+				u.Exif.GPS = GPS{
+					Lat: lat,
+					Lng: lng,
+				}
+			}
+
 		}
 	}
 }
