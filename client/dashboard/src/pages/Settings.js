@@ -74,7 +74,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Photos}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}} type="picture" />}
+                    prefix={<Icon style={{"marginRight":"5px"}} type="picture" />}
                   />
                 </Card>
               </Col>
@@ -84,7 +84,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Albums}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}}  type="folder-open" />}
+                    prefix={<Icon style={{"":"5px"}}  type="folder-open" />}
                     />
                 </Card>
               </Col>
@@ -94,7 +94,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Rubish}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}}  type="delete" />}
+                    prefix={<Icon style={{"marginRight":"5px"}}  type="delete" />}
                   />
                 </Card>
               </Col>

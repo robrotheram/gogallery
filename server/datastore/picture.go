@@ -70,19 +70,30 @@ func strToInt(s string) int {
 }
 
 func convertExifGPSToFloat(x string, ref string) float64 {
+	fmt.Printf("Parsing Loc: %s \n", x)
+	if len(x) == 0 || len(ref) == 0 {
+		return float64(0)
+	}
+
 	parse := strings.TrimSuffix(trimFirstRune(x), "]")
 	locStr := strings.Split(parse, ",")
 
-	degStr := strings.Split(locStr[0], "/")
-	minsStr := strings.Split(locStr[1], "/")
-	secStr := strings.Split(locStr[2], "/")
-
-	deg := strToInt(degStr[0]) / strToInt(degStr[1])
-	mins := strToInt(minsStr[0]) / strToInt(minsStr[1])
-	secs := strToInt(secStr[0]) / strToInt(secStr[1])
-
-	loc := float64(deg) + float64(mins)/60 + float64(secs)/3600
-
+	loc := float64(0)
+	if len(locStr) > 0 {
+		degStr := strings.Split(locStr[0], "/")
+		deg := strToInt(degStr[0]) / strToInt(degStr[1])
+		loc = float64(deg)
+	}
+	if len(locStr) > 1 {
+		minsStr := strings.Split(locStr[1], "/")
+		mins := strToInt(minsStr[0]) / strToInt(minsStr[1])
+		loc = loc + float64(mins)/60
+	}
+	if len(locStr) > 2 {
+		secStr := strings.Split(locStr[2], "/")
+		secs := strToInt(secStr[0]) / strToInt(secStr[1])
+		loc = loc + float64(secs)/3600
+	}
 	//If the location ref is either South or West then the location needs to negative.
 	if ref == "S" || ref == "W" {
 		return -loc

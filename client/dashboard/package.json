@@ -19,7 +19,7 @@
     "less": "^3.12.2",
     "less-loader": "5.0.0",
     "lodash": "^4.17.20",
-    "mapbox-gl": "^2.0.0",
+    "mapbox-gl": "^1.13.0",
     "moment": "^2.27.0",
     "node-sass": "^4.14.1",
     "react": "^16.12.0",
