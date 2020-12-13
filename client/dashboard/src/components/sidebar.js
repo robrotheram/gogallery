@@ -7,7 +7,7 @@ import moment from 'moment';
 import { connect } from 'react-redux';
 import { config, formatTree } from '../store';
 import { photoActions } from '../store/actions';
-
+import {LocationModal} from './Map'
 
 const { Panel } = Collapse;
 const { Sider } = Layout;
@@ -16,7 +16,7 @@ const WAIT_INTERVAL = 2000
 const ENTER_KEY = 13
 const defaultState = {
   meta:{},
-  exif:{}
+  exif:{GPS:{}}
 }
 
 class SideBar extends React.PureComponent {
@@ -49,6 +49,17 @@ class SideBar extends React.PureComponent {
     const value = evt.target.type === "checkbox" ? evt.target.checked : evt.target.value;
     var data = {...this.state.data}
     data[evt.target.name] = value
+    this.setState({data});
+    this.timer = setTimeout( () => this.triggerChange(data), WAIT_INTERVAL)
+  }
+
+  updateGPS = (lat,lng) => {
+    clearTimeout(this.timer)
+    var data = {...this.state.data}
+    data.exif.GPS = {
+      latitude:lat,
+      longitude:lng
+    }
     this.setState({data});
     this.timer = setTimeout( () => this.triggerChange(data), WAIT_INTERVAL)
   }
@@ -91,7 +102,7 @@ class SideBar extends React.PureComponent {
           sm: { span: 16 },
         },
       };
-      let width = 300;
+      let width = 400;
       if (this.state.data.name === undefined) {
         width = 0;
       }
@@ -104,6 +115,9 @@ class SideBar extends React.PureComponent {
   
     formatTree(this.props.collections)
     const collections = Object.values(this.props.collections)
+
+
+    console.log("SIDEBAR", this.state)
     return (
           <Sider width={width} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
             <img src={config.imageUrl+this.state.data.id+"?size=tiny&token="+localStorage.getItem('token')} width="100%" alt="thumbnail" />
@@ -119,6 +133,10 @@ class SideBar extends React.PureComponent {
                   <Form.Item label="Caption">
                     <Input value={this.state.data.caption} name="caption" onChange={this.handleChange}  onKeyDown={this.handleKeyDown}/>
                   </Form.Item>
+                  <Form.Item label="Location">
+                    <LocationModal lat={this.state.data.exif.GPS.latitude} lng={this.state.data.exif.GPS.longitude} onUpdate={this.updateGPS}/>
+                  </Form.Item>
+                  
                   <Form.Item label="Collection">
                   <TreeSelect
                     value={this.state.data.album}

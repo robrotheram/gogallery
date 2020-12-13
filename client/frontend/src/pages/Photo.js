@@ -15,7 +15,7 @@ import timer from '../img/icons/timer.svg'
 import iso from '../img/icons/iso.svg'
 import albumSVG from '../img/icons/albums.svg'
 import { config, searchTree } from "../store";
-
+import {Map} from '../components/Map'
 import './photo.css'
 import { LazyImage } from "../components/Lazyloading";
 
@@ -30,7 +30,7 @@ class Photo extends React.Component {
   render() {
     let { collections, photos } = this.props
     const id = this.props.match.params.id
-    const photo = photos.filter(c => c.id === id)[0] || { exif: {} };
+    const photo = photos.filter(c => c.id === id)[0] || { exif: {GPS:{latitude:0}} };
     
     let pre_index = ""
     let post_index = ""
@@ -53,9 +53,37 @@ class Photo extends React.Component {
       console.log(album_id, photo.album)
       console.log(album_id, photo.album)
     }
-
-    
     const { isOpen } = this.state;
+
+    const isLocation = () => {
+      if (photo.exif.GPS.latitude === 0) {
+          if (album.GPS === undefined){
+            return false;
+          }
+          if (album.GPS.latitude === 0){
+            return false
+          }
+      }
+      return true;
+    }
+    const getLong = () => {
+      if (photo.exif.GPS.longitude === 0) {
+        if (album.GPS !== undefined){
+          return album.GPS.longitude;
+        }
+      }
+      return photo.exif.GPS.longitude
+    }
+    const getLat = () => {
+      if (photo.exif.GPS.latitude === 0) {
+        if (album.GPS !== undefined){
+          return album.GPS.latitude;
+        }
+      }
+      return photo.exif.GPS.latitude
+    }
+
+
     console.log()
     return (
       <main>
@@ -97,53 +125,67 @@ class Photo extends React.Component {
           </nav>
 
         </div>
-        <div className="container" style={{ "backgroundColor": "white", "marginTop": "20px" }}>
+        <div className="container" style={{ "backgroundColor": "white", maxWidth:"100%", padding:"20px 50px"}}>
           <div className="row">
-            <div className="col-12">
-              <h2 className="robotFont">{photo.name}  <span className="badge badge-pill badge-light date-pill">{photo.format_time}</span> </h2>
-
-              <table className="table" style={{ "textAlign": "center", "lineHeight": "50px" }}>
+            <div className={ isLocation() ? "col-7" : "col-12"} >
+              <table className="table photo-table" style={{ "textAlign": "center", "lineHeight": "50px" }}>
                 <tbody>
-
-                  <tr>
-                    <th scope="row"><img src={camera} width="50px" alt="camera icon" /></th>
-                    <td>{photo.exif.camera}</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row"><img src={lens} width="50px" alt="lens icon" /></th>
-                    <td>{photo.exif.LensModel}</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row"><img src={focal} width="50px" alt="focal icon"/></th>
-                    <td>{photo.exif.focal_length}mm</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row"><img src={apature} width="50px" alt="apature icon"/></th>
-                    <td>{photo.exif.f_stop}</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row"><img src={timer} width="50px" alt="timer icon"/></th>
-                    <td>{photo.exif.shutter_speed}</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row"><img src={iso} width="50px" alt="iso icon"/></th>
-                    <td>{photo.exif.iso}</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">
-                      <img src={albumSVG} width="50px" alt="album icon"/>
-                    </th>
-                    <td><Link to={"/album/" + album_id}>{album.name}</Link></td>
-                  </tr>
+                <tr>
+                      <th scope="row"><h2 className="robotFont">{photo.name}</h2></th>
+                      <td><span className="badge badge-pill badge-light date-pill">{photo.format_time}</span></td>
+                    </tr>
+                  {photo.exif.camera !== "" ?
+                    <tr>
+                      <th scope="row"><img src={camera} width="50px" alt="camera icon" /></th>
+                      <td>{photo.exif.camera}</td>
+                    </tr>
+                  : null}
+                  {photo.exif.LensModel !== "" ?
+                    <tr>
+                      <th scope="row"><img src={lens} width="50px" alt="lens icon" /></th>
+                      <td>{photo.exif.LensModel}</td>
+                    </tr>
+                  : null}
+                  {photo.exif.focal_length !== "" ?
+                    <tr>
+                      <th scope="row"><img src={focal} width="50px" alt="focal icon"/></th>
+                      <td>{photo.exif.focal_length}mm</td>
+                    </tr>
+                  : null}
+                  {photo.exif.f_stop !== "" ?
+                    <tr>
+                      <th scope="row"><img src={apature} width="50px" alt="apature icon"/></th>
+                      <td>{photo.exif.f_stop}</td>
+                    </tr>
+                  : null}
+                  {photo.exif.shutter_speed !== "" ?
+                    <tr>
+                      <th scope="row"><img src={timer} width="50px" alt="timer icon"/></th>
+                      <td>{photo.exif.shutter_speed}</td>
+                    </tr>
+                  : null}
+                  {photo.exif.iso !== "" ?
+                    <tr>
+                      <th scope="row"><img src={iso} width="50px" alt="iso icon"/></th>
+                      <td>{photo.exif.iso}</td>
+                    </tr>
+                  : null}
+                  {album.name !== "" ?
+                    <tr>
+                      <th scope="row">
+                        <img src={albumSVG} width="50px" alt="album icon"/>
+                      </th>
+                      <td><Link to={"/album/" + album_id}>{album.name}</Link></td>
+                    </tr>
+                  : null}
                 </tbody>
               </table>
             </div>
+            {isLocation()  ?
+              <div className="col-5">
+                <Map lng={getLong()} lat={getLat()}/>
+              </div>
+            : null}
           </div>
         </div>
 

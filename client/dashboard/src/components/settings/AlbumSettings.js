@@ -13,6 +13,9 @@ import {
   import { collectionActions } from '../../store/actions';
   import {formatTree, IDFromTree} from '../../store'
   import {notify} from '../../store/actions';
+  import {LocationModal} from '../Map'
+
+
   const { DirectoryTree } = Tree;
   const { Option } = Select;
 
@@ -23,7 +26,9 @@ import {
       auth: {username:""},
       albumName: "",
       albumPic: "",
-      albumID: ""
+      albumID: "",
+      GPS: {}
+
     };
  
     handleSubmit = e => {
@@ -35,7 +40,8 @@ import {
       this.props.dispatch(collectionActions.update({
         id: this.state.albumID,
         name: this.state.albumName,
-        profile_image: this.state.albumPic
+        profile_image: this.state.albumPic,
+        GPS: this.state.GPS
       }))
     };
 
@@ -45,7 +51,8 @@ import {
       this.setState({
         "albumName": alb.name,
         "albumPic": alb.profile_image,
-        "albumID": alb.id
+        "albumID": alb.id,
+        "GPS": alb.GPS
       })
       console.log('selected', alb);
     };
@@ -72,6 +79,14 @@ import {
     updateAlbumName = (evt) => {
       this.setState({
         "albumName": evt.target.value
+      })
+    }
+    updateGPS = (lat, lng) => {
+      this.setState({
+        "GPS": {
+          latitude:lat,
+          longitude:lng
+        }
       })
     }
     validateToNextPassword = (rule, value, callback) => {
@@ -152,6 +167,9 @@ import {
                 >
                 {this.props.photos.map((el, index) => (<Option key={el.id}>{el.name}</Option> ))}
                 </Select>
+              </Form.Item>
+              <Form.Item label="Location">
+                    <LocationModal lat={this.state.GPS.latitude} lng={this.state.GPS.longitude} onUpdate={this.updateGPS}/>
               </Form.Item>
 
               
