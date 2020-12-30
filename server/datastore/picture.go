@@ -9,10 +9,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/araddon/dateparse"
-	"github.com/rwcarlsen/goexif/exif"
-	"github.com/rwcarlsen/goexif/mknote"
-	"github.com/rwcarlsen/goexif/tiff"
+
+	"github.com/dsoprea/go-exif/v3"
+	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
+
+var logName = "exif"
 
 func fnumber(f string) float64 {
 	f = strings.Replace(f, "\"", "", -1)
@@ -26,27 +28,6 @@ func fnumber(f string) float64 {
 		}
 	}
 	return 11
-}
-
-func decodeExifTag(exf *exif.Exif, tag exif.FieldName) (val string) {
-	res, err := exf.Get(tag)
-	if err != nil {
-		return ""
-	}
-
-	switch res.Format() {
-	case tiff.StringVal:
-		resStr, err := res.StringVal()
-		if err != nil {
-			fmt.Println(err)
-		}
-		return resStr
-		break
-	case tiff.RatVal:
-		return strings.Replace(res.String(), "\"", "", -1)
-	}
-	return res.String()
-
 }
 
 func convertTime(str string) time.Time {
@@ -74,7 +55,7 @@ func convertExifGPSToFloat(x string, ref string) float64 {
 	if len(x) == 0 || len(ref) == 0 {
 		return float64(0)
 	}
-
+	x = strings.Replace(x, ".", "", -1)
 	parse := strings.TrimSuffix(trimFirstRune(x), "]")
 	locStr := strings.Split(parse, ",")
 
@@ -101,32 +82,70 @@ func convertExifGPSToFloat(x string, ref string) float64 {
 	return loc
 }
 
-func (u *Picture) CreateExif() {
-	f, err := os.Open(u.Path)
-	if err == nil {
-		exif.RegisterParsers(mknote.All...)
-		x, err := exif.Decode(f)
-		if err == nil {
-			u.Exif = Exif{
-				fnumber(decodeExifTag(x, exif.FNumber)),
-				fnumber(decodeExifTag(x, exif.FocalLength)),
-				decodeExifTag(x, exif.ExposureTime),
-				decodeExifTag(x, exif.ISOSpeedRatings),
-				fmt.Sprintf("%sx%s", decodeExifTag(x, exif.PixelXDimension), decodeExifTag(x, exif.PixelYDimension)),
-				decodeExifTag(x, exif.Make),
-				decodeExifTag(x, exif.LensModel),
-				convertTime(decodeExifTag(x, exif.DateTime)),
-				GPS{},
-			}
-			lat := convertExifGPSToFloat(decodeExifTag(x, exif.GPSLatitude), decodeExifTag(x, exif.GPSLatitudeRef))
-			lng := convertExifGPSToFloat(decodeExifTag(x, exif.GPSLongitude), decodeExifTag(x, exif.GPSLongitudeRef))
-			if lat != 0 && lng != 0 {
-				u.Exif.GPS = GPS{
-					Lat: lat,
-					Lng: lng,
-				}
-			}
+func GetRawExif(path string) ([]byte, error) {
+	source, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = source.Close()
+	}()
+	return exif.SearchAndExtractExifWithReader(source)
+}
 
+func GetExifTags(rawExif []byte) map[string]string {
+
+	opt := exif.ScanOptions{}
+	entries, _, _ := exif.GetFlatExifData(rawExif, &opt)
+
+	data := make(map[string]string)
+	for _, entry := range entries {
+		if entry.TagName != "" && entry.Formatted != "" {
+			data[entry.TagName] = strings.Split(entry.FormattedFirst, "\x00")[0]
 		}
 	}
+	return data
+}
+
+func (u *Picture) CreateExif() error {
+
+	raw, err := GetRawExif(u.Path)
+	if err != nil {
+		return err
+	}
+	exifData := GetExifTags(raw)
+
+	u.Exif = Exif{
+		FStop:        fnumber(exifData["FNumber"]),
+		FocalLength:  fnumber(exifData["FocalLength"]),
+		ShutterSpeed: exifData["ExposureTime"],
+		ISO:          exifData["ISOSpeedRatings"],
+		Dimension:    fmt.Sprintf("%sx%s", exifData["PixelXDimension"], exifData["PixelYDimension"]),
+		Camera:       exifData["ISOSpeedRatings"],
+		LensModel:    exifData["ISOSpeedRatings"],
+		DateTaken:    convertTime(exifData["DateTime"]),
+		GPS:          GPS{},
+	}
+
+	var exifIfdMapping *exifcommon.IfdMapping
+	var exifTagIndex = exif.NewTagIndex()
+
+	exifIfdMapping = exifcommon.NewIfdMapping()
+
+	if err := exifcommon.LoadStandardIfds(exifIfdMapping); err != nil {
+		fmt.Printf("metadata: %s \n", err.Error())
+	}
+
+	_, index, err := exif.Collect(exifIfdMapping, exifTagIndex, raw)
+
+	if err == nil {
+		if ifd, err := index.RootIfd.ChildWithIfdPath(exifcommon.IfdGpsInfoStandardIfdIdentity); err == nil {
+			if gi, err := ifd.GpsInfo(); err == nil {
+				u.Exif.GPS.Lat = float64(gi.Latitude.Decimal())
+				u.Exif.GPS.Lng = float64(gi.Longitude.Decimal())
+				//u.Exif.GPS.Altitude = gi.Altitude
+			}
+		}
+	}
+	return nil
 }

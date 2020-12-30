@@ -17,6 +17,8 @@ require (
 	github.com/discordapp/lilliput v0.0.0-20190402233613-eaffdc08248b
 	github.com/disintegration/gift v1.2.1
 	github.com/disintegration/imaging v1.6.1
+	github.com/dsoprea/go-exif v0.0.0-20201216222538-db167117f483
+	github.com/dsoprea/go-exif/v3 v3.0.0-20201216222538-db167117f483
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gobuffalo/logger v1.0.3
@@ -42,6 +44,7 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190107194617-b1fd11e07dc5
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/simplereach/timeutils v1.2.0 // indirect
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/jwalterweatherman v1.0.0
@@ -50,13 +53,14 @@ require (
 	github.com/zserge/metric v0.1.0
 	go.etcd.io/bbolt v1.3.5 // indirect
 	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5
+	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 	golang.org/x/text v0.3.3
+	google.golang.org/appengine v1.6.7
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/h2non/bimg.v1 v1.0.19
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 )
 
 go 1.13
