@@ -193,7 +193,7 @@ func (a *Album) Update(alb Album) {
 	if a.ParenetPath != alb.ParenetPath && alb.ParenetPath != "" {
 		a.ParenetPath = alb.ParenetPath
 	}
-	if a.ProfileID != alb.ProfileID && alb.ProfileID != "" {
+	if (a.ProfileID != alb.ProfileID) && (alb.ProfileID != "") {
 		a.ProfileID = alb.ProfileID
 	}
 	if a.Children == nil {

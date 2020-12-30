@@ -27,6 +27,21 @@ import {
         okType: 'danger',
         cancelText: 'No',
         onOk() {
+          _this.props.dispatch(taskActions.rescan())
+        },
+        onCancel() {
+          console.log('Cancel');
+        },
+      });
+    }
+    showPurgeConfirm = () => {
+      let _this = this;
+      confirm({
+        title: 'Are you sure you want to Delete the Database?',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk() {
           _this.props.dispatch(taskActions.purge())
         },
         onCancel() {
@@ -84,6 +99,9 @@ import {
         <Row gutter={[16,16]}>
           <Col span={12}>
             <Button type="default" icon="sync" size="large" style={{"width":"100%"}} onClick={this.showResacanConfirm}> Resacan image folder </Button>
+          </Col>
+          <Col span={12}>
+            <Button type="default" icon="delete" size="large" style={{"width":"100%"}} onClick={this.showPurgeConfirm} > Purge cache </Button><br/>
           </Col>
           <Col span={12}>
             <Button type="default" icon="delete" size="large" style={{"width":"100%"}} onClick={this.showClearConfirm} > Clear cache </Button><br/>

@@ -62,6 +62,7 @@ func InitApiRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 	r.Handle("/api/admin/settings/profile", auth.AuthMiddleware(setProfileInfo)).Methods("POST")
 
 	r.Handle("/api/admin/tasks/purge", auth.AuthMiddleware(purgeTaskHandler)).Methods("GET")
+	r.Handle("/api/admin/tasks/rescan", auth.AuthMiddleware(rescanTaskHandler)).Methods("GET")
 	r.Handle("/api/admin/tasks/clear", auth.AuthMiddleware(clearTaskHandler)).Methods("GET")
 	r.Handle("/api/admin/tasks/backup", auth.AuthMiddleware(backupTaskHandler)).Methods("GET")
 	r.Handle("/api/admin/tasks/upload", auth.AuthMiddleware(uploadTaskHandler)).Methods("POST")

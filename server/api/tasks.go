@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/prometheus/common/log"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
-	"io"
-	"net/http"
 )
 
 type backup struct {
@@ -20,6 +21,9 @@ type backup struct {
 var purgeTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	log.Info("DeletingDB")
 	datastore.Cache.RestDB()
+})
+
+var rescanTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		datastore.ScanPath(Config.Gallery.Basepath, &Config.Gallery)
 	}()

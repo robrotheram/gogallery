@@ -15,6 +15,9 @@ function getAll(){
             console.log(response.data);
             dispatch(setPhotoDetails(response.data));
         }).catch((err)=>{
+            if (err.includes("401") ){
+                window.location.href = '/dashboard/login';
+            };
             notify("warning", "Error from server: "+err)
         })
     }
