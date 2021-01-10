@@ -76,11 +76,14 @@ var getAllPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	for _, pic := range pics {
 		if !datastore.IsAlbumInBlacklist(pic.Album) {
 			if pic.Meta.Visibility == "PUBLIC" {
+				var album datastore.Album
+				datastore.Cache.DB.One("Id", pic.Album, &album)
 				cleanpic := datastore.Picture{
 					Id:         pic.Id,
 					Name:       pic.Name,
 					Caption:    pic.Caption,
 					Album:      pic.Album,
+					AlbumName:  album.Name,
 					FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
 					Exif:       pic.Exif,
 					Meta:       pic.Meta,

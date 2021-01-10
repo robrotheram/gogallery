@@ -79,6 +79,7 @@ type Picture struct {
 	Path       string      `json:"path,omitempty"`
 	FormatTime string      `json:"format_time"`
 	Album      string      `json:"album"`
+	AlbumName  string      `json:"album_name"`
 	Exif       Exif        `json:"exif"`
 	Meta       PictureMeta `json:"meta,omitempty"`
 	RootPath   string      `json:"root_path,omitempty"`
