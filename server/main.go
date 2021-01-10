@@ -123,8 +123,10 @@ func Serve() {
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
 
+	r.Handle("/manifest.json", getManifest)
+
 	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard", setupSpaHandler("ui/dashboard")))
-	r.PathPrefix("/").Handler(setupSpaHandler("ui/frontend"))
+	r.PathPrefix("/").Handler(handlers.CompressHandler(setupSpaHandler("ui/frontend")))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT", "HEAD", "OPTIONS"})
