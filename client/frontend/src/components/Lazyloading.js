@@ -29,7 +29,7 @@ const Image = styled.img`
   }
 `
 
-export const LazyImage = ({ src, alt }) => {
+export const LazyImage = ({ src, alt, style }) => {
   const [imageSrc, setImageSrc] = useState(placeHolder)
   const [imageRef, setImageRef] = useState()
 
@@ -83,6 +83,7 @@ export const LazyImage = ({ src, alt }) => {
       ref={setImageRef}
       src={imageSrc}
       alt={alt}
+      style={style}
       onLoad={onLoad}
       onError={onError}
     />
