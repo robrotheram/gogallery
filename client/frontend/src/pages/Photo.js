@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from 'react-redux';
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { faChevronLeft, faChevronRight, faDownload } from '@fortawesome/free-solid-svg-icons'
 
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
@@ -92,11 +92,22 @@ class Photo extends React.Component {
           <Lightbox
             mainSrc={config.imageUrl+ photo.id+"?size=original"}
             onCloseRequest={() => this.setState({ isOpen: false })}
+            toolbarButtons={[
+              <a 
+                style={{"textDecoration": "none", paddingRight: "10px", "color": "#AAAAAA"}} 
+                href={config.imageUrl+ photo.id+"?size=original"} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                download={photo.name} 
+                className="ril__toolbarItemChild ril__builtinButton">
+                <FontAwesomeIcon icon={faDownload} />
+              </a>
+            ]}
           />
         )}
           <div id="gallery_single" className="img-container" onClick={() => this.setState({ isOpen: true })}>
             <LazyImage src={config.imageUrl+ photo.id} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} />
-            <div className="downloadLink"><a href={config.imageUrl+ photo.id+"?size=original"} target="_blank" rel="noopener noreferrer" download={photo.name}>Download Orginal</a></div>
+            
           </div>
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
             <div className="">
@@ -108,9 +119,11 @@ class Photo extends React.Component {
                 </Link>
               </li>
               }
-                
               </ul>
             </div>
+            <ul className="navbar-nav mr-auto photo-title">
+              <h2 className="robotFont">{photo.name}</h2>
+            </ul>
             <div className="" style={{marginLeft:"auto"}}>
               <ul className="navbar-nav ml-auto">
               { post_index !== "" &&
@@ -125,15 +138,13 @@ class Photo extends React.Component {
           </nav>
 
         </div>
-        <div className="container" style={{ "backgroundColor": "white", maxWidth:"100%", padding:"20px 50px"}}>
+        <div className="container" style={{ "backgroundColor": "white", width:"100%", overflow:"auto", padding:"20px 50px"}}>
           <div className="row">
             <div className={ isLocation() ? "col-7" : "col-12"} >
               <table className="table photo-table" style={{ "textAlign": "center", "lineHeight": "50px" }}>
                 <tbody>
-                <tr>
-                      <th scope="row"><h2 className="robotFont">{photo.name}</h2></th>
-                      <td><span className="badge badge-pill badge-light date-pill">{photo.format_time}</span></td>
-                    </tr>
+
+                  
                   {photo.exif.camera !== "" ?
                     <tr>
                       <th scope="row"><img src={camera} width="50px" alt="camera icon" /></th>
@@ -176,6 +187,12 @@ class Photo extends React.Component {
                         <img src={albumSVG} width="50px" alt="album icon"/>
                       </th>
                       <td><Link to={"/album/" + album_id}>{album.name}</Link></td>
+                    </tr>
+                  : null}
+                  {photo.format_time !== "" ?
+                    <tr>
+                      <th scope="row">Date Taken</th>
+                      <td><span className="badge badge-pill badge-light date-pill">{photo.format_time}</span></td>
                     </tr>
                   : null}
                 </tbody>

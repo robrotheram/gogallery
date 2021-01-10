@@ -50,7 +50,7 @@
 
 .img-container {
     width:100vw;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 115px);
     padding: 30px;
     display:table-cell;
     vertical-align:middle;
@@ -67,6 +67,47 @@
       -o-transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000);
          transition-timing-function: cubic-bezier(0.420, 0.000, 0.580, 1.000); /* ease-in-out */
 }
+
+.downloadLink{
+    color:#FFF;
+    position: absolute;
+    bottom: 140px;
+    right: 0px;
+    width: 200px;
+    height: 30px;
+}
+.downloadLink a {
+    color: #FFF;
+    text-decoration: none;
+}
+
+.photo-title {
+    width: 100%;
+}
+
+.photo-title > h2 {
+    color: white;
+    margin: 0 auto;
+    font-size: 2vw;
+}
+
+@media only screen and (max-width: 990px) {
+    /* For mobile phones: */
+    .img-container{
+        height: calc(100vh - 110px);
+    }
+    .downloadLink{
+        display: none
+    }
+    .photo-title {
+        width: 90%;
+    }
+    .photo-title > h2 {
+        font-size: 4vw;
+    }
+
+  }
+
 
 
 .date-pill{
@@ -152,18 +193,6 @@ ul.icons li a:hover {
 
 }
 
-.downloadLink{
-    color:#FFF;
-    position: absolute;
-    bottom: 140px;
-    right: 0px;
-    width: 200px;
-    height: 30px;
-}
-.downloadLink a {
-    color: #FFF;
-    text-decoration: none;
-}
 
 .photo-table > tbody > tr:first-child > td {
     border: none;

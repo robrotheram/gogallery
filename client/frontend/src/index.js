@@ -47,7 +47,8 @@ class AppComponent extends React.Component {
                 <Route path="/photo/:id" component={PhotoPage} />
                 <Route path="/album/:id" component={AlbumPhotoPage} />
                 <Route path="/about" component={ProfilePage} />
-                </div>
+                <Route path="/img/:id" onEnter={() => window.location.reload()} />
+              </div>
             </ConnectedRouter>
            
           </main >

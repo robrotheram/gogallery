@@ -63,7 +63,7 @@ console.log("Fired", state)
                     <li className="nav-item active">
                     <Link className="nav-link text-center" to="/about" style={{"color": "#261F1F"}}>
                             <FontAwesomeIcon icon={faUserCircle} size="2x" style={{"color": "#5f5f5f"}}/>
-                            <span className="nav-hidden"> About</span></Link>
+                            <span> Profile</span></Link>
                     </li>
 
 
