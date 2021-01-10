@@ -13,11 +13,19 @@
     outline: 0;
     background: none;
     width: 0;
-    caret-color:transparent;
+    
     line-height: 35px;
     transition: width 0.4s linear;
     
 }
+
+@media only screen and (max-width: 990px) {
+    /* For mobile phones: */
+    .search_input{
+        width: 300px;
+        padding: 0 10px;
+    }
+  }
 
 .searchbar:hover > .search_input{
     padding: 0 10px;
