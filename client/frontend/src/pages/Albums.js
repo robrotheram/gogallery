@@ -4,8 +4,9 @@ import {config} from '../store'
 import {Link} from "react-router-dom";
 import placeholder from "../img/placeholder.png"
 import { fuzzySearch } from "../components/Search/utils";
+import { LazyImage } from "../components/Lazyloading";
 
-
+//<LazyImage src={config.imageUrl+ photo.id} alt={photo.name} />
 class AlbumsPage extends React.PureComponent {
 
   render () {
@@ -23,7 +24,7 @@ class AlbumsPage extends React.PureComponent {
                                 {
                                   value.profile_image === ""
                                   ? <img src={placeholder} alt={value.name} width="100%" height="250px" style={{"objectFit": "cover"}}/>
-                                  : <img src={config.imageUrl+value.profile_image} alt={value.name} width="100%" height="250px" style={{"objectFit": "cover"}}/>
+                                  : <LazyImage src={config.imageUrl+value.profile_image} alt={value.name} style={{ width: "100%", height: "250px", "objectFit": "cover"}}/>
                                 }
                                 </Link>
                                 <div className="card-body">

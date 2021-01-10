@@ -95,7 +95,7 @@ class Photo extends React.Component {
           />
         )}
           <div id="gallery_single" className="img-container" onClick={() => this.setState({ isOpen: true })}>
-            <LazyImage src={config.imageUrl+ photo.id} alt={photo.name} />
+            <LazyImage src={config.imageUrl+ photo.id} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} />
             <div className="downloadLink"><a href={config.imageUrl+ photo.id+"?size=original"} target="_blank" rel="noopener noreferrer" download={photo.name}>Download Orginal</a></div>
           </div>
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
