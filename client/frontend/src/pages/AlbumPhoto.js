@@ -5,6 +5,8 @@ import {config, searchTree} from '../store'
 import placeholder from "../img/placeholder.png"
 import './album.css'
 import { Link } from "react-router-dom";
+import { fuzzySearch } from "../components/Search/utils";
+
 
 function AlbumList(props){
   let albums = props.albums
@@ -96,6 +98,17 @@ const mapToProps = (state) =>{
 
   const collections = state.CollectionsReducer.collections;
   console.log(state.CollectionsReducer.collections)
+
+
+  let loc = state.router.location.pathname.split("/")
+  let searchTerm = state.search.search[loc[1]] 
+  if (searchTerm !== "" && searchTerm !== undefined){
+    return {
+      photos: fuzzySearch(["name", "caption", "album_name"],photos, searchTerm ),
+      collections
+    }
+  }
+
   return {
     photos,
     collections

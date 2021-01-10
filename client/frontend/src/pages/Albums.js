@@ -3,6 +3,9 @@ import { connect } from 'react-redux';
 import {config} from '../store'
 import {Link} from "react-router-dom";
 import placeholder from "../img/placeholder.png"
+import { fuzzySearch } from "../components/Search/utils";
+
+
 class AlbumsPage extends React.PureComponent {
 
   render () {
@@ -42,7 +45,14 @@ const mapToProps = (state) =>{
   var collections = Object.keys(state.CollectionsReducer.collections).map(function(key) {
     return state.CollectionsReducer.collections[key]
   });
-  console.log(collections)
+  
+  let loc = state.router.location.pathname.split("/")
+  let searchTerm = state.search.search[loc[1]] 
+  if (searchTerm !== "" && searchTerm !== undefined){
+    return {
+      collections: fuzzySearch(["name"], collections, searchTerm )
+    }
+  }
 
 
 

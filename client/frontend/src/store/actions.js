@@ -6,7 +6,8 @@ export const galleryActions = {
   getAllPhotos,
   getAllCollections,
   getProfile,
-  getConfig
+  getConfig,
+  setSearch
 };
 
 function getAllPhotos(){
@@ -41,6 +42,13 @@ function getProfile(){
   }
 }
 
+
+function setSearch(search){
+  return {
+    type: "UPDATE_SEARCH",
+    search: search
+  }
+}
 
 function setPhotosDetails(photos){
   return{

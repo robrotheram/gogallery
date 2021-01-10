@@ -3,13 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css'
 import * as serviceWorker from './serviceWorker';
 import {
-  Router,
   Route
 } from 'react-router-dom'
 import { Provider } from 'react-redux';
-import { history } from './store'
-import store from './store'
 
+import store, {history} from './store'
+import { ConnectedRouter } from 'connected-react-router'
 
 import Header from './components/header'
 import IndexPage from './pages/Index';
@@ -40,7 +39,7 @@ class AppComponent extends React.Component {
           <main>
             
             
-            <Router history={history}>
+            <ConnectedRouter history={history}>
               <Header/>
               <div style={{marginTop:"60px"}}>
                 <Route path="/" component={IndexPage} exact />
@@ -49,7 +48,7 @@ class AppComponent extends React.Component {
                 <Route path="/album/:id" component={AlbumPhotoPage} />
                 <Route path="/about" component={ProfilePage} />
                 </div>
-            </Router>
+            </ConnectedRouter>
            
           </main >
       )

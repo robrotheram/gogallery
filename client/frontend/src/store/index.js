@@ -1,11 +1,12 @@
 import { createStore, applyMiddleware } from 'redux'
-import rootReducer from './reducers'
+import {rootRedudcer} from './reducers/'
 import thunkMiddleware from 'redux-thunk'
 import { createLogger } from 'redux-logger'
 
 import { createBrowserHistory } from 'history';
+import {composeWithDevTools} from 'redux-devtools-extension'
 
-export const history = createBrowserHistory();
+export const history  = createBrowserHistory();
 
 const Constants = {
   prod : {
@@ -39,10 +40,11 @@ export function searchTree(element, id){
 
 
 const loggerMiddleware = createLogger()
+
 export default function configureStore(preloadedState) {
     return createStore(
-      rootReducer,
+      rootRedudcer(history),
       preloadedState,
-      applyMiddleware(thunkMiddleware, loggerMiddleware)
+      composeWithDevTools(applyMiddleware(thunkMiddleware, loggerMiddleware))
     )
   }

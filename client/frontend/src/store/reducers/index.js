@@ -1,29 +1,19 @@
 import { combineReducers } from 'redux'
+import { connectRouter } from 'connected-react-router'
+import {PhotosReducer} from './photo.reducer'
+import {SearchReducer} from './search.reducer'
 
-export default combineReducers({
+export const rootRedudcer = (history) => combineReducers({
   PhotosReducer,
   CollectionsReducer,
   ProfileReducer,
-  ConfigReducer
+  ConfigReducer,
+  router: connectRouter(history),
+  search: SearchReducer
   })
 
-export function PhotosReducer(state =  { photos: [], isUpdating: false }, action) {
-  switch (action.type) {
-      case 'PHOTOS_FETCHING':
-          return {
-          ...state,
-          isUpdating: true
-          };
-      case 'PHOTOS_RECEIVED':
-          return {
-              ...state,
-              isUpdating: false,
-              photos: action.photos
-          };
-      default:
-          return state
-  }
-}
+
+
 export function ProfileReducer(state =  { profile: {}, isUpdating: false }, action) {
   switch (action.type) {
       case 'PROFILE_FETCHING':
@@ -58,6 +48,7 @@ export function CollectionsReducer(state =  { collections: {}, isUpdating: false
           return state
   }
 }
+
 export function ConfigReducer(state =  { config: {}, isUpdating: false }, action) {
     switch (action.type) {
         case 'CONFIG_FETCHING':
