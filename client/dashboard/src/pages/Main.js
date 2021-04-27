@@ -15,7 +15,7 @@ import AddCollection from '../components/addCollection'
 import UploadPhotos from '../components/upload'
 import { galleryActions } from '../store/actions/gallery';
 import { config, formatTree, IDFromTree } from '../store';
-import { LazyImage } from '../components/Lazyloading';
+import LazyImage  from '../components/Lazyloading';
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
@@ -50,8 +50,8 @@ class Main extends React.PureComponent {
   }
 
   componentDidMount() {
-    this.props.dispatch(photoActions.getAll());
-    this.props.dispatch(collectionActions.getAll());
+   this.props.dispatch(photoActions.getAll());
+   this.props.dispatch(collectionActions.getAll());
     // this.props.getAllPhotos();
     // this.props.getCollections();
 
