@@ -1,6 +1,7 @@
 import React from 'react';
+import { LogoutOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 // as an array
-import { Layout, Menu,  Input,  Avatar, Icon } from 'antd';
+import { Layout, Menu, Input, Avatar } from 'antd';
 import { connect } from 'react-redux';
 import { userActions } from '../store/actions';
 import {Link} from "react-router-dom";
@@ -32,11 +33,13 @@ class HeaderComponent extends React.PureComponent {
     return (
       <Header className="header" style={{ padding: 0 }}>
   <Link to="/"><div className="brand">GoGallery</div></Link>
-      {this.props.location.pathname === "/" && <Search placeholder="Filter Photos" onChange={this.search} style={{ width: "400px" }}/>}
-      <Menu theme="dark" mode="horizontal" selectable={true} style={{ marginTop: 8, float: "right" }}>
-        <SubMenu title={<Avatar shape="square" src={get_gravatar(50)} style={{ marginTop: 0 }} />} style={{ padding: "0px 0px" }}>
-          <Menu.Item key="setting:1" onClick={this.logout}><Icon type="logout" />Logout</Menu.Item>
-          <Menu.Item key="setting:3"><Link to="/settings"><Icon type="setting" />Settings</Link></Menu.Item>
+      {this.props.location.pathname === "/" && 
+        <Input size="large"  bordered={false} prefix={<SearchOutlined/>} placeholder="Filter Photos" onChange={this.search} style={{ width: "400px" }}/>
+      }
+      <Menu theme="dark" mode="horizontal" selectable={true} style={{ float: "right" }}>
+        <SubMenu title={<Avatar shape="square" src={get_gravatar(50)}/>}>
+          <Menu.Item key="setting:1" onClick={this.logout}><LogoutOutlined />Logout</Menu.Item>
+          <Menu.Item key="setting:3"><Link to="/settings"><SettingOutlined />Settings</Link></Menu.Item>
         </SubMenu>
       </Menu>
     </Header>

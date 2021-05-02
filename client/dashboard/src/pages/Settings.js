@@ -1,6 +1,17 @@
 import React from 'react';
 import './Main.css';
-import { Layout, Statistic, Card, Icon, Row, Col}  from 'antd';
+
+import {
+  DeleteOutlined,
+  FolderOpenOutlined,
+  PictureOutlined,
+  ProfileOutlined,
+  SettingOutlined,
+  ToolOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+
+import { Layout, Statistic, Card, Row, Col } from 'antd';
 import { connect } from 'react-redux';
 import Header from '../components/header'
 import RegistrationForm from '../components/settings/RegistrationForm'
@@ -14,23 +25,23 @@ const { Content } = Layout;
 const tabListNoTitle = [
   {
     key: 'user',
-    tab: <span><Icon style={{"margin-right":"5px"}}  type="user" /> User Settings</span>,
+    tab: <span><UserOutlined style={{"marginRight":"5px"}} /> User Settings</span>,
   },
   {
     key: 'profile',
-    tab: <span><Icon style={{"margin-right":"5px"}}  type="profile" /> Profile Settings</span>,
+    tab: <span><ProfileOutlined style={{"marginRight":"5px"}} /> Profile Settings</span>,
   },
   {
     key: 'settings',
-    tab: <span><Icon style={{"margin-right":"5px"}}  type="setting" />Site Settings</span>,
+    tab: <span><SettingOutlined style={{"marginRight":"5px"}} />Site Settings</span>,
   },
   {
     key: 'album',
-    tab: <span><Icon style={{"margin-right":"5px"}}  type="folder-open" />Album Settings</span>,
+    tab: <span><FolderOpenOutlined style={{"marginRight":"5px"}} />Album Settings</span>,
   },
   {
     key: 'maintenance',
-    tab: <span><Icon style={{"margin-right":"5px"}}  type="tool" /> Maintenance</span>,
+    tab: <span><ToolOutlined style={{"marginRight":"5px"}} /> Maintenance</span>,
   },
 ];
 
@@ -74,7 +85,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Photos}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}} type="picture" />}
+                    prefix={<PictureOutlined style={{"marginRight":"5px"}} />}
                   />
                 </Card>
               </Col>
@@ -84,7 +95,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Albums}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"":"5px"}}  type="folder-open" />}
+                    prefix={<FolderOpenOutlined style={{"":"5px"}} />}
                     />
                 </Card>
               </Col>
@@ -94,7 +105,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Rubish}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}}  type="delete" />}
+                    prefix={<DeleteOutlined style={{"marginRight":"5px"}} />}
                   />
                 </Card>
               </Col>
@@ -104,7 +115,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.ProcessQue}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}}  type="code" />}
+                    prefix={<Icon style={{"marginRight":"5px"}}  type="code" />}
                   />
                 </Card>
               </Col>
@@ -114,7 +125,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.ViewCount}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}}  type="eye" />}
+                    prefix={<Icon style={{"marginRight":"5px"}}  type="eye" />}
                   />
                 </Card>
               </Col>
@@ -124,7 +135,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Albums}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}} type="delete" />}
+                    prefix={<Icon style={{"marginRight":"5px"}} type="delete" />}
                   />
                 </Card>
               </Col>
@@ -134,7 +145,7 @@ class Settings extends React.PureComponent {
                     value={this.props.stats.Albums}
                     precision={2}
                     valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"margin-right":"5px"}} type="delete" />}
+                    prefix={<Icon style={{"marginRight":"5px"}} type="delete" />}
                   />
                 </Card>
               </Col> */}

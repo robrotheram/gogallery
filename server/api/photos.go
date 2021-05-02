@@ -99,3 +99,43 @@ var getAllPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(filterPics)
 })
+
+var getLatestCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var pics []datastore.Picture
+	datastore.Cache.DB.All(&pics)
+	latests := pics[0].Exif.DateTaken
+	for _, p := range pics {
+		if p.Exif.DateTaken.After(latests) {
+			latests = p.Exif.DateTaken
+			break
+		}
+	}
+	w.Write([]byte(latests.Format("2006-01-02")))
+})
+
+var getByDatePhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	date := mux.Vars(r)["date"]
+	yourDate, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		yourDate, err = time.Parse("01-02-2006", date)
+	}
+	if err != nil {
+		http.Error(w, "Invalid date", http.StatusBadRequest)
+	}
+	var pics []datastore.Picture
+	datastore.Cache.DB.All(&pics)
+	latests := []datastore.Picture{}
+	for _, p := range pics {
+		if DateEqual(p.Exif.DateTaken, yourDate) {
+			latests = append(latests, p)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(latests)
+})
+
+func DateEqual(date1, date2 time.Time) bool {
+	y1, m1, d1 := date1.Date()
+	y2, m2, d2 := date2.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
+}

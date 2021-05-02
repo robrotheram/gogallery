@@ -11,19 +11,22 @@ const Map = (props) => {
 
   const [lng, setLng] = useState(props.lng);
   const [lat, setLat] = useState(props.lat);
-
-  React.useEffect(() => {
-    if (props.lat !== undefined){
-        setLat(props.lat);
-    }
-  }, [props.lat]);
-React.useEffect(() => {
-    if (props.lng !== undefined){
-        setLng(props.lng);
-    }
-}, [props.lng]);
-
   const [zoom, setZoom] = useState(12);
+
+  useEffect(() => {
+    if (props.lng !== undefined){
+      setLng(props.lng);
+    }
+    if (props.lat !== undefined){
+      setLat(props.lat);
+    }
+    if ((parseInt(props.lat)|| 0) === 0 && (parseInt(props.long)|| 0) === 0){
+      console.log("set zoom")
+      setZoom(1)
+    }
+  }, [props.lng, props.lat]);
+
+  
 
   // Initialize map when component mounts
   useEffect(() => {

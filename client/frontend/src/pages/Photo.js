@@ -106,7 +106,7 @@ class Photo extends React.Component {
           />
         )}
           <div id="gallery_single" className="img-container" onClick={() => this.setState({ isOpen: true })}>
-            <LazyImage src={config.imageUrl+ photo.id} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} />
+            <LazyImage src={config.imageUrl+ photo.id+"?size=original"} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} />
             
           </div>
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">

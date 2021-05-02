@@ -40,3 +40,24 @@
 #navbar-toggle-cbox {
   display:none
 }
+
+
+
+@media only screen and (min-width: 990px) {
+  .menu{
+    position: fixed;
+    top: 63px;
+    left: 0px;
+    width: 400px;
+    background-color: #f8f9fa !important;
+    padding: 10px;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    border-radius: 0px 0px 8px 8px;
+  }
+  .menu > .navbar-nav > .nav-item > .nav-link > img {
+    margin-right: 10px !important;
+  }
+  .menu > .navbar-nav > .nav-item > .nav-link > svg {
+    margin-right: 10px !important;
+  }
+}

@@ -1,191 +1,179 @@
-import React from 'react';
-import {
-    Form,
-    Input,
-    Divider,
-    Button,
-    Tree,
-    Row, 
-    Col,
-    Select
-  } from 'antd';
-  import { connect } from 'react-redux';
-  import { collectionActions } from '../../store/actions';
-  import {formatTree, IDFromTree} from '../../store'
-  import {notify} from '../../store/actions';
-  import {LocationModal} from '../Map'
+import React, {useState, useEffect} from 'react';
+import { Form } from "antd"
+import { Input, Divider, Button, Tree, Row, Col, Select } from 'antd';
+import { connect } from 'react-redux';
+import { collectionActions } from '../../store/actions';
+import {formatTree, IDFromTree} from '../../store'
+import {notify} from '../../store/actions';
+import {LocationModal} from '../Map'
 
 
-  const { DirectoryTree } = Tree;
-  const { Option } = Select;
+const { DirectoryTree } = Tree;
+const { Option } = Select;
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 5 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 19 },
+  },
+};
+const tailFormItemLayout = {
+  wrapperCol: {
+    xs: {
+      span: 24,
+      offset: 0,
+    },
+    sm: {
+      span: 8,
+      offset: 8,
+    },
+  },
+};
 
-  class AlbumSettings extends React.Component {
-    state = {
-      confirmDirty: false,
-      autoCompleteResult: [],
-      auth: {username:""},
-      albumName: "",
-      albumPic: "",
-      albumID: "",
-      GPS: {}
+const AlbumSettings = (props) => {
 
-    };
- 
-    handleSubmit = e => {
-      e.preventDefault();
-      if( this.state.albumID === ""){
-        notify("warning", "Please Select album")
-        return;
-      }
-      this.props.dispatch(collectionActions.update({
-        id: this.state.albumID,
-        name: this.state.albumName,
-        profile_image: this.state.albumPic,
-        GPS: this.state.GPS
-      }))
-    };
+  const state = {
+    confirmDirty: false,
+    autoCompleteResult: [],
+    auth: {username:""},
+    albumName: "",
+    albumPic: "",
+    albumID: "",
+    GPS: {}
+  };
 
-    onTreeSelect = (selectedKeys, info) => {
-      //console.log('selected',selectedKeys, info);
-      let alb = IDFromTree(this.props.collections, selectedKeys["0"])
-      this.setState({
-        "albumName": alb.name,
-        "albumPic": alb.profile_image,
-        "albumID": alb.id,
-        "GPS": alb.GPS
-      })
-      console.log('selected', alb);
-    };
+
+  const [albumName, setAlbumName] = useState(props.albumName)
+  const [albumPic, setAlbumPic] = useState(props.albumPic)
+  const [albumID, setAlbumID] = useState("")
+  const [GPS, setGPS] = useState({
+    latitude:0,
+    longitude:0
+  })
   
-    handleConfirmBlur = e => {
-      const { value } = e.target;
-      this.setState({ confirmDirty: this.state.confirmDirty || !!value });
-    };
-  
-    compareToFirstPassword = (rule, value, callback) => {
-      const { form } = this.props;
-      form.validateFields(['password'], { force: true });
-      if (value && value !== form.getFieldValue('password')) {
-        callback('Two passwords that you enter is inconsistent!');
-      } else {
-        callback();
-      }
-    };
+  const [form] = Form.useForm();
+  useEffect(() => {
+    form.setFieldsValue({
+      albumName: albumName,
+      albumPic: albumPic,
+      albumID: albumID,
+    });
+  }, [form, albumName, albumPic]);
 
-    onChange = (value) => {
-      this.setState({"albumPic": value })
+
+
+
+
+  const handleSubmit = () => {
+    if(albumID === ""){
+      notify("warning", "Please Select album")
+      return;
     }
-  
-    updateAlbumName = (evt) => {
-      this.setState({
-        "albumName": evt.target.value
-      })
-    }
-    updateGPS = (lat, lng) => {
-      this.setState({
-        "GPS": {
-          latitude:lat,
-          longitude:lng
-        }
-      })
-    }
-    validateToNextPassword = (rule, value, callback) => {
-      const { form } = this.props;
-      if (value && this.state.confirmDirty) {
-        form.validateFields(['confirm'], { force: true });
-      }
-      if (value && value !== form.getFieldValue('confirm')) {
-        callback('Two passwords that you enter is inconsistent!');
-      } else {
-        callback();
-      }
-    };
-  
-    handleWebsiteChange = value => {
-      let autoCompleteResult;
-      if (!value) {
-        autoCompleteResult = [];
-      } else {
-        autoCompleteResult = ['.com', '.org', '.net'].map(domain => `${value}${domain}`);
-      }
-      this.setState({ autoCompleteResult });
-    };
-  
-    render() {
-      const formItemLayout = {
-        labelCol: {
-          xs: { span: 24 },
-          sm: { span: 5 },
-        },
-        wrapperCol: {
-          xs: { span: 24 },
-          sm: { span: 19 },
-        },
-      };
-      const tailFormItemLayout = {
-        wrapperCol: {
-          xs: {
-            span: 24,
-            offset: 0,
-          },
-          sm: {
-            span: 8,
-            offset: 8,
-          },
-        },
-      };
-      
-      formatTree(this.props.collections)
-      const collections = Object.values(this.props.collections)
-      return (
-        <Row>
-          <Col span={8} style={{"overflowY": "auto","maxHeight": "500px"}} >
-            <DirectoryTree
-              className="draggable-tree"
-              defaultExpandedKeys={this.state.expandedKeys}
-              blockNode
-              onSelect={this.onTreeSelect}
-              treeData={collections}
-            />
-          </Col>
-          <Col span={16} style={{"paddingLeft":"30px"}}>
-            <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-              < Divider/>
-              <Form.Item label="Album Name">
-                <Input value={this.state.albumName}  name="albumName" onChange={this.updateAlbumName}/>
-              </Form.Item>
-              <Form.Item label="Album Image id">
-                <Select
-                  showSearch
-                  placeholder="Select a photo"
-                  optionFilterProp="children"
-                  onChange={this.onChange}
-                  value={this.state.albumPic} 
-                  filterOption={(input, option) =>
-                    option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                {this.props.photos.map((el, index) => (<Option key={el.id}>{el.name}</Option> ))}
-                </Select>
-              </Form.Item>
-              <Form.Item label="Location">
-                    <LocationModal lat={this.state.GPS.latitude} lng={this.state.GPS.longitude} onUpdate={this.updateGPS}/>
-              </Form.Item>
+    props.dispatch(collectionActions.update({
+      id: albumID,
+      name: albumName,
+      profile_image: albumPic,
+      GPS: GPS
+    }))
+  };
 
-              
-
-              <Divider/>
-              <Form.Item {...tailFormItemLayout}>
-                <Button type="primary" htmlType="submit" style={{width:"100%"}}>
-                  Update
-                </Button>
-              </Form.Item>
-            </Form>
-          </Col>
-        </Row>
-      );
+  const onTreeSelect = (selectedKeys, info) => {
+    let alb = findInTree(props.collections, selectedKeys[0])
+    console.log("TREE_SELECT", alb, selectedKeys)
+    if(alb === undefined){
+      return
     }
+    setAlbumID(alb.id)
+    setAlbumPic(alb.profile_image)
+    setAlbumName(alb.name)
+    setGPS(alb.GPS)
+   
+  };
+
+  const onChange = (value) => {
+    setAlbumPic(value)
   }
+
+  const updateAlbumName = (evt) => {
+    setAlbumName(evt.target.value)
+  }
+
+  const updateGPS = (lat, lng) => {
+    setGPS(
+      {
+        latitude:lat,
+        longitude:lng
+      }
+    )
+  }
+  
+  
+  const findInTree = (tree, id) => {
+    let el
+    const proceesNode = (node) => {
+      if (node.id === id) {
+        el = node
+        return
+      }
+      return node.children.map(n => proceesNode(n))
+    }
+    tree = Object.values(tree)
+    tree.map(node => proceesNode(node))
+    return el
+  }
+
+
+  console.log("COLLECTIONS:", props.collections)
+   return (
+      <Row>
+        <Col span={8} style={{"overflowY": "auto","maxHeight": "500px"}} >
+          <Tree
+            className="draggable-tree"
+            defaultExpandedKeys={[]}
+            blockNode
+            onSelect={onTreeSelect}
+            treeData={props.collections}
+          />
+        </Col>
+        <Col span={16} style={{"paddingLeft":"30px"}}>
+          <Form form={form} {...formItemLayout} onFinish={handleSubmit}>
+            < Divider/>
+            <Form.Item label="Album Name" name="albumName">
+              <Input onChange={updateAlbumName}/>
+            </Form.Item>
+            <Form.Item label="Album Image id" name="albumPic">
+              <Select
+                showSearch
+                placeholder="Select a photo"
+                optionFilterProp="children"
+                onChange={onChange}
+                filterOption={(input, option) =>
+                  option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+              >
+              {props.photos.map((el, index) => (<Option key={el.id}>{el.name}</Option> ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="Location">
+                  <LocationModal lat={GPS.latitude} lng={GPS.longitude} onUpdate={updateGPS}/>
+            </Form.Item>
+          
+
+            <Divider/>
+            <Form.Item {...tailFormItemLayout}>
+              <Button type="primary" htmlType="submit" style={{width:"100%"}}>
+                Update
+              </Button>
+            </Form.Item>
+          </Form>
+        </Col>
+      </Row>
+    );
+  }
+
 const mapToProps = (state) =>{
   console.log("REG",state.UserReducer);
   const auth = state.UserReducer;
@@ -194,13 +182,9 @@ const mapToProps = (state) =>{
   return {
     auth,
     collections,
+    GPS:{},
     photos
   };
 }
 
-export default connect(mapToProps)(Form.create({ name: 'register', mapPropsToFields(props) {
-  return {
-    username: Form.createFormField({...props.username, value: props.auth.username}),
-    email: Form.createFormField({...props.email, value: props.auth.email}),
-  };
-}})(AlbumSettings));
+export default connect(mapToProps)(AlbumSettings);

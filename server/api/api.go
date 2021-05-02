@@ -35,6 +35,8 @@ func InitApiRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 
 	r.Handle("/api/albums", (getAllCollectionsHandler)).Methods("GET")
 	r.Handle("/api/photos", (getAllPhotosHandler)).Methods("GET")
+	r.Handle("/api/photos/latest", (getLatestCollectionsHandler)).Methods("GET")
+	r.Handle("/api/photos/{date}", (getByDatePhotosHandler)).Methods("GET")
 	r.Handle("/api/profile", (getProfileInfo)).Methods("GET")
 	r.Handle("/api/config", (getPublicGallerySettings)).Methods("GET")
 

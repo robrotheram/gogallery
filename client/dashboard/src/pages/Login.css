@@ -3,7 +3,7 @@ body{
 }
 
 .login-form {
-    max-width: 350px;
+    max-width: 100%;
     
   }
 .login-form-forgot {

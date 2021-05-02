@@ -1,14 +1,16 @@
 import React from 'react';
+import { Form } from 'antd';
 // as an array
-import { Layout, Form,  Input,  Select, TreeSelect } from 'antd';
+import { Layout, Input, Select, TreeSelect, Typography } from 'antd';
 import { Collapse } from 'antd';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { config, formatTree } from '../store';
+import { config } from '../store';
 import { photoActions } from '../store/actions';
 import {LocationModal} from './Map'
 
+const { Paragraph } = Typography;
 const { Panel } = Collapse;
 const { Sider } = Layout;
 const { Option } = Select;
@@ -84,7 +86,7 @@ class SideBar extends React.PureComponent {
     this.triggerChange(data)
   }
    handleCollectionChange = value => {
-     console.log(value)
+     console.log("MEUN:",value)
     var data = {...this.state.data}
     data["album"] = value
     this.setState({data});
@@ -113,19 +115,17 @@ class SideBar extends React.PureComponent {
         return formattedDate;
       }
   
-    formatTree(this.props.collections)
-    const collections = Object.values(this.props.collections)
-
-
     console.log("SIDEBAR", this.state)
     return (
           <Sider width={width} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
             <img src={config.imageUrl+this.state.data.id+"?size=tiny&token="+localStorage.getItem('token')} width="100%" alt="thumbnail" />
             <Form {...formItemLayout}>
-              <Collapse bordered={false} defaultActiveKey={['1', '2', '3']}>
+              <Collapse bordered={false} defaultActiveKey={['1']}>
                 <Panel header="Properties" key="1">
                   <Form.Item label="id">
+                  <Paragraph ellipsis style={{marginBottom:"0px"}}>
                     {this.state.data.id} 
+                    </Paragraph>
                   </Form.Item>
                   <Form.Item label="Title">
                     <Input value={this.state.data.name}  name="name" onChange={this.handleChange}  onKeyDown={this.handleKeyDown}/>
@@ -140,7 +140,7 @@ class SideBar extends React.PureComponent {
                   <Form.Item label="Collection">
                   <TreeSelect
                     value={this.state.data.album}
-                    treeData={collections}
+                    treeData={this.props.collections}
                     placeholder="Select Collection"
                     onChange={this.handleCollectionChange}
                   />          

@@ -112,10 +112,11 @@ html, body {
     align-items: center;
     justify-content: center;
 }
+
 .ant-row.ant-form-item{
-  margin: 0px;
- 
+  margin-bottom: 10px;
 }
+
 .disable-select {
   user-select: none; /* supported by Chrome and Opera */
  -webkit-user-select: none; /* Safari */
@@ -157,30 +158,35 @@ html, body {
   text-align: center;
 }
 
-.ant-input-search {
-  font-size: larger;
-}
+
+
 .ant-input-search .ant-input {
   border: 0px;
-  padding: 1px 1px 1px 36px !important;
   height: 42px;
-}
 
+}
 .ant-input-search .ant-input:focus {
   outline-color: transparent;
   outline-style: none;
   box-shadow: none;
 }
 
+.ant-input-search {
+  font-size: larger;
+  margin-top: 10px;
+}
 .ant-input-search .ant-input-suffix {
   left: 10px;
   right: auto;
 }
-.tick {
+
+
+
+/* .tick {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 
-}
+} */
 
 .maintenance .ant-upload {
   width: 100%;
@@ -189,11 +195,12 @@ html, body {
 .ant-menu-submenu ul {
   max-height: 500px;
   overflow-y: auto;
-  width: 500px;
   overflow-x: hidden;
+  margin-top: -5px;
+  margin-right: -20px;
 }
 
-.ant-menu-submenu-popup::-webkit-scrollbar {
+/* .ant-menu-submenu-popup::-webkit-scrollbar {
   display: none;
 }
 .ant-menu-submenu-popup{
@@ -202,4 +209,21 @@ html, body {
   padding-right: 10px;
   
   scrollbar-width: none;
+} */
+
+
+.menu-tree > .ant-tree {
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  font-weight: 300; 
+  min-width:300px
+}
+
+.menu-tree  .ant-tree-treenode {
+  padding: 5px 10px;
+}
+
+
+.main {
+  width: 100%;
 }

@@ -1,7 +1,17 @@
 import React from 'react';
 import Selection from 'react-ds';
 import './Main.css';
-import { Layout, Menu, Icon, Radio, Row, Col, Tree}  from 'antd';
+
+import {
+  CalendarOutlined,
+  CameraOutlined,
+  ClockCircleOutlined,
+  PictureOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
+
+import { Layout, Menu, Radio, Row, Col, Tree } from 'antd';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { collectionActions, photoActions } from '../store/actions';
@@ -14,8 +24,11 @@ import Header from '../components/header'
 import AddCollection from '../components/addCollection'
 import UploadPhotos from '../components/upload'
 import { galleryActions } from '../store/actions/gallery';
-import { config, formatTree, IDFromTree } from '../store';
+import { config, IDFromTree } from '../store';
 import LazyImage  from '../components/Lazyloading';
+
+import { SelectableGroup } from 'react-selectable-fast'
+
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
@@ -131,7 +144,10 @@ class Main extends React.PureComponent {
   }
 
   onTreeSelect = (selectedKeys, info) => {
-    console.log('selected', info); //.node.props.id);
+    console.log('selected', selectedKeys, info); //.node.props.id);
+    this.filterPhotos({
+      key: selectedKeys[0]
+    })
   };
 
   filterPhotos = (item) => {
@@ -164,10 +180,6 @@ class Main extends React.PureComponent {
     const selectedElements = this.state.selectedElements.map(s => this.props.photos[s]);
     const lowercasedFilter = this.state.filter.toLowerCase();
 
-    formatTree(this.props.collections)
-    const collections = Object.values(this.props.collections)
-
-
     const filteredData = this.props.photos.filter(item => {
       return search(item, this.state.uploaded_filter, lowercasedFilter)
     });
@@ -197,21 +209,21 @@ class Main extends React.PureComponent {
       <Layout style={{ minHeight: '100vh' }}>
         <Header search={this.filterPhotos}/>
         <Layout>
-          <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse} style={{ overflowY: "auto" }}>
+          <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse} width={300} style={{ overflowY: "auto" }}>
             <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={this.filterPhotos}>
               <Menu.Item key="all">
-                <Icon type="picture" />
+                <PictureOutlined />
                 <span>All Content</span>
               </Menu.Item>
               <Menu.Item key="uploaded">
-                <Icon type="clock-circle" />
+                <ClockCircleOutlined />
                 <span>Last Uploaded</span>
               </Menu.Item>
               <SubMenu
                 key="calendar"
                 title={
                   <span>
-                    <Icon type="calendar" />
+                    <CalendarOutlined />
                     <span>Date Captured</span>
                   </span>
                 }
@@ -222,30 +234,31 @@ class Main extends React.PureComponent {
                 key="collections"
                 title={
                   <span>
-                    <Icon type="camera" />
+                    <CameraOutlined />
                     <span>Collections</span>
                   </span>
                 }
               >
-                <DirectoryTree
-                className="draggable-tree"
-                defaultExpandedKeys={this.state.expandedKeys}
-                draggable
-                blockNode
-                onSelect={this.onTreeSelect()}
-                treeData={collections}
-              />
+                <div className="menu-tree">
+                  <DirectoryTree
+                    defaultExpandedKeys={this.state.expandedKeys}
+                    draggable
+                    blockNode
+                    onSelect={this.onTreeSelect}
+                    treeData={this.props.collections}
+                  />
+                </div>
               </SubMenu>
             </Menu>
             <AddCollection />
             <UploadPhotos /> 
             <Menu theme="dark" mode="inline" selectable={false}>
-              <Menu.Item onClick={() => this.props.dispatch(galleryActions.showAdd())} key="add" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 50 }}><Icon type="plus" /> <span>Add Collection</span></Menu.Item>
-              <Menu.Item onClick={() => this.props.dispatch(galleryActions.showUpload())} key="upload" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 100 }}><Icon type="upload" /> <span>Upload</span></Menu.Item>
+              <Menu.Item onClick={() => this.props.dispatch(galleryActions.showAdd())} key="add" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 50 }}><PlusOutlined /> <span>Add Collection</span></Menu.Item>
+              <Menu.Item onClick={() => this.props.dispatch(galleryActions.showUpload())} key="upload" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 100 }}><UploadOutlined /> <span>Upload</span></Menu.Item>
             </Menu>
           </Sider>
           <Layout>
-            <div ref={(ref) => { this.setState({ ref }); }} className='item-container' onClick={this.clearSelection}>
+            
               <Content
                 style={{
                   padding: 28,
@@ -254,6 +267,7 @@ class Main extends React.PureComponent {
                   overflow: "auto"
                 }}
               >
+              <div ref={(ref) => { this.setState({ ref }); }} className='item-container' onClick={this.clearSelection}>
                 <Row gutter={[16, 16]}>
                   {filteredData.map((el, index) => (
                     <Col key={el.id} span={parseInt(this.props.imageSize)} style={{ padding: 2 }}>
@@ -269,8 +283,9 @@ class Main extends React.PureComponent {
                   ))}
                   {this.renderSelection()}
                 </Row>
+                </div>
               </Content>
-            </div>
+           
             <Footer style={{ backgroundColor: "#141414", height: 42, border: "1px solid black", padding: 4, zIndex: 2, borderBottom: "0px", textAlign: "center" }}>
               {this.state.selectedElements.length > 0 && <MoveModal selectedPhotos={selectedElements} />}
               <span style={{ lineHeight: "32px" }}> {selectMessage}</span>

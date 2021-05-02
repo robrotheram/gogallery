@@ -18,6 +18,7 @@ import AlbumPhotoPage from './pages/AlbumPhoto';
 import AlbumsPage from './pages/Albums';
 import PhotoPage from './pages/Photo';
 import ProfilePage from './pages/Profile';
+import CollectionPage from './pages/Collection'
 
 history.listen((location, action) => {
   if (action === 'PUSH') {
@@ -42,6 +43,7 @@ class AppComponent extends React.Component {
               <div style={{marginTop:"60px"}}>
                 <Route path="/" component={IndexPage} exact />
                 <Route path="/albums" component={AlbumsPage} />
+                <Route path="/collection/:date" component={CollectionPage} />
                 <Route path="/photo/:id" component={PhotoPage} />
                 <Route path="/album/:id" component={AlbumPhotoPage} />
                 <Route path="/about" component={ProfilePage} />

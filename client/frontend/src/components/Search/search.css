@@ -13,7 +13,8 @@
     outline: 0;
     background: none;
     width: 0;
-    
+    width: calc(100% - 35px);
+    padding: 0 10px;
     line-height: 35px;
     transition: width 0.4s linear;
     
@@ -27,7 +28,7 @@
     }
   }
 
-.searchbar:hover > .search_input{
+/* .searchbar:hover > .search_input{
     padding: 0 10px;
     width: 300px;
     transition: width 0.4s linear;
@@ -36,7 +37,7 @@
 .searchbar:hover > .search_icon{
     margin-right: -1px;
     border: #CCC 1px solid;
-}
+} */
 
 .search_icon{
     height: 35px;

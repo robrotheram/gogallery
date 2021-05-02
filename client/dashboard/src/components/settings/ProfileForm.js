@@ -1,165 +1,87 @@
-import React from 'react';
-import {
-    Form,
-    Input,
-    Divider,
-    Button,
-  } from 'antd';
-  import { connect } from 'react-redux';
+import React, {useState, useEffect} from 'react';
+import { Form } from "antd";
+import { Input, Divider, Button } from 'antd';
+import { connect } from 'react-redux';
 import { settingsActions } from '../../store/actions';
- 
 
-  class ProfileForm extends React.Component {
-    state = {
-      confirmDirty: false,
-      autoCompleteResult: [],
-      auth: {username:""}
-    };
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 5 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 19 },
+  },
+};
+const tailFormItemLayout = {
+  wrapperCol: {
+    xs: {
+      span: 24,
+      offset: 0,
+    },
+    sm: {
+      span: 8,
+      offset: 8,
+    },
+  },
+};
 
-    // componentDidUpdate(prevProps, prevState) {
-    //   if (prevState.auth.username !== this.state.auth.username) {
-    //     let auth = prevState.auth
-    //     auth.username = nextProps.auth.username
-    //     this.setState({auth});
-        
-    //   }
-    // }
-
-    // static getDerivedStateFromProps(nextProps, prevState){
-    //   const { auth } = nextProps
-    //   console.log("REGISTRATION", auth.username ,  prevState.auth.username)
-    //   if (auth.username !== prevState.auth.username ){
-    //     return { auth }
-    //   }
-    //   return null
-    // }
-
+const  ProfileForm = (props) =>  {
+  const [confirmDirty, setConfirmDirty] = useState(false)
+  const [autoCompleteResult, setAutoCompleteResult] = useState([])
+  const [form] = Form.useForm();
+  useEffect(() => {
+    console.log("SETTINGS:", props);
+    form.setFieldsValue({
+      ProfilePhoto:  props.settings.ProfilePhoto,
+      BackgroundPhoto:  props.settings.BackgroundPhoto,
+      Description:  props.settings.Description,
+      Footer:  props.settings.Footer,
+      Twitter:  props.settings.Twitter,
+      Instagram:  props.settings.Instagram,
+      Website: props.settings.Website,
+    });
+  }, [form]);
 
 
-  
-    handleSubmit = e => {
-      e.preventDefault();
-      this.props.form.validateFieldsAndScroll((err, values) => {
-        if (!err) {
-          console.log('Received values of form: ', values);
-          this.props.dispatch(settingsActions.setProfile(values))
-        }
-      });
-    };
-  
-    handleConfirmBlur = e => {
-      const { value } = e.target;
-      this.setState({ confirmDirty: this.state.confirmDirty || !!value });
-    };
-  
-    compareToFirstPassword = (rule, value, callback) => {
-      const { form } = this.props;
-      
-      //if (value && this.state.confirmDirty) {
-        form.validateFields(['password'], { force: true });
-      
-      if (value && value !== form.getFieldValue('password')) {
-        callback('Two passwords that you enter is inconsistent!');
-      } else {
-        callback();
+
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    form.validateFieldsAndScroll((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+        props.dispatch(settingsActions.setProfile(values))
       }
-    };
-  
-    validateToNextPassword = (rule, value, callback) => {
-      const { form } = this.props;
-      if (value && this.state.confirmDirty) {
-        form.validateFields(['confirm'], { force: true });
-      }
-      if (value && value !== form.getFieldValue('confirm')) {
-        callback('Two passwords that you enter is inconsistent!');
-      } else {
-        callback();
-      }
-    };
-  
-    handleWebsiteChange = value => {
-      let autoCompleteResult;
-      if (!value) {
-        autoCompleteResult = [];
-      } else {
-        autoCompleteResult = ['.com', '.org', '.net'].map(domain => `${value}${domain}`);
-      }
-      this.setState({ autoCompleteResult });
-    };
-  
-    render() {
-      const { getFieldDecorator } = this.props.form;
-  
-    
+    });
+  };
 
-      const formItemLayout = {
-        labelCol: {
-          xs: { span: 24 },
-          sm: { span: 5 },
-        },
-        wrapperCol: {
-          xs: { span: 24 },
-          sm: { span: 19 },
-        },
-      };
-      const tailFormItemLayout = {
-        wrapperCol: {
-          xs: {
-            span: 24,
-            offset: 0,
-          },
-          sm: {
-            span: 8,
-            offset: 8,
-          },
-        },
-      };
-      console.log("REGISTRATION STATWE",this.props)
-      return (
-        <div>
-          <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-            <Divider>About</Divider>
-            <Form.Item label="Profile Photo">
-            {getFieldDecorator('ProfilePhoto', {
-            })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Background About Photo">
-            {getFieldDecorator('BackgroundPhoto', {
-            })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Description">
-            {getFieldDecorator('Description', {
-            })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Footer Text">
-            {getFieldDecorator('Footer', {
-            })(<Input />)}
-            </Form.Item>
-            <Divider>Social</Divider>
-            <p style={{textAlign:"center"}}>Leave black to disable</p>
-            <Form.Item label="Twitter">
-            {getFieldDecorator('Twitter', {
-            })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Instagram">
-            {getFieldDecorator('Instagram', {
-            })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Website">
-            {getFieldDecorator('Website', {
-            })(<Input />)}
-            </Form.Item>
-            <Divider/>
-            <Form.Item {...tailFormItemLayout}>
-                <Button type="primary" htmlType="submit" style={{width:"100%"}}>
-                Save
-                </Button>
-            </Form.Item>
-        </Form>
-        </div>
 
-      );
-    }
+
+    return (
+      <div>
+        <Form form={form}  {...formItemLayout} onSubmit={handleSubmit}>
+          <Divider>About</Divider>
+          <Form.Item label="Profile Photo" name='ProfilePhoto'><Input /></Form.Item>
+          <Form.Item label="Background About Photo" name='BackgroundPhoto'><Input /></Form.Item>
+          <Form.Item label="Description" name='Description'><Input /></Form.Item>
+          <Form.Item label="Footer Text" name='Footer'><Input /></Form.Item>
+          <Divider>Social</Divider>
+          <p style={{textAlign:"center"}}>Leave black to disable</p>
+          <Form.Item label="Twitter" name='Twitter'><Input /></Form.Item>
+          <Form.Item label="Instagram" name='Instagram'><Input /></Form.Item>
+          <Form.Item label="Website" name='Website'><Input /></Form.Item>
+          <Divider/>
+          <Form.Item {...tailFormItemLayout}>
+              <Button type="primary" htmlType="submit" style={{width:"100%"}}>
+              Save
+              </Button>
+          </Form.Item>
+      </Form>
+      </div>
+
+    );
   }
 const mapToProps = (state) =>{
   console.log("SETTINGS:",state.SettingsReducer);
@@ -169,14 +91,4 @@ const mapToProps = (state) =>{
   };
 }
 
-export default connect(mapToProps)(Form.create({ name: 'register', mapPropsToFields(props) {
-  return {
-    ProfilePhoto: Form.createFormField({...props.username, value: props.settings.ProfilePhoto}),
-    BackgroundPhoto: Form.createFormField({...props.username, value: props.settings.BackgroundPhoto}),
-    Description: Form.createFormField({...props.username, value: props.settings.Description}),
-    Footer: Form.createFormField({...props.username, value: props.settings.Footer}),
-    Twitter: Form.createFormField({...props.username, value: props.settings.Twitter}),
-    Instagram: Form.createFormField({...props.username, value: props.settings.Instagram}),
-    Website: Form.createFormField({...props.email, value: props.settings.Website}),
-  };
-}})(ProfileForm));
+export default connect(mapToProps)(ProfileForm);

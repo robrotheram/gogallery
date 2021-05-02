@@ -1,60 +1,98 @@
-import React from 'react';
-import { Modal, Button, Icon, Form, TreeSelect } from 'antd';
+import React, { useState } from 'react';
+import { ContainerOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Modal, Button, TreeSelect,Form } from 'antd';
 
 import { connect } from 'react-redux';
 import { collectionActions } from '../store/actions';
-import { formatTree } from '../store';
 
 const { confirm } = Modal;
 const ButtonGroup = Button.Group;
 
 
 
-const CollectionCreateForm = Form.create({ name: 'form_in_modal' })(
-  // eslint-disable-next-line
-  class extends React.Component {
-    normFile = e => {
-      console.log('Upload event:', e);
-      if (Array.isArray(e)) {
-        return e;
-      }
-      return e && e.fileList;
-    };
-    render() {
-      const { visible, onCancel, onCreate, form } = this.props;
-      const { getFieldDecorator } = form;
-
-      formatTree(this.props.collections)
-      const collections = Object.values(this.props.collections)
-      return (
-        <Modal
-          visible={visible}
-          title="Move photos to collections"
-          okText="Move Photos"
-          onCancel={onCancel}
-          onOk={onCreate}
-        >
-          <Form layout="vertical">
-            <Form.Item label="Choose collection" hasFeedback>
-              {getFieldDecorator('album', {
-                rules: [{ required: true, message: 'Please select the collection to upload photos to!' }],
-              })(
-                <TreeSelect
-                    treeData={collections}
-                    placeholder="Select Collection"
-                    onChange={this.handleCollectionChange}
-                  />
-                
-              )}
-            </Form.Item>
-          </Form>
-        </Modal>
-      );
+const MoveModal = (props) => {
+  const normFile = e => {
+    console.log('Upload event:', e);
+    if (Array.isArray(e)) {
+      return e;
     }
-  },
-);
+    return e && e.fileList;
+  };
+  
+  const [visible, setVisable] = useState(false)
+  const [form] = Form.useForm();
 
-class MoveModal extends React.Component {
+  const showModal = () => {
+    setVisable(true)
+  };
+
+  const handleCancel = () => {
+    setVisable(true)
+  };
+
+  const showDeleteConfirm = () =>{
+    confirm({
+      title: 'Are you sure delete these photos?',
+      content: '',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        props.selectedPhotos.forEach(photo => {
+          props.dispatch(collectionActions.remove(photo.id))
+        })
+        
+        console.log('OK');
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  }
+
+  const handleCreate = () => {
+    form.validateFields().then(values => {
+      values["photos"] = props.selectedPhotos
+      console.log('Received values of Move form: ', values);
+      props.dispatch(collectionActions.move(values))
+      setVisable(false)
+    })
+    .catch(err => {})
+  };
+
+  return (
+    <div>
+      <ButtonGroup style={{ float: "left" }}>
+          <Button onClick={showModal}><ContainerOutlined />move</Button>
+          <Button onClick={showDeleteConfirm} ><DeleteOutlined />delete</Button>
+      </ButtonGroup>
+      <Modal
+        visible={visible}
+        title="Move photos to collections"
+        okText="Move Photos"
+        onCancel={handleCancel}
+        onOk={handleCreate}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item label="Choose collection" 
+            hasFeedback 
+            name="album"
+            rules={[{ required: true, message: 'Please select the collection to upload photos to!' }]}
+          >
+              <TreeSelect
+                  treeData={props.collections}
+                  placeholder="Select Collection"
+                />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+    );
+}
+  
+
+
+{/* class MoveModal extends React.Component {
   constructor(){
     super();
     this.state = {visible: false}
@@ -112,8 +150,8 @@ class MoveModal extends React.Component {
     return (
       <div>
             <ButtonGroup style={{ float: "left" }}>
-                <Button onClick={this.showModal}><Icon type="container" />move</Button>
-                <Button onClick={showDeleteConfirm} ><Icon type="delete" />delete</Button>
+                <Button onClick={this.showModal}><ContainerOutlined />move</Button>
+                <Button onClick={showDeleteConfirm} ><DeleteOutlined />delete</Button>
               </ButtonGroup>
 
         <CollectionCreateForm
@@ -126,7 +164,7 @@ class MoveModal extends React.Component {
         </div>
     );
   }
-}
+} */}
 const mapToProps = (state) =>{
   const photos = state.PhotoReducer.photos;
   const dates = state.CollectionsReducer.dates
