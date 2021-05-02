@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import { Form } from "antd";
 import { Input, Divider, Button } from 'antd';
 import { connect } from 'react-redux';
@@ -28,11 +28,9 @@ const tailFormItemLayout = {
 };
 
 const  ProfileForm = (props) =>  {
-  const [confirmDirty, setConfirmDirty] = useState(false)
-  const [autoCompleteResult, setAutoCompleteResult] = useState([])
   const [form] = Form.useForm();
   useEffect(() => {
-    console.log("SETTINGS:", props);
+    console.log("SETTINGS:", props.settings);
     form.setFieldsValue({
       ProfilePhoto:  props.settings.ProfilePhoto,
       BackgroundPhoto:  props.settings.BackgroundPhoto,
@@ -42,7 +40,7 @@ const  ProfileForm = (props) =>  {
       Instagram:  props.settings.Instagram,
       Website: props.settings.Website,
     });
-  }, [form]);
+  }, [form, props.settings]);
 
 
 

@@ -6,7 +6,6 @@ import {galleryActions, collectionActions} from '../store/actions'
 
 
 const AddCollection = (props) => {
-  const { visible, onCancel, onCreate } = props;
   const [form] = Form.useForm();
 
   const handleCancel = () => {

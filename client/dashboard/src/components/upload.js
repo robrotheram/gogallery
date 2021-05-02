@@ -17,21 +17,11 @@ const { Dragger } = Upload;
 const UploadCollection = (props) => {
   const {collections } = props;
   const [upload, setEnableUpload] = useState(false)
-  const [collection, setCollection] = useState("")
   const [files, setFiles] = useState([])
   const [form] = Form.useForm();
 
-  const normFile = e => {
-    console.log('Upload event:', e);
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e && e.fileList;
-  };
-
   const enableUpload = (collection) =>{
     setEnableUpload(true);
-    setCollection(collection)
   }
 
   const customRequest = (options ) => {
@@ -67,17 +57,6 @@ const UploadCollection = (props) => {
     })
   }
 
-  const onChange = (info) => {
-    const { status } = info.file;
-    if (status !== 'uploading') {
-      console.log(info.file, info.fileList);
-    }
-    if (status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === 'error') {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  }
   return (
       <Modal
         visible={props.uploadModalVisable}
@@ -105,7 +84,7 @@ const UploadCollection = (props) => {
                 action={config.baseUrl+"/collection/uploadFile"}  
                 multiple={true}  
                 listType={'picture'}
-                disabled={!enableUpload}
+                disabled={!upload}
               >
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Form }  from 'antd';
 import { Input, Select, InputNumber, Divider, Button } from 'antd';
 import EditableTagGroup from './EditableTagGroup';
@@ -37,7 +37,7 @@ const SettingsForm = (props) => {
 
 
   useEffect(() => {
-    console.log("SETTINGS:",props);
+    console.log("SETTINGS:",props.settings);
 		form.setFieldsValue({
       Name:  props.settings.Name,
       Basepath:  props.settings.Basepath,
@@ -47,7 +47,7 @@ const SettingsForm = (props) => {
       AlbumBlacklist:  props.settings.AlbumBlacklist || [],
       Renderer: props.settings.Renderer,
     });
-	}, [form]);
+	}, [form,props.settings]);
 
   const handleSubmit = e => {
     e.preventDefault();

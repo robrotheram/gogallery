@@ -13,7 +13,7 @@ class AlbumsPage extends React.PureComponent {
     console.log(this.props.collections)
   return (
     <main>
-        <div className="py-5 bg-light">
+        <div className="py-5 bg-light" style={{height:"calc(100vh - 60px)"}}>
             <div className="container">
                 <div className="row">
                   {this.props.collections.map((value, index) => {

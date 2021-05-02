@@ -3,12 +3,9 @@ import { Form } from "antd"
 import { Input, Divider, Button, Tree, Row, Col, Select } from 'antd';
 import { connect } from 'react-redux';
 import { collectionActions } from '../../store/actions';
-import {formatTree, IDFromTree} from '../../store'
 import {notify} from '../../store/actions';
 import {LocationModal} from '../Map'
 
-
-const { DirectoryTree } = Tree;
 const { Option } = Select;
 const formItemLayout = {
   labelCol: {
@@ -35,17 +32,6 @@ const tailFormItemLayout = {
 
 const AlbumSettings = (props) => {
 
-  const state = {
-    confirmDirty: false,
-    autoCompleteResult: [],
-    auth: {username:""},
-    albumName: "",
-    albumPic: "",
-    albumID: "",
-    GPS: {}
-  };
-
-
   const [albumName, setAlbumName] = useState(props.albumName)
   const [albumPic, setAlbumPic] = useState(props.albumPic)
   const [albumID, setAlbumID] = useState("")
@@ -61,7 +47,7 @@ const AlbumSettings = (props) => {
       albumPic: albumPic,
       albumID: albumID,
     });
-  }, [form, albumName, albumPic]);
+  }, [form, albumName, albumPic,albumID]);
 
 
 

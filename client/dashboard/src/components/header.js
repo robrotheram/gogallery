@@ -9,7 +9,6 @@ import {withRouter} from 'react-router-dom';
 
 const { Header} = Layout;
 const { SubMenu } = Menu;
-const { Search } = Input;
 
 class HeaderComponent extends React.PureComponent {
 

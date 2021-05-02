@@ -1,40 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Gallery from "../components/gallery";
 import { connect } from 'react-redux';
-import {config, searchTree} from '../store'
-import placeholder from "../img/placeholder.png"
+import {config} from '../store'
 import './album.css'
-import { Link } from "react-router-dom";
 import { fuzzySearch } from "../components/Search/utils";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
-
-
-function AlbumList(props){
-  let albums = props.albums
-  let classSize = "col-md-12"
-  if (props.inline){
-    classSize = "col-md-3"
-  }
-  return (
-    albums.map((k,i) => (
-      <div className={classSize} key={i}>
-        <div className="card mb-4 shadow-sm">
-            <Link to={albums[i].id}>
-            {
-              albums[i].profile_image === ""
-              ? <img src={placeholder} alt={albums[i].name} width="100%" height="250px" style={{"objectFit": "cover"}}/>
-              : <img src={config.imageUrl+albums[i].profile_image} alt={albums[i].name} width="100%" height="250px" style={{"objectFit": "cover"}}/>
-            }
-            </Link>
-            <div className="card-body">
-                <p className="card-text text-center">{albums[i].name}</p>
-            </div>
-        </div>
-      </div>
-    ))
-  )
-}
 
 const CollectionPage = ({match, searchTerm}) => {
   console.log("CollectionPage", match.params.date)
@@ -63,7 +34,7 @@ const CollectionPage = ({match, searchTerm}) => {
     }).catch(() =>{
       history.push("/")
     })
-  },[match.params.date])
+  },[match.params.date,searchTerm,history])
 
   useEffect(() => {
     console.log(searchTerm);
@@ -72,12 +43,12 @@ const CollectionPage = ({match, searchTerm}) => {
     }else{
       setPhotoList(downloadedPhotoList)
     }
-  },[searchTerm])
+  },[searchTerm,photoList,downloadedPhotoList])
 
   return (
     <main>
       
-        <div className="album py-5 bg-light" style={{"marginTop":"0px"}}>
+        <div className="album py-5 bg-light" style={{"marginTop":"0px", height:"calc(100vh - 60px)"}}>
            <div>
               <div className="row" style={{"margin":"0px 40px"}}>
               <div className={photoclass}><Gallery images={photoList}/></div>

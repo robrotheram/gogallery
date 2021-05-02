@@ -20,7 +20,7 @@ const Map = (props) => {
     if (props.lat !== undefined){
       setLat(props.lat);
     }
-    if ((parseInt(props.lat)|| 0) === 0 && (parseInt(props.long)|| 0) === 0){
+    if ((parseInt(props.lat)|| 0) === 0 && (parseInt(props.lng)|| 0) === 0){
       console.log("set zoom")
       setZoom(1)
     }

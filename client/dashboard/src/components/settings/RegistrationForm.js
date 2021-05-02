@@ -30,16 +30,15 @@ const tailFormItemLayout = {
 
 const RegistrationForm = (props) => {
   const [confirmDirty, setConfirmDirty] = useState(false)
-  const [autoCompleteResult, setAutoCompleteResult] = useState([])
   const [form] = Form.useForm();
 
   useEffect(() => {
-    console.log("SETTINGS:", props);
+    console.log("SETTINGS:", props.auth);
     form.setFieldsValue({
       username: props.auth.username,
       email: props.auth.email,
     });
-  }, [form]);
+  }, [form, props.auth]);
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -92,15 +91,6 @@ const validateToNextPassword = (rule, value, callback) => {
     callback();
   }
 }
-const handleWebsiteChange = value => {
-  let autoCompleteResult;
-  if (!value) {
-    autoCompleteResult = [];
-  } else {
-    autoCompleteResult = ['.com', '.org', '.net'].map(domain => `${value}${domain}`);
-  }
-  setAutoCompleteResult(autoCompleteResult)
-};
 
 return (
   <Form form={form} {...formItemLayout} onSubmit={handleSubmit}>

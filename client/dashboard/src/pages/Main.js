@@ -27,9 +27,6 @@ import { galleryActions } from '../store/actions/gallery';
 import { config, IDFromTree } from '../store';
 import LazyImage  from '../components/Lazyloading';
 
-import { SelectableGroup } from 'react-selectable-fast'
-
-
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
 const { DirectoryTree } = Tree;
