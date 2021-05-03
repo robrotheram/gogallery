@@ -64,31 +64,8 @@ const RegistrationForm = (props) => {
     setConfirmDirty(confirmDirty || !!value)
   };
 
-  const compareToFirstPassword = (rule, value, callback) => {
 
-    form.validateFields().then(values => {
-      console.log(values)
-    })
 
-  if (value && value !== form.getFieldValue('password')) {
-    callback('Two passwords that you enter is inconsistent!');
-  } else {
-    callback();
-  }
-};
-
-const validateToNextPassword = (rule, value, callback) => {
-  if (value && confirmDirty) {
-    form.validateFields().then(values => {
-      console.log(values)
-    })
-  }
-  if (value && value !== form.getFieldValue('confirm')) {
-    callback('Two passwords that you enter is inconsistent!');
-  } else {
-    callback();
-  }
-}
 
 return (
   <Form form={form} {...formItemLayout} onFinish={handleSubmit}>
