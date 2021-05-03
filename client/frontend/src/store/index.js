@@ -14,8 +14,8 @@ const Constants = {
     imageUrl: "/img/"
    },
    dev : {
-    baseUrl: "http://localhost:8800/api",
-    imageUrl: "http://localhost:8800/img/"
+    baseUrl: "http://192.168.0.156:8800/api",
+    imageUrl: "http://192.168.0.156:8800/img/"
    }
 }
 

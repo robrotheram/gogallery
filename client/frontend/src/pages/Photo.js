@@ -1,9 +1,11 @@
-import React from "react";
+import React, {useState} from "react";
 import { connect } from 'react-redux';
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight, faDownload } from '@fortawesome/free-solid-svg-icons'
 
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 
@@ -17,20 +19,11 @@ import albumSVG from '../img/icons/albums.svg'
 import { config, searchTree } from "../store";
 import {Map} from '../components/Map'
 import './photo.css'
-import { LazyImage } from "../components/Lazyloading";
 
-class Photo extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isOpen: false
-    };
-  }
-
-  render() {
-    let { collections, photos } = this.props
-    const id = this.props.match.params.id
-    const photo = photos.filter(c => c.id === id)[0] || { exif: {GPS:{latitude:0}} };
+const Photo = ({ collections, photos, match }) => {
+  const [isOpen, open] = useState(false)
+  const id = match.params.id
+  const photo = photos.filter(c => c.id === id)[0] || { exif: {GPS:{latitude:0}} };
     
     let pre_index = ""
     let post_index = ""
@@ -53,8 +46,7 @@ class Photo extends React.Component {
       console.log(album_id, photo.album)
       console.log(album_id, photo.album)
     }
-    const { isOpen } = this.state;
-
+    
     const isLocation = () => {
       if (photo.exif.GPS.latitude === 0) {
           if (album.GPS === undefined){
@@ -84,14 +76,40 @@ class Photo extends React.Component {
     }
 
 
-    console.log()
+    //TOUCH
+    const [touchStart, setTouchStart] = React.useState(0);
+    const [touchEnd, setTouchEnd] = React.useState(0);
+    const history = useHistory();
+    
+    function handleTouchStart(e) {
+        setTouchStart(e.targetTouches[0].clientX);
+    }
+
+    function handleTouchMove(e) {
+        setTouchEnd(e.targetTouches[0].clientX);
+    }
+
+    function handleTouchEnd() {
+        if (touchStart - touchEnd > 50) {
+          if(pre_index !== ""){
+            history.push("/photo/"+pre_index)
+          }
+        }
+
+        if (touchStart - touchEnd < -50) {
+          if(post_index !== ""){
+            history.push("/photo/"+post_index)
+          }
+        }
+    }
+
     return (
       <main>
         <div>
         {isOpen && (
           <Lightbox
             mainSrc={config.imageUrl+ photo.id+"?size=original"}
-            onCloseRequest={() => this.setState({ isOpen: false })}
+            onCloseRequest={() => open(false)}
             toolbarButtons={[
               <a 
                 style={{"textDecoration": "none", paddingRight: "10px", "color": "#AAAAAA"}} 
@@ -105,10 +123,30 @@ class Photo extends React.Component {
             ]}
           />
         )}
-          <div id="gallery_single" className="img-container" onClick={() => this.setState({ isOpen: true })}>
-            <LazyImage src={config.imageUrl+ photo.id+"?size=original"} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} />
+        
+          <div 
+            id="gallery_single" 
+            className="img-container" 
+            onClick={() => open(true)}
+            onTouchStart={touchStartEvent => handleTouchStart(touchStartEvent)}
+            onTouchMove={touchMoveEvent => handleTouchMove(touchMoveEvent)}
+            onTouchEnd={() => handleTouchEnd()}
+          >
+
+          <LazyLoadImage
+            effect="blur"
+            src={config.imageUrl+ photo.id+"?size=original"}
+            placeholderSrc={config.imageUrl+ photo.id}
+            alt={photo.name}
+            width={"100%"} 
+            height={"100%"}
+            wrapperProps={{style:{"objectFit": "contain"}}}
+            />
+
+            {/* <LazyImage src={config.imageUrl+ photo.id+"?size=original"} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} /> */}
             
           </div>
+         
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
             <div className="">
               <ul className="navbar-nav mr-auto">
@@ -209,7 +247,7 @@ class Photo extends React.Component {
       </main>
     );
   }
-}
+
 
 const mapToProps = (state) => {
   const photos = state.PhotosReducer.photos;
