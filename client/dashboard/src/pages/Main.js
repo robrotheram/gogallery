@@ -11,7 +11,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 
-import { Layout, Menu, Radio, Row, Col, Tree } from 'antd';
+import { Layout, Menu, Radio, Tree } from 'antd';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { collectionActions, photoActions } from '../store/actions';
@@ -24,12 +24,14 @@ import Header from '../components/header'
 import AddCollection from '../components/addCollection'
 import UploadPhotos from '../components/upload'
 import { galleryActions } from '../store/actions/gallery';
-import { config, IDFromTree } from '../store';
-import LazyImage  from '../components/Lazyloading';
+import { IDFromTree } from '../store';
+import Gallery  from '../components/Gallery';
 
 const { Content, Sider, Footer } = Layout;
 const { SubMenu } = Menu;
 const { DirectoryTree } = Tree;
+
+
 class Main extends React.PureComponent {
 
   constructor() {
@@ -147,7 +149,7 @@ class Main extends React.PureComponent {
     })
   };
 
-  filterPhotos = (item) => {
+  filterPhotos = (item, datesList) => {
     switch (item.key) {
       case "all":
         this.setState({ filter: "", uploaded_filter: "" })
@@ -159,7 +161,7 @@ class Main extends React.PureComponent {
         this.setState({ filter: "", uploaded_filter: "" })
         break;
       case "uploaded":
-        this.setState({ filter: "", uploaded_filter: this.props.uploadDates.sort().reverse()[0] })
+        this.setState({ filter: datesList[0], uploaded_filter: "" })
         break;
       default:
         if (item.key !== undefined){
@@ -202,12 +204,19 @@ class Main extends React.PureComponent {
       selectMessage = this.state.selectedElements.length + " out of " + filteredData.length + " selected"
     }
 
+    let datesList = this.props.dates.sort((a, b) => {
+        var dateA = new Date(a), dateB = new Date(b);
+        return dateA - dateB;
+    }).reverse();
+
     return (
+     
       <Layout style={{ minHeight: '100vh' }}>
         <Header search={this.filterPhotos}/>
         <Layout>
           <Sider collapsible collapsed={this.state.collapsed} onCollapse={this.onCollapse} width={300} style={{ overflowY: "auto" }}>
-            <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={this.filterPhotos}>
+
+            <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={(item) => this.filterPhotos(item, datesList)}>
               <Menu.Item key="all">
                 <PictureOutlined />
                 <span>All Content</span>
@@ -225,7 +234,7 @@ class Main extends React.PureComponent {
                   </span>
                 }
               >
-                {this.props.dates.map((el, index) => (<Menu.Item key={el}>{formatDate(el)}</Menu.Item>))}
+                {datesList.map((el, index) => (<Menu.Item key={el}>{formatDate(el)}</Menu.Item>))}
               </SubMenu>
               <SubMenu
                 key="collections"
@@ -255,7 +264,7 @@ class Main extends React.PureComponent {
             </Menu>
           </Sider>
           <Layout>
-            
+              <div ref={(ref) => { this.setState({ ref }); }} className='item-container' onClick={this.clearSelection}>
               <Content
                 style={{
                   padding: 28,
@@ -264,24 +273,17 @@ class Main extends React.PureComponent {
                   overflow: "auto"
                 }}
               >
-              <div ref={(ref) => { this.setState({ ref }); }} className='item-container' onClick={this.clearSelection}>
-                <Row gutter={[16, 16]}>
-                  {filteredData.map((el, index) => (
-                    <Col key={el.id} span={parseInt(this.props.imageSize)} style={{ padding: 2 }}>
-                      <div
-                        ref={this.addElementRef}
-                        className={`item`}
-                      >
-                        <figure className="galleryImg" style={this.getStyle(el.id)} onClick={(e) => this.selectPhoto(e, el)}>
-                          <LazyImage src={config.imageUrl + el.id+"?size=tiny&token="+localStorage.getItem('token')} width="100%" height="100%" alt="thumbnail" />
-                        </figure>
-                      </div>
-                    </Col>
-                  ))}
-                  {this.renderSelection()}
-                </Row>
-                </div>
+              
+                <Gallery 
+                  images={filteredData} 
+                  imageSize={this.props.imageSize} 
+                  addElementRef={this.addElementRef} 
+                  selectPhoto={this.selectPhoto}
+                  getStyle={this.getStyle}
+                />
+                {this.renderSelection()}
               </Content>
+              </div>
            
             <Footer style={{ backgroundColor: "#141414", height: 42, border: "1px solid black", padding: 4, zIndex: 2, borderBottom: "0px", textAlign: "center" }}>
               {this.state.selectedElements.length > 0 && <MoveModal selectedPhotos={selectedElements} />}

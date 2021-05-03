@@ -4,11 +4,13 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/robrotheram/gogallery/config"
 )
 
+var signingKey = []byte(config.RandomPassword(20))
+
 func getToken(id string) (string, error) {
-	signingKey := []byte("keymaker")
-	ttl := 300 * time.Second
+	ttl := 30 * time.Second
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  id,
 		"exp": time.Now().UTC().Add(ttl).Unix(),
@@ -18,7 +20,6 @@ func getToken(id string) (string, error) {
 }
 
 func VerifyToken(tokenString string) (jwt.Claims, error) {
-	signingKey := []byte("keymaker")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return signingKey, nil
 	})

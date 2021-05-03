@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 import { history, config} from '../index';
-import {getOptions} from './index'
+import {getOptions, notify} from './index';
 export const userActions = {
     login,
     reauth,
@@ -37,10 +37,10 @@ function login(username, password){
 function update(user){
     return dispatch => {
         axios.post(config.baseUrl+"/auth/update", user, getOptions()).then((response)=>{
-            
             localStorage.setItem('email', response.data.email);
             localStorage.setItem('username', response.data.username);
             dispatch(setUserDetails(response.data));
+            notify("success", "User details edited successfully")
             
         }).catch((err)=>{
             console.log("Error in response");

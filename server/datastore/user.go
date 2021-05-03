@@ -1,10 +1,10 @@
 package datastore
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"log"
-	"math/rand"
-	"time"
+
+	"github.com/robrotheram/gogallery/config"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const ADMINID = "00000"
@@ -21,7 +21,7 @@ func FindUserByUsername(username string) User {
 }
 
 func CreateDefaultUser() {
-	pasword := RandomPassword(8)
+	pasword := config.RandomPassword(8)
 	user := User{
 		ID:       ADMINID,
 		Username: "admin",
@@ -48,22 +48,4 @@ func ComparePasswords(hashedPwd string, plainPwd string) bool {
 		return false
 	}
 	return true
-}
-
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func RandomPassword(length int) string {
-	return StringWithCharset(length, charset)
 }

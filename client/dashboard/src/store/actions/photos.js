@@ -15,8 +15,12 @@ function getAll(){
             console.log(response.data);
             dispatch(setPhotoDetails(response.data));
         }).catch((err)=>{
-            console.log(err)
-            if (err.includes("401") ){
+            
+            if(err === undefined){
+                return
+            }
+            console.log("Error reposes", err.response.status);
+            if (err.response.status === "401" ){
                 window.location.href = '/dashboard/login';
             };
             notify("warning", "Error from server: "+err)

@@ -95,7 +95,6 @@ const Photo = ({ collections, photos, match }) => {
             history.push("/photo/"+pre_index)
           }
         }
-
         if (touchStart - touchEnd < -50) {
           if(post_index !== ""){
             history.push("/photo/"+post_index)
