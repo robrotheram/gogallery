@@ -46,12 +46,9 @@ const  ProfileForm = (props) =>  {
 
 
   const handleSubmit = e => {
-    e.preventDefault();
-    form.validateFieldsAndScroll((err, values) => {
-      if (!err) {
+    form.validateFields().then(values => {
         console.log('Received values of form: ', values);
         props.dispatch(settingsActions.setProfile(values))
-      }
     });
   };
 
@@ -59,7 +56,7 @@ const  ProfileForm = (props) =>  {
 
     return (
       <div>
-        <Form form={form}  {...formItemLayout} onSubmit={handleSubmit}>
+        <Form form={form}  {...formItemLayout} onFinish={handleSubmit}>
           <Divider>About</Divider>
           <Form.Item label="Profile Photo" name='ProfilePhoto'><Input /></Form.Item>
           <Form.Item label="Background About Photo" name='BackgroundPhoto'><Input /></Form.Item>

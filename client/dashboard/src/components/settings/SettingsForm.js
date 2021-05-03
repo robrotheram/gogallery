@@ -49,18 +49,16 @@ const SettingsForm = (props) => {
     });
 	}, [form,props.settings]);
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    form.scrollToField((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values);
-        props.dispatch(settingsActions.setGallery(values))
-      }
+  const handleSubmit = () => {
+    
+    form.validateFields().then(values => {
+      console.log('Received values of form: ', values);
+      props.dispatch(settingsActions.setGallery(values))
     });
   };
 
     return (
-      <Form form={form} {...formItemLayout} onSubmit={handleSubmit}>
+      <Form form={form} {...formItemLayout} onFinish={handleSubmit}>
         <Form.Item label="Gallery Name" name='Name'><Input /></Form.Item>
         <Form.Item label="Gallery Url" name='Url'><Input />
         </Form.Item>

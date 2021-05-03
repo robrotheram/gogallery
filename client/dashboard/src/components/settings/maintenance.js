@@ -103,7 +103,7 @@ class Maintenance extends React.Component {
           <Button type="default" icon={<DownloadOutlined />} size="large" style={{"width":"100%"}} onClick={() => dispatch(taskActions.backup())}> Backup Database </Button><br/>
         </Col>
         <Col span={12}>
-        <Upload {...props} fileList={this.state.fileList}>
+        <Upload {...props} fileList={this.state.fileList} style={{"padding":"0px"}}>
           <Button type="default" size="large" style={{"width":"100%"}}>
             <UploadOutlined /> Restore Database
           </Button>

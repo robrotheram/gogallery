@@ -40,23 +40,21 @@ const RegistrationForm = (props) => {
     });
   }, [form, props.auth]);
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    form.scrollToField((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values);
-        if (values.password !== undefined) {
-          props.dispatch(userActions.update({
-            username: values.username,
-            email: values.email,
-            password: values.password
-          }))
-        } else {
-          props.dispatch(userActions.update({
-            username: values.username,
-            email: values.email
-          }))
-        }
+  const handleSubmit = () => {
+  
+    form.validateFields().then(values => {
+      console.log('Received values of form: ', values);
+      if (values.password !== undefined) {
+        props.dispatch(userActions.update({
+          username: values.username,
+          email: values.email,
+          password: values.password
+        }))
+      } else {
+        props.dispatch(userActions.update({
+          username: values.username,
+          email: values.email
+        }))
       }
     });
   };
@@ -93,7 +91,7 @@ const validateToNextPassword = (rule, value, callback) => {
 }
 
 return (
-  <Form form={form} {...formItemLayout} onSubmit={handleSubmit}>
+  <Form form={form} {...formItemLayout} onFinish={handleSubmit}>
     < Divider>{props.auth.username}</Divider>
     <Form.Item label="Username"
       name='username'
@@ -122,22 +120,25 @@ return (
         {
           required: false,
           message: 'Please input your password!',
-        },
-        {
-          validator: validateToNextPassword,
-        },
+        }
       ]}><Input.Password />
     </Form.Item>
     <Form.Item label="Confirm Password" hasFeedback
       name='confirm'
+      dependencies={['password']}
       rules={[
         {
           required: false,
           message: 'Please confirm your password!',
         },
-        {
-          validator: compareToFirstPassword,
-        },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            if (!value || getFieldValue('password') === value) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error('The two passwords that you entered do not match!'));
+          },
+        }),
       ]
       }><Input.Password onBlur={handleConfirmBlur} />
     </Form.Item>
