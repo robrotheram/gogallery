@@ -200,3 +200,7 @@ ul.icons li a:hover {
 .photo-table > tbody > tr:first-child > th {
     border: none;
 }
+
+.lazy-load-image-background {
+    color: inherit !important;
+  }

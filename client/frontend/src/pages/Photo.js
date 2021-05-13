@@ -1,11 +1,9 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { connect } from 'react-redux';
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight, faDownload } from '@fortawesome/free-solid-svg-icons'
 
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
 import Lightbox from "react-image-lightbox";
 import "react-image-lightbox/style.css";
 
@@ -19,33 +17,54 @@ import albumSVG from '../img/icons/albums.svg'
 import { config, searchTree } from "../store";
 import {Map} from '../components/Map'
 import './photo.css'
+// import { LazyLoadImage } from 'react-lazy-load-image-component';
+// import 'react-lazy-load-image-component/src/effects/blur.css';
+import Image from "../components/Image"
 
 const Photo = ({ collections, photos, match }) => {
   const [isOpen, open] = useState(false)
-  const id = match.params.id
-  const photo = photos.filter(c => c.id === id)[0] || { exif: {GPS:{latitude:0}} };
-    
-    let pre_index = ""
-    let post_index = ""
-
-    let album_id = ""
-    let album = {}
+  const [photo, setPhoto] = useState({
+    exif:{
+      GPS:{
+        latitude:0,
+        longitude:0
+      }
+    }
+  })
+  const [album, setAlbum] = useState({})
+  const [pre_index, setPreIndex] = useState("")
+  const [post_index, setPostIndex] = useState("")
+  
+  useEffect(()=>{
+    const id = match.params.id
+    setPhoto(photos.filter(c => c.id === id)[0] || { exif: {GPS:{latitude:0}} });
     if (collections !== undefined && photo.album !== undefined) {
-      album = searchTree(collections, photo.album )
-      album_id = album.id
-
+      setAlbum(searchTree(collections, photo.album ));
+      
       const photoList = photos.filter(c => c.album === album.id) || [];
       let index = photoList.findIndex(x => x.id === id);
       if (index -1 >= 0){
-        pre_index = photoList[index-1].id
-      } 
+        setPreIndex(photoList[index-1].id)
+      } else {
+        setPreIndex("")
+      }
       if (index +1 <= photoList.length -1){
-        post_index = photoList[index+1].id
-      } 
+        setPostIndex(photoList[index+1].id)
+      }  else {
+        setPostIndex("")
+      }
 
-      console.log(album_id, photo.album)
-      console.log(album_id, photo.album)
+      console.log(album.id, photo.album)
+      console.log(album.id, photo.album)
     }
+
+  },[match, album.id, collections, photos, photo.album])
+
+  
+    
+   
+
+    
     
     const isLocation = () => {
       if (photo.exif.GPS.latitude === 0) {
@@ -75,33 +94,6 @@ const Photo = ({ collections, photos, match }) => {
       return photo.exif.GPS.latitude
     }
 
-
-    //TOUCH
-    const [touchStart, setTouchStart] = React.useState(0);
-    const [touchEnd, setTouchEnd] = React.useState(0);
-    const history = useHistory();
-    
-    function handleTouchStart(e) {
-        setTouchStart(e.targetTouches[0].clientX);
-    }
-
-    function handleTouchMove(e) {
-        setTouchEnd(e.targetTouches[0].clientX);
-    }
-
-    function handleTouchEnd() {
-        if (touchStart - touchEnd > 50) {
-          if(pre_index !== ""){
-            history.push("/photo/"+pre_index)
-          }
-        }
-        if (touchStart - touchEnd < -50) {
-          if(post_index !== ""){
-            history.push("/photo/"+post_index)
-          }
-        }
-    }
-
     return (
       <main>
         <div>
@@ -127,23 +119,27 @@ const Photo = ({ collections, photos, match }) => {
             id="gallery_single" 
             className="img-container" 
             onClick={() => open(true)}
-            onTouchStart={touchStartEvent => handleTouchStart(touchStartEvent)}
-            onTouchMove={touchMoveEvent => handleTouchMove(touchMoveEvent)}
-            onTouchEnd={() => handleTouchEnd()}
           >
 
-          <LazyLoadImage
-            effect="blur"
-            src={config.imageUrl+ photo.id+"?size=original"}
+          {/* <LazyLoadImage
             placeholderSrc={config.imageUrl+ photo.id}
+            src={config.imageUrl+ photo.id+"?size=original"}
             alt={photo.name}
             width={"100%"} 
             height={"100%"}
-            wrapperProps={{style:{"objectFit": "contain"}}}
-            />
+            effect="blur"
+            //wrapperProps={{style:{"objectFit": "contain"}}}
+            /> */}
 
             {/* <LazyImage src={config.imageUrl+ photo.id+"?size=original"} alt={photo.name} style={{ width: "100%", height: "100%", "objectFit": "contain"}} /> */}
-            
+            {photo.id !== undefined ?
+            <Image
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              placeholderImg={config.imageUrl+ photo.id}
+              src={config.imageUrl+ photo.id}
+              alt={photo.name}
+            />
+            :null}
           </div>
          
           <nav className="navbar navbar-expand-md navbar-dark bg-dark">
@@ -223,7 +219,7 @@ const Photo = ({ collections, photos, match }) => {
                       <th scope="row">
                         <img src={albumSVG} width="50px" alt="album icon"/>
                       </th>
-                      <td><Link to={"/album/" + album_id}>{album.name}</Link></td>
+                      <td><Link to={"/album/" + album.id}>{album.name}</Link></td>
                     </tr>
                   : null}
                   {photo.format_time !== "" ?
