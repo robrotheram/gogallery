@@ -107,7 +107,6 @@ var getLatestCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r
 	for _, p := range pics {
 		if p.Exif.DateTaken.After(latests) {
 			latests = p.Exif.DateTaken
-			break
 		}
 	}
 	w.Write([]byte(latests.Format("2006-01-02")))
