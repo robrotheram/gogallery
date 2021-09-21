@@ -6,12 +6,6 @@ GOGET=$(GOCMD) get
 BINARY_NAME=../gogallery
 BINARY_UNIX=$(BINARY_NAME)_unix
 
-ifndef CIRCLE_BRANCH
-override CIRCLE_BRANCH = latest
-else 
-override CIRCLE_BRANCH = $(git rev-parse --short HEAD)
-endif
-
 all: clean test build
 
 dep:
@@ -53,8 +47,8 @@ package:
 build-linux:
 		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 docker:
-		docker build . -t robrotheram/gogallery:$(CIRCLE_BRANCH)
+		docker build . -t robrotheram/gogallery:$(git rev-parse --short HEAD)
 		docker build . -t robrotheram/gogallery:latest
 docker-publish:
-		docker push robrotheram/gogallery:$(CIRCLE_BRANCH)
+		docker push robrotheram/gogallery:$(git rev-parse --short HEAD)
 		docker push robrotheram/gogallery:latest
