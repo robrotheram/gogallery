@@ -8,6 +8,8 @@ BINARY_UNIX=$(BINARY_NAME)_unix
 
 ifndef CIRCLE_BRANCH
 override CIRCLE_BRANCH = latest
+else 
+override CIRCLE_BRANCH = $(git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9]/-/g')
 endif
 
 all: clean test build
