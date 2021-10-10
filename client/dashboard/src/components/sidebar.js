@@ -133,6 +133,9 @@ class SideBar extends React.PureComponent {
                   <Form.Item label="Caption">
                     <Input value={this.state.data.caption} name="caption" onChange={this.handleChange}  onKeyDown={this.handleKeyDown}/>
                   </Form.Item>
+                  <Form.Item label="Path">
+                    <Input value={this.state.data.path} name="path" onChange={this.handleChange}  onKeyDown={this.handleKeyDown}/>
+                  </Form.Item>
                   <Form.Item label="Location">
                     <LocationModal lat={this.state.data.exif.GPS.latitude} lng={this.state.data.exif.GPS.longitude} onUpdate={this.updateGPS}/>
                   </Form.Item>

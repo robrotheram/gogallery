@@ -2,10 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sort"
 	"time"
 
@@ -20,11 +18,10 @@ var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 	datastore.Cache.DB.One("Id", photoID, &oldPicture)
 	_ = json.NewDecoder(r.Body).Decode(&picture)
 
-	if oldPicture.Name != picture.Name {
-		newName := fmt.Sprintf("%s/%s%s", filepath.Dir(oldPicture.Path), picture.Name, filepath.Ext(oldPicture.Path))
-		os.Rename(oldPicture.Path, newName)
-		picture.Path = newName
+	if oldPicture.Path != picture.Path {
+		os.Rename(oldPicture.Path, picture.Path)
 	}
+
 	if oldPicture.Album != picture.Album {
 		picture.MoveToAlbum(picture.Album)
 	}

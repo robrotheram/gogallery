@@ -5,10 +5,10 @@ require (
 	github.com/CloudyKit/fastprinter v0.0.0-20170127035650-74b38d55f37a // indirect
 	github.com/CloudyKit/jet v2.1.2+incompatible
 	github.com/ahmdrz/goinsta/v2 v2.4.5
-	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
-	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/anthonynsimon/bild v0.10.0
-	github.com/araddon/dateparse v0.0.0-20181123171228-21df004e09ca
+	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/davidbyttow/govips v0.0.0-20190304175058-d272f04c0fea
 	github.com/dgraph-io/badger v1.6.0
@@ -18,22 +18,26 @@ require (
 	github.com/disintegration/gift v1.2.1
 	github.com/disintegration/imaging v1.6.1
 	github.com/dsoprea/go-exif v0.0.0-20201216222538-db167117f483
-	github.com/dsoprea/go-exif/v3 v3.0.0-20201216222538-db167117f483
+	github.com/dsoprea/go-exif/v3 v3.0.0-20210625224831-a6301f85c82b
+	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/fatih/structs v1.1.0
-	github.com/fsnotify/fsnotify v1.4.9
+	github.com/felixge/httpsnoop v1.0.2 // indirect
+	github.com/fsnotify/fsnotify v1.5.1
+	github.com/go-errors/errors v1.4.0 // indirect
 	github.com/gobuffalo/logger v1.0.3
 	github.com/gobuffalo/packr/v2 v2.7.1
-	github.com/golang/protobuf v1.3.1
-	github.com/gorilla/handlers v1.4.2
-	github.com/gorilla/mux v1.7.4
+	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
+	github.com/golang/protobuf v1.5.2
+	github.com/gorilla/handlers v1.5.1
+	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/hcl v1.0.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
-	github.com/magiconair/properties v1.8.2
+	github.com/magiconair/properties v1.8.5
 	github.com/markbates/pkger v0.14.0
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
-	github.com/pelletier/go-toml v1.2.0
+	github.com/pelletier/go-toml v1.9.3
 	github.com/pixiv/go-libjpeg v0.0.0-20190822045933-3da21a74767d // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/profile v1.3.0
@@ -44,23 +48,24 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190107194617-b1fd11e07dc5
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/simplereach/timeutils v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.4.2
-	github.com/spf13/afero v1.2.2
-	github.com/spf13/cast v1.3.1
-	github.com/spf13/jwalterweatherman v1.0.0
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/afero v1.6.0
+	github.com/spf13/cast v1.4.1
+	github.com/spf13/jwalterweatherman v1.1.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.3.2
+	github.com/spf13/viper v1.8.1
 	github.com/zserge/metric v0.1.0
-	go.etcd.io/bbolt v1.3.5 // indirect
-	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
-	golang.org/x/net v0.0.0-20200513185701-a91f0712d120
-	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
-	golang.org/x/text v0.3.3
+	go.etcd.io/bbolt v1.3.6 // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f
+	golang.org/x/sys v0.0.0-20210903071746-97244b99971b
+	golang.org/x/text v0.3.7
 	google.golang.org/appengine v1.6.7
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/h2non/bimg.v1 v1.0.19
+	gopkg.in/ini.v1 v1.62.1 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 go 1.13
