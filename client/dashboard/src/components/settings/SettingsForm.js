@@ -3,7 +3,7 @@ import { Form }  from 'antd';
 import { Input, Select, InputNumber, Divider, Button } from 'antd';
 import EditableTagGroup from './EditableTagGroup';
 
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { settingsActions } from '../../store/actions';
 
 const { Option } = Select;
@@ -32,28 +32,29 @@ const tailFormItemLayout = {
 
 
 
-const SettingsForm = (props) => {
+const SettingsForm = () => {
   const [form] = Form.useForm();
-
+  const settings = useSelector(state => state.SettingsReducer.gallery);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("SETTINGS:",props.settings);
+    console.log("SETTINGS:",settings);
 		form.setFieldsValue({
-      Name:  props.settings.Name,
-      Basepath:  props.settings.Basepath,
-      Url:  props.settings.Url,
-      ImagesPerPage:  props.settings.ImagesPerPage,
-      PictureBlacklist:  props.settings.PictureBlacklist || [],
-      AlbumBlacklist:  props.settings.AlbumBlacklist || [],
-      Renderer: props.settings.Renderer,
+      Name:  settings.Name,
+      Basepath:  settings.Basepath,
+      Url:  settings.Url,
+      ImagesPerPage:  settings.ImagesPerPage,
+      PictureBlacklist:  settings.PictureBlacklist || [],
+      AlbumBlacklist:  settings.AlbumBlacklist || [],
+      Renderer: settings.Renderer,
     });
-	}, [form,props.settings]);
+	}, [form,settings]);
 
   const handleSubmit = () => {
     
     form.validateFields().then(values => {
       console.log('Received values of form: ', values);
-      props.dispatch(settingsActions.setGallery(values))
+      dispatch(settingsActions.setGallery(values))
     });
   };
 
@@ -87,11 +88,4 @@ const SettingsForm = (props) => {
     )
 }
 
-const mapToProps = (state) =>{
-  const settings = state.SettingsReducer.gallery
-  return {
-    settings
-  };
-}
-
-export default connect(mapToProps)(SettingsForm)
+export default SettingsForm

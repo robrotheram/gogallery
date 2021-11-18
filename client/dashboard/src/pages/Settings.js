@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Main.css';
 
 import {
@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons';
 
 import { Layout, Statistic, Card, Row, Col } from 'antd';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Header from '../components/header'
 import RegistrationForm from '../components/settings/RegistrationForm'
 import ProfileForm from '../components/settings/ProfileForm'
@@ -25,162 +25,100 @@ const { Content } = Layout;
 const tabListNoTitle = [
   {
     key: 'user',
-    tab: <span><UserOutlined style={{"marginRight":"5px"}} /> User Settings</span>,
+    tab: <span><UserOutlined style={{ "marginRight": "5px" }} /> User Settings</span>,
   },
   {
     key: 'profile',
-    tab: <span><ProfileOutlined style={{"marginRight":"5px"}} /> Profile Settings</span>,
+    tab: <span><ProfileOutlined style={{ "marginRight": "5px" }} /> Profile Settings</span>,
   },
   {
     key: 'settings',
-    tab: <span><SettingOutlined style={{"marginRight":"5px"}} />Site Settings</span>,
+    tab: <span><SettingOutlined style={{ "marginRight": "5px" }} />Site Settings</span>,
   },
   {
     key: 'album',
-    tab: <span><FolderOpenOutlined style={{"marginRight":"5px"}} />Album Settings</span>,
+    tab: <span><FolderOpenOutlined style={{ "marginRight": "5px" }} />Album Settings</span>,
   },
   {
     key: 'maintenance',
-    tab: <span><ToolOutlined style={{"marginRight":"5px"}} /> Maintenance</span>,
+    tab: <span><ToolOutlined style={{ "marginRight": "5px" }} /> Maintenance</span>,
   },
 ];
 
 const contentListNoTitle = {
-  user: <RegistrationForm/>,
-  profile: <ProfileForm/>,
-  settings: <SettingsForm/>,
-  album: <AlbumSettings/>,
-  maintenance: <Maintenance/>
+  user: <RegistrationForm />,
+  profile: <ProfileForm />,
+  settings: <SettingsForm />,
+  album: <AlbumSettings />,
+  maintenance: <Maintenance />
 };
 
-class Settings extends React.PureComponent {
-  constructor() {
-    super();
-    this.state = {
-      key: 'tab1',
-      noTitleKey: 'settings',
-    };
-  }
+const Settings = () => {
+  const stats = useSelector(state => state.SettingsReducer.stats);
+  const [tab, setTab] = useState({ key: 'tab1', noTitleKey: 'settings' });
+  const dispatch = useDispatch()
 
-  componentDidMount() {
-    this.props.dispatch(settingsActions.all());
-  }
-  
-  onTabChange = (key, type) => {
+  useEffect(() => {
+    dispatch(settingsActions.all());
+  }, [dispatch])
+
+  const onTabChange = (key, type) => {
     console.log(key, type);
-    this.setState({ [type]: key });
+    setTab({ [type]: key });
   };
 
-  render() {
-    console.log("STATS", this.props.stats)
-    return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header/>
-        <Layout>
-          <Content style={{ padding: '50px' }}>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.Photos}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<PictureOutlined style={{"marginRight":"5px"}} />}
-                  />
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.Albums}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<FolderOpenOutlined style={{"":"5px"}} />}
-                    />
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.Rubish}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<DeleteOutlined style={{"marginRight":"5px"}} />}
-                  />
-                </Card>
-              </Col>
-              {/* <Col span={4}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.ProcessQue}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}}  type="code" />}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.ViewCount}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}}  type="eye" />}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.Albums}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}} type="delete" />}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card>
-                  <Statistic
-                    value={this.props.stats.Albums}
-                    precision={2}
-                    valueStyle={{ textAlign: "center" }}
-                    prefix={<Icon style={{"marginRight":"5px"}} type="delete" />}
-                  />
-                </Card>
-              </Col> */}
-            </Row>
-            <Card
-              style={{ width: '100%', marginTop:"20px"}}
-              tabList={tabListNoTitle}
-              activeTabKey={this.state.noTitleKey}
-              bodyStyle={{backgroundColor:"#000"}}
-              onTabChange={key => {
-                this.onTabChange(key, 'noTitleKey');
-              }}
-            >
-            {contentListNoTitle[this.state.noTitleKey]}
-            </Card>
-          </Content>
-        </Layout>
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header />
+      <Layout>
+        <Content style={{ padding: '50px' }}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  value={stats.Photos}
+                  precision={2}
+                  valueStyle={{ textAlign: "center" }}
+                  prefix={<PictureOutlined style={{ "marginRight": "5px" }} />}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  value={stats.Albums}
+                  precision={2}
+                  valueStyle={{ textAlign: "center" }}
+                  prefix={<FolderOpenOutlined style={{ "": "5px" }} />}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  value={stats.Rubish}
+                  precision={2}
+                  valueStyle={{ textAlign: "center" }}
+                  prefix={<DeleteOutlined style={{ "marginRight": "5px" }} />}
+                />
+              </Card>
+            </Col>
+          </Row>
+          <Card
+            style={{ width: '100%', marginTop: "20px" }}
+            tabList={tabListNoTitle}
+            activeTabKey={tab.noTitleKey}
+            bodyStyle={{ backgroundColor: "#000" }}
+            onTabChange={key => {
+              onTabChange(key, 'noTitleKey');
+            }}
+          >
+            {contentListNoTitle[tab.noTitleKey]}
+          </Card>
+        </Content>
       </Layout>
-    );
-  }
-}
+    </Layout>
+  );
 
-const mapToProps = (state) =>{
-  const photos = state.PhotoReducer.photos;
-  const dates = state.CollectionsReducer.dates
-  const uploadDates = state.CollectionsReducer.uploadDates
-  const collections = state.CollectionsReducer.collections
-  const stats = state.SettingsReducer.stats
-  return {
-    stats,
-    photos,
-    dates,
-    collections,
-    uploadDates
-  };
 }
-
-export default connect(mapToProps)(Settings);
+export default Settings;

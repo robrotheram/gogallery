@@ -10,7 +10,7 @@ import (
 var signingKey = []byte(config.RandomPassword(20))
 
 func getToken(id string) (string, error) {
-	ttl := 30 * time.Second
+	ttl := 3000 * time.Second
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  id,
 		"exp": time.Now().UTC().Add(ttl).Unix(),

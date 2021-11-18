@@ -16,7 +16,8 @@ export function UserReducer(state = initialState, action) {
         token: action.token,
         username:  action.username,
         email:  action.email,
-        loginFailed: false
+        loginFailed: false,
+        auth: true
       };
     case 'LOGOUT_SUCCESS':
       return {

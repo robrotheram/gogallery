@@ -4,16 +4,22 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Input, Button, Alert, Form } from 'antd';
 import {  Card } from 'antd';
 import { Row, Col } from 'antd';
-import { withRouter } from 'react-router-dom'
-import { connect } from 'react-redux';
 import { userActions } from '../store/actions';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
-const Login = (props) => {
+const Login = () => {
   const [form] = Form.useForm();
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const {loginFailed} = useSelector(state => state.UserReducer);
+  
   const changeRoute = (values) => {
     console.log("Stopping Reater")
-    props.dispatch(userActions.login(values.username, values.password));
+    dispatch(userActions.login(values.username, values.password, navigate))
   }
+  
   const handleSubmit = () => {
     form.validateFields().then(values => {
         console.log('Received values of form: ', values);
@@ -32,6 +38,7 @@ const Login = (props) => {
                 <Input
                   prefix={<UserOutlined style={{ color: 'rgba(255,255,255,.25)' }} />}
                   placeholder="Username"
+                  value={"admin"}
                 />
             </Form.Item>
             <Form.Item name="password" rules={[{ required: true, message: 'Please input your Password!' }]}>
@@ -39,9 +46,10 @@ const Login = (props) => {
                   prefix={<LockOutlined style={{ color: 'rgba(255,255,255,.25)' }} />}
                   type="password"
                   placeholder="Password"
+                  value={"hkLRgDJn"}
                 />
             </Form.Item>
-            {props.loginFailed && (
+            {loginFailed && (
               <div>
                 <br/>
                 <Alert message="Login Error: Invalid username/password" type="error" showIcon closable style={{"backgroundColor":"#141414", textAlign:"left"}} />
@@ -60,13 +68,4 @@ const Login = (props) => {
   );
 }
 
-const mapStateToProps = (state) =>{
-  console.log(state)
-  const { loggingIn,  loginFailed} = state.UserReducer;
-  return {
-      loggingIn,
-      loginFailed
-  };
-}
-
-export default withRouter(connect(mapStateToProps)(Login));
+export default Login

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import { Form } from "antd";
 import { Input, Divider, Button } from 'antd';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { settingsActions } from '../../store/actions';
 
 const formItemLayout = {
@@ -27,20 +27,24 @@ const tailFormItemLayout = {
   },
 };
 
-const  ProfileForm = (props) =>  {
+const  ProfileForm = () =>  {
+
+  const settings = useSelector(state => state.SettingsReducer.profile);
+  const dispatch = useDispatch();
+  
   const [form] = Form.useForm();
   useEffect(() => {
-    console.log("SETTINGS:", props.settings);
+    console.log("SETTINGS:", settings);
     form.setFieldsValue({
-      ProfilePhoto:  props.settings.ProfilePhoto,
-      BackgroundPhoto:  props.settings.BackgroundPhoto,
-      Description:  props.settings.Description,
-      Footer:  props.settings.Footer,
-      Twitter:  props.settings.Twitter,
-      Instagram:  props.settings.Instagram,
-      Website: props.settings.Website,
+      ProfilePhoto:  settings.ProfilePhoto,
+      BackgroundPhoto:  settings.BackgroundPhoto,
+      Description:  settings.Description,
+      Footer:  settings.Footer,
+      Twitter:  settings.Twitter,
+      Instagram:  settings.Instagram,
+      Website: settings.Website,
     });
-  }, [form, props.settings]);
+  }, [form, settings]);
 
 
 
@@ -48,7 +52,7 @@ const  ProfileForm = (props) =>  {
   const handleSubmit = e => {
     form.validateFields().then(values => {
         console.log('Received values of form: ', values);
-        props.dispatch(settingsActions.setProfile(values))
+        dispatch(settingsActions.setProfile(values))
     });
   };
 
@@ -78,12 +82,4 @@ const  ProfileForm = (props) =>  {
 
     );
   }
-const mapToProps = (state) =>{
-  console.log("SETTINGS:",state.SettingsReducer);
-  const settings = state.SettingsReducer.profile
-  return {
-    settings
-  };
-}
-
-export default connect(mapToProps)(ProfileForm);
+export default ProfileForm;
