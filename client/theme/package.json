@@ -1,0 +1,15 @@
+{
+  "name": "theme",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+	"start": "live-server"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.0",
+    "live-server": "^1.2.1",
+    "postcss-cli": "^9.0.2",
+    "tailwindcss": "^2.2.19"
+  }
+}

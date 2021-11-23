@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <title>
+      {{title}}
+    </title>   
+    <link rel="stylesheet" type="text/css" href="https://bootswatch.com/5/lux/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css" rel="stylesheet">
+  
+    <link rel="stylesheet" type="text/css" href="/assets/css/gallery.css">  
+
+  </head>
+  <body>
+      {{> "header" }}
+      <main>
+        {{{ body }}}
+      </main>
+  </body>
+  <script type="text/javascript" src="https://bootswatch.com/_vendor/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
+</html>

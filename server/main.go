@@ -11,6 +11,7 @@ import (
 	"github.com/robrotheram/gogallery/auth"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	templateengine "github.com/robrotheram/gogallery/templateEngine"
 	"github.com/robrotheram/gogallery/worker"
 
 	"html/template"
@@ -122,11 +123,16 @@ func Serve() {
 
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
+	r = templateengine.InitApiRoutes(r, Config)
 
 	r.Handle("/manifest.json", getManifest)
-
 	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard", setupSpaHandler("ui/dashboard")))
-	r.PathPrefix("/").Handler(handlers.CompressHandler(setupSpaHandler("ui/frontend")))
+
+	fs := http.FileServer(http.Dir("../templates/beta/assets/"))
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets", fs))
+	//	http.Handle("/", fs)
+
+	//r.PathPrefix("/").Handler(handlers.CompressHandler(setupSpaHandler("ui/frontend")))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT", "HEAD", "OPTIONS"})

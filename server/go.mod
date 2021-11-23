@@ -19,6 +19,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/mailgun/raymond/v2 v2.0.46 // indirect
 	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
