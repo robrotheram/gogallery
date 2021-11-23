@@ -123,7 +123,7 @@ func Serve() {
 
 	r = api.InitApiRoutes(r, Config)
 	r = auth.InitAuthRoutes(r)
-	r = templateengine.InitApiRoutes(r, Config)
+	r = templateengine.InitTemplateRoutes(r, Config)
 
 	r.Handle("/manifest.json", getManifest)
 	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard", setupSpaHandler("ui/dashboard")))

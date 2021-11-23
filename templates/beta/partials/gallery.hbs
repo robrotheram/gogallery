@@ -1,7 +1,9 @@
 <div class="masonry">
     {{#each Images}}
         <div class="brick">
-            <img class="img-fluid rounded" src="/img/{{this.id}}" alt="{{this.Name}}" title="Lemons">
+            <a href="/photo/{{this.id}}">
+                <img class="img-fluid rounded" src="/img/{{this.id}}" alt="{{this.Name}}" title="Lemons">
+            </a>
         </div>
     {{/each}}
 </div>

@@ -27,6 +27,7 @@ type Album struct {
 	GPS         GPS              `json: gps`
 }
 
+type AlbumStrcure = map[string]Album
 type UploadCollection struct {
 	Album  string   `json:"album"`
 	Photos []string `json:"photos"`

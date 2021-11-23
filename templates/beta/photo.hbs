@@ -1,15 +1,14 @@
 <div style="width: 100%; height: calc(100vh - 8.75rem); padding:20px 20px 20px 20px; background-color: #343a40;">
      <img style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-          src='https://gallery.exceptionerror.io/img/e56ac18c209735e57e05bcaab053e7c7?size=original'
+          src='/img/{{Picture.Id}}?size=original'
           class="img-fluid rounded" />
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
      <div class="container">
-          <span class="text-muted">Photo Name</span>
+          <span class="text-muted">{{ Picture.Name }}</span>
      </div>
 </footer>
-
 <div style="width: 100%; padding: 40px 40px">
      <div class="row justify-content-center">
           <div class="col-lg-7">
@@ -19,55 +18,56 @@
                               <th scope="row">
                                    <img src="/assets/img/icons/camera.svg" width="50px" alt="camera icon">
                               </th>
-                              <td>200</td>
+                              <td>{{Picture.Exif.camera}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/lens.svg" width="50px" alt="lens icon">
                               </th>
-                              <td>200</td>
+                              <td>{{Picture.Exif.LensModel}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/focal-length.svg" width="50px" alt="focal icon">
                               </th>
-                              <td>50mm</td>
+                               <td>{{Picture.Exif.FocalLength}} mm</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/apature.svg" width="50px" alt="apature icon">
                               </th>
-                              <td>9</td>
+                               <td>{{Picture.Exif.FStop}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/timer.svg" width="50px" alt="timer icon">
                               </th>
-                              <td>1/800</td>
+                             <td>{{Picture.Exif.ShutterSpeed}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/iso.svg" width="50px" alt="iso icon">
                               </th>
-                              <td>200</td>
+                              <td>{{Picture.exif.ISO}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/albums.svg" width="50px" alt="album icon">
                               </th>
                               <td>
-                                   <a href="/album/fa493a662bc01d95875647d722f7d072">10.10.2021</a>
+                                   <a href="/album/{{Picture.Album}}">{{Picture.AlbumName}}</a>
                               </td>
                          </tr>
                          <tr>
                               <th scope="row">Date Taken</th>
                               <td>
-                                   <span class="badge badge-pill bg-secondary date-pill">10-10-2021 20:23:03</span>
+                                   <span class="badge badge-pill bg-secondary date-pill">{{Picture.Exif.DateTaken}}</span>
                               </td>
                          </tr>
                     </tbody>
                </table>
           </div>
+          {{#if Picture.Exif.GPS.Lat }}
           <div class="col-lg">
                <div id="map" style="height: 100%; min-height: 400px; width: 100%;"></div>
                <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
@@ -76,11 +76,11 @@
                     const map = new mapboxgl.Map({
                          container: 'map', // container ID
                          style: 'mapbox://styles/mapbox/streets-v11', // style URL
-                         center: [0,53], // starting position [lng, lat]
+                         center: [{{Picture.Exif.GPS.Lng}},{{Picture.Exif.GPS.Lat}}], // starting position [lng, lat]
                          zoom: 10 // starting zoom
                     });
                </script>
-
           </div>
+          {{/if}}
      </div>
 </div>
