@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/ahmdrz/goinsta/v2"
 	"github.com/asdine/storm"
-	Config "github.com/robrotheram/gogallery/config"
 )
 
 type Album struct {
@@ -27,7 +23,6 @@ type Album struct {
 	GPS         GPS              `json: gps`
 }
 
-type AlbumStrcure = map[string]Album
 type UploadCollection struct {
 	Album  string   `json:"album"`
 	Photos []string `json:"photos"`
@@ -145,43 +140,6 @@ func (picture *Picture) Delete() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func SliceToTree(albms []Album, basepath string) map[string]Album {
-	newalbms := make(map[string]Album)
-	sort.Slice(albms, func(i, j int) bool {
-		return albms[i].ParenetPath < albms[j].ParenetPath
-	})
-	for _, ab := range albms {
-		if ab.ParenetPath == basepath {
-			ab.ParenetPath = ""
-			newalbms[ab.Name] = ab
-		}
-	}
-	for _, ab := range albms {
-		if (ab.ParenetPath != basepath) && (ab.Id != Config.GetMD5Hash(basepath)) {
-			s := strings.Split(strings.Replace(ab.ParenetPath, basepath, "", 1), "/")
-			copy(s, s[1:])
-			s = s[:len(s)-1]
-			pth := basepath
-			var alb Album
-			for i, p := range s {
-				if i == 0 {
-					alb = newalbms[p]
-				} else {
-					alb = alb.Children[p]
-				}
-				pth = path.Join(pth, p)
-				if i == len(s)-1 {
-					if alb.Children != nil {
-						ab.ParenetPath = ""
-						alb.Children[ab.Name] = ab
-					}
-				}
-			}
-		}
-	}
-	return newalbms
 }
 
 func (a *Album) Update(alb Album) {

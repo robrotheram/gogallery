@@ -3,29 +3,11 @@ package templateengine
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/mailgun/raymond/v2"
 )
-
-func fileNameFromPath(src string) string {
-	fileName := filepath.Base(src)
-	fileName = strings.TrimSuffix(fileName, path.Ext(fileName))
-	if pos := strings.LastIndexByte(fileName, '.'); pos != -1 {
-		return fileName[:pos]
-	}
-	return fileName
-}
-
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
 
 type TemplateEngine struct {
 	partialSrc map[string]string
@@ -33,7 +15,10 @@ type TemplateEngine struct {
 
 	Base  *raymond.Template
 	Pages map[string]*raymond.Template
+	Cache map[string]string
 }
+
+var Templates = NewTemplateEgine()
 
 func (te *TemplateEngine) loadPartialSrc(filePath string) error {
 	name := fileNameFromPath(filePath)
@@ -136,14 +121,27 @@ func (te *TemplateEngine) ListPages() []string {
 }
 
 func (te *TemplateEngine) RenderPage(pageName string, data Page) string {
+	if data.pagePath != "" {
+		if val, ok := te.Cache[data.pagePath]; ok {
+			fmt.Println("Using Cache: " + data.pagePath)
+			return val
+		}
+	}
+
 	page := te.Pages[pageName]
 	body := page.MustExec(data)
-
 	if te.Base == nil {
 		return body
 	}
 	data.Body = body
-	return te.Base.MustExec(data)
+	output := te.Base.MustExec(data)
+	te.Cache[data.pagePath] = output
+
+	return output
+}
+
+func (te *TemplateEngine) InvalidCache() {
+	te.Cache = make(map[string]string)
 }
 
 func NewTemplateEgine() *TemplateEngine {
@@ -151,5 +149,6 @@ func NewTemplateEgine() *TemplateEngine {
 		partialSrc: make(map[string]string),
 		pagesSrc:   make(map[string]string),
 		Pages:      make(map[string]*raymond.Template),
+		Cache:      make(map[string]string),
 	}
 }

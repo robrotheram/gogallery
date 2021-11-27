@@ -1,40 +1,55 @@
 package templateengine
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 )
 
 type Page struct {
-	Settings config.GalleryConfiguration
-	Author   config.AboutConfiguration
-	Images   []datastore.Picture
-	Albums   datastore.AlbumStrcure
-	Album    datastore.Album
-	Picture  datastore.Picture
-	Body     string
+	Settings    config.GalleryConfiguration
+	SEO         SocailSEO
+	Author      config.AboutConfiguration
+	Images      []datastore.Picture
+	Albums      datastore.AlbumStrcure
+	Album       datastore.Album
+	Picture     datastore.Picture
+	NextImageID string
+	PreImageID  string
+	Body        string
+	pagePath    string
 }
 
-func NewPage(config *config.Configuration) Page {
+type SocailSEO struct {
+	Site        string
+	Title       string
+	Description string
+	ImageUrl    string
+	ImageWidth  int
+	ImageHeight int
+}
+
+func (s *SocailSEO) SetImage(picture datastore.Picture) {
+	s.ImageUrl = fmt.Sprintf("%s/img/%s", config.Config.Gallery.Url, picture.Id)
+	s.ImageWidth = 1024
+	s.ImageHeight = 683
+}
+
+func NewSocailSEO(path string) SocailSEO {
+	return SocailSEO{
+		Site:        fmt.Sprintf("%s%s", config.Config.Gallery.Url, path),
+		Title:       config.Config.Gallery.Name,
+		Description: config.Config.About.Description,
+	}
+}
+
+func NewPage(r *http.Request) Page {
 	return Page{
-		Settings: config.Gallery,
-		Author:   config.About,
+		Settings: config.Config.Gallery,
+		Author:   config.Config.About,
+		SEO:      NewSocailSEO(r.URL.EscapedPath()),
+		pagePath: r.URL.EscapedPath(),
 	}
-}
-
-var te = NewTemplateEgine()
-
-func (p *Page) Handler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	page := vars["page"]
-	if te.Pages[page] == nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Page " + page + " Not found"))
-		return
-	}
-
-	w.Write([]byte(te.RenderPage(page, *p)))
 }

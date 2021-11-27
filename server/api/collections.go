@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
 var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,7 @@ var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 			datastore.Cache.DB.Save(&photo)
 		}
 	}
+	templateengine.Templates.InvalidCache()
 })
 
 var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +52,7 @@ var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	}
 
 	datastore.Cache.DB.Save(&oldAlbum)
+	templateengine.Templates.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(oldAlbum)
 })
@@ -72,7 +75,7 @@ var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, 0755)
 	}
-
+	templateengine.Templates.InvalidCache()
 	datastore.Cache.DB.Save(&album)
 })
 

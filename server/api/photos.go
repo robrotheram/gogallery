@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/datastore"
+	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
 var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +29,7 @@ var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 
 	picture.Meta.DateModified = time.Now()
 	datastore.Cache.DB.Save(&picture)
+	templateengine.Templates.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 })
