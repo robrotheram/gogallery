@@ -1,33 +1,8 @@
 <div class="container">
-     {{!-- <div style="
-        margin: 20px 0px; 
-        height: 600px; 
-        width: 100%; 
-        display: flex;
-  justify-content: center;
-  align-items: center;
-        background-size: cover;  
-        background-repeat: no-repeat; 
-        background-image: url('https://gallery.exceptionerror.io/img/e56ac18c209735e57e05bcaab053e7c7?size=original');"
-          class="img-fluid rounded">
-
-          <div class="hero-text">
-               <h1 class="jumbotron-heading">Beacon Beacons</h1>
-          </div>
-
-     </div> --}}
-     <div class="row row-cols-3">
+     <div class="row">
           {{#each Albums}}
-               <div class="col">
-                    <a href="/album/{{this.Id}}">
-                         <div class="card">
-                              <img src="https://gallery.exceptionerror.io/img/e56ac18c209735e57e05bcaab053e7c7?size=original"
-                                   class="card-img-top" alt="...">
-                              <div class="card-body">
-                                   <h5 class="card-title" style="text-align: center;">{{this.Name}}</h5>
-                              </div>
-                         </div>
-                    </a>
+               <div class="col-sm-12 col-md-6 col-lg-3">
+                    {{> "album"}}
                </div>
           {{/each}}
      </div>

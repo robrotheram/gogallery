@@ -1,14 +1,34 @@
-<div style="width: 100%; height: calc(100vh - 8.75rem); padding:20px 20px 20px 20px; background-color: #343a40;">
+<div id="lightgallery" style="
+          width: 100%; 
+          height: calc(100vh - 15.75rem); 
+          padding:20px 20px 20px 20px; 
+          background-color: #343a40;
+          margin-top:-20px;
+     ">
      <img style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-          src='/img/{{Picture.Id}}?size=original'
-          class="img-fluid rounded" />
+          src='/img/{{Picture.Id}}?size=original' class="img-fluid rounded" />
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
+     {{#if PreImageID }}
+          <div style="position: absolute; left:0px; top:0px; bottom: 0px; padding: 15px 15px 15px 30px;">
+               <a href="/photo/{{ PreImageID }}" style="color: white;"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
+          </div>
+     {{/if}}
      <div class="container">
-          <span class="text-muted">{{ Picture.Name }}</span>
+          <span style="font-size: 20px;">{{ Picture.Name }}</span>
+          {{#if Picture.Caption }}
+          <br />
+          <span style="font-size: 14px;">{{ Picture.Caption }}</span>
+          {{/if}}
      </div>
+     {{#if NextImageID }}
+          <div style="position: absolute; right:0px; top:0px; bottom: 0px; padding: 15px 30px 15px 15px;">
+               <a href="/photo/{{ NextImageID }}" style="color: white;"><i class="fa-solid fa-chevron-right fa-2x"></i></a>
+          </div>
+     {{/if}}
 </footer>
+
 <div style="width: 100%; padding: 40px 40px">
      <div class="row justify-content-center">
           <div class="col-lg-7">
@@ -30,19 +50,19 @@
                               <th scope="row">
                                    <img src="/assets/img/icons/focal-length.svg" width="50px" alt="focal icon">
                               </th>
-                               <td>{{Picture.Exif.FocalLength}} mm</td>
+                              <td>{{Picture.Exif.FocalLength}} mm</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/apature.svg" width="50px" alt="apature icon">
                               </th>
-                               <td>{{Picture.Exif.FStop}}</td>
+                              <td>{{Picture.Exif.FStop}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/timer.svg" width="50px" alt="timer icon">
                               </th>
-                             <td>{{Picture.Exif.ShutterSpeed}}</td>
+                              <td>{{Picture.Exif.ShutterSpeed}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
@@ -61,12 +81,29 @@
                          <tr>
                               <th scope="row">Date Taken</th>
                               <td>
-                                   <span class="badge badge-pill bg-secondary date-pill">{{Picture.Exif.DateTaken}}</span>
+                                   <span id="dateTaken">{{Picture.Exif.DateTaken}}</span>
                               </td>
                          </tr>
                     </tbody>
                </table>
           </div>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.3.0/lightgallery.es5.min.js"
+               integrity="sha512-aloRukU8p8Cp8M7cz0EE2GJW2GHRXb+RY1T8OcJ6SxHIgghCRlYnxf7labEYkl0npZiM2aeW7UXRMnzeJFGqNg=="
+               crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script>
+               window.onload = function () {
+                    var customDate = document.getElementById('dateTaken').innerHTML;
+                    let date = new Date(customDate.split(' +')[0])
+                    date = date.toLocaleDateString('en-us', { weekday: "long", year: "numeric", month: "short", day: "numeric" })
+                    document.getElementById('dateTaken').innerHTML = date;
+               }
+               lightGallery(document.getElementById('lightgallery'), {
+                    speed: 500
+               });
+          </script>
+
+
+
           {{#if Picture.Exif.GPS.Lat }}
           <div class="col-lg">
                <div id="map" style="height: 100%; min-height: 400px; width: 100%;"></div>
@@ -76,8 +113,8 @@
                     const map = new mapboxgl.Map({
                          container: 'map', // container ID
                          style: 'mapbox://styles/mapbox/streets-v11', // style URL
-                         center: [{{Picture.Exif.GPS.Lng}},{{Picture.Exif.GPS.Lat}}], // starting position [lng, lat]
-                         zoom: 10 // starting zoom
+                         center: [{{ Picture.Exif.GPS.Lng }}, {{ Picture.Exif.GPS.Lat }}], // starting position [lng, lat]
+                    zoom: 10 // starting zoom
                     });
                </script>
           </div>

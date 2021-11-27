@@ -1,32 +1,32 @@
 <div class="container">
+     {{#if Album.Name}}
      <div style="
             margin: 20px 0px; 
-            height: 600px; 
+            height: 400px; 
             width: 100%; 
             display: flex;
             justify-content: center;
             align-items: center;
             background-size: cover;  
             background-repeat: no-repeat; 
-            background-image: url('https://gallery.exceptionerror.io/img/e56ac18c209735e57e05bcaab053e7c7?size=original');"
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5),rgba(0, 0, 0, 0.5)), url('/img/{{Picture.Id}}?size=original');
+            color: white;
+          "
           class="img-fluid rounded">
           <div class="hero-text">
-               <h1 class="jumbotron-heading">Beacon Beacons</h1>
+               <h1 class="jumbotron-heading text-white">{{Album.Name}}</h1>
           </div>
      </div>
+     {{/if}}
 
      <div class="row">
-          <div class="col-3">
-               <a href="#">
-                    <div class="card">
-                         <img src="https://gallery.exceptionerror.io/img/e56ac18c209735e57e05bcaab053e7c7?size=original"
-                              class="card-img-top" alt="...">
-                         <div class="card-body">
-                              <h5 class="card-title" style="text-align: center;"> Card title</h5>
-                         </div>
-                    </div>
-               </a>
-          </div>
+          {{#if Album.Children }}
+               <div class="col-lg-3">
+               {{#each Album.Children}}
+                    {{> "album"}}
+               {{/each}}
+               </div>
+          {{/if}}
           <div class="col">
                {{> "gallery"}}
           </div>

@@ -1,9 +1,12 @@
-<div class="masonry">
+
+<div class="row g-3">
     {{#each Images}}
-        <div class="brick">
+    <div class="col-sm-12 col-md-6 col-lg-3">
+        <picture>
             <a href="/photo/{{this.id}}">
-                <img class="img-fluid rounded" src="/img/{{this.id}}" alt="{{this.Name}}" title="Lemons">
+                <img loading=lazy src="/img/{{this.id}}" width="100%" alt="{{this.name}}">
             </a>
-        </div>
+        </picture>
+    </div>
     {{/each}}
 </div>
