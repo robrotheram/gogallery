@@ -1,10 +1,4 @@
-<div id="lightgallery" style="
-          width: 100%; 
-          height: calc(100vh - 15.75rem); 
-          padding:20px 20px 20px 20px; 
-          background-color: #343a40;
-          margin-top:-20px;
-     ">
+<div id="lightgallery" class="photoWrapper">
      <img style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
           src='/img/{{Picture.Id}}?size=original' class="img-fluid rounded" />
 </div>
@@ -87,19 +81,22 @@
                     </tbody>
                </table>
           </div>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.3.0/lightgallery.es5.min.js"
-               integrity="sha512-aloRukU8p8Cp8M7cz0EE2GJW2GHRXb+RY1T8OcJ6SxHIgghCRlYnxf7labEYkl0npZiM2aeW7UXRMnzeJFGqNg=="
-               crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script>
                window.onload = function () {
                     var customDate = document.getElementById('dateTaken').innerHTML;
                     let date = new Date(customDate.split(' +')[0])
                     date = date.toLocaleDateString('en-us', { weekday: "long", year: "numeric", month: "short", day: "numeric" })
                     document.getElementById('dateTaken').innerHTML = date;
+
+                    document.addEventListener('keydown', (e) => {
+                         switch(e.code){
+                              case "ArrowLeft": window.location = "{{ PreImageID }}"; break
+                              case "ArrowRight": window.location = "{{ NextImageID }}"; break
+                              default: return;
+                         }
+                    });
                }
-               lightGallery(document.getElementById('lightgallery'), {
-                    speed: 500
-               });
+               
           </script>
 
 

@@ -14,12 +14,25 @@ import (
 	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
+type Collections struct {
+	CaptureDates []string                   `json:"dates"`
+	UploadDates  []string                   `json:"uploadDates"`
+	Albums       map[string]datastore.Album `json:"albums"`
+}
+
+type MoveCollection struct {
+	Album  string              `json:"album"`
+	Photos []datastore.Picture `json:"photos"`
+}
+
 var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var moveCollection datastore.MoveCollection
+	var moveCollection MoveCollection
 	_ = json.NewDecoder(r.Body).Decode(&moveCollection)
 	for _, photo := range moveCollection.Photos {
-		var oldPicture datastore.Picture
-		datastore.Cache.DB.One("Id", photo.Id, &oldPicture)
+		oldPicture, err := datastore.GetPictureByID(photo.Id)
+		if err != nil {
+			break
+		}
 		if oldPicture.Album != moveCollection.Album {
 			photo.MoveToAlbum(moveCollection.Album)
 			photo.Meta.DateModified = time.Now()
@@ -136,5 +149,5 @@ var getCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(datastore.Collections{CaptureDates: dates, UploadDates: uploadDates, Albums: newalbms})
+	json.NewEncoder(w).Encode(Collections{CaptureDates: dates, UploadDates: uploadDates, Albums: newalbms})
 })

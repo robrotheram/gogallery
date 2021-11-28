@@ -7,6 +7,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type User struct {
+	ID       string `json:"id,omitempty" storm:"id"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Token    string `json:"token,omitempty"`
+}
+
 const ADMINID = "00000"
 
 func FindUserByID(id string) User {

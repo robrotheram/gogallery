@@ -128,8 +128,6 @@ func Serve() {
 	r.Handle("/manifest.json", getManifest)
 	r.PathPrefix("/dashboard").Handler(http.StripPrefix("/dashboard", setupSpaHandler("ui/dashboard")))
 
-	fs := http.FileServer(http.Dir("../templates/beta/assets/"))
-	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets", fs))
 	//	http.Handle("/", fs)
 
 	//r.PathPrefix("/").Handler(handlers.CompressHandler(setupSpaHandler("ui/frontend")))

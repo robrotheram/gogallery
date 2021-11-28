@@ -71,7 +71,6 @@ const RegistrationForm = (props) => {
 
   return (
     <Form form={form} {...formItemLayout} onFinish={handleSubmit}>
-      < Divider>{auth.username}</Divider>
       <Form.Item label="Username"
         name='username'
         rules={[

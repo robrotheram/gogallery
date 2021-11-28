@@ -9,12 +9,27 @@ import (
 	"unicode/utf8"
 
 	"github.com/araddon/dateparse"
-
 	"github.com/dsoprea/go-exif/v3"
-	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
 
 var logName = "exif"
+
+type Exif struct {
+	FStop        float64   `json:"f_stop"`
+	FocalLength  float64   `json:"focal_length"`
+	ShutterSpeed string    `json:"shutter_speed"`
+	ISO          string    `json:"iso"`
+	Dimension    string    `json:"dimension"`
+	Camera       string    `json:"camera"`
+	LensModel    string    `json: lens_model`
+	DateTaken    time.Time `json: date_taken`
+	GPS          GPS       `json: gps`
+}
+
+type GPS struct {
+	Lat float64 `json:"latitude"`
+	Lng float64 `json:"longitude"`
+}
 
 func fnumber(f string) float64 {
 	f = strings.Replace(f, "\"", "", -1)
@@ -105,47 +120,4 @@ func GetExifTags(rawExif []byte) map[string]string {
 		}
 	}
 	return data
-}
-
-func (u *Picture) CreateExif() error {
-
-	raw, err := GetRawExif(u.Path)
-	if err != nil {
-		return err
-	}
-	exifData := GetExifTags(raw)
-
-	u.Exif = Exif{
-		FStop:        fnumber(exifData["FNumber"]),
-		FocalLength:  fnumber(exifData["FocalLength"]),
-		ShutterSpeed: exifData["ExposureTime"],
-		ISO:          exifData["ISOSpeedRatings"],
-		Dimension:    fmt.Sprintf("%sx%s", exifData["PixelXDimension"], exifData["PixelYDimension"]),
-		Camera:       exifData["ISOSpeedRatings"],
-		LensModel:    exifData["ISOSpeedRatings"],
-		DateTaken:    convertTime(exifData["DateTime"]),
-		GPS:          GPS{},
-	}
-
-	var exifIfdMapping *exifcommon.IfdMapping
-	var exifTagIndex = exif.NewTagIndex()
-
-	exifIfdMapping = exifcommon.NewIfdMapping()
-
-	if err := exifcommon.LoadStandardIfds(exifIfdMapping); err != nil {
-		fmt.Printf("metadata: %s \n", err.Error())
-	}
-
-	_, index, err := exif.Collect(exifIfdMapping, exifTagIndex, raw)
-
-	if err == nil {
-		if ifd, err := index.RootIfd.ChildWithIfdPath(exifcommon.IfdGpsInfoStandardIfdIdentity); err == nil {
-			if gi, err := ifd.GpsInfo(); err == nil {
-				u.Exif.GPS.Lat = float64(gi.Latitude.Decimal())
-				u.Exif.GPS.Lng = float64(gi.Longitude.Decimal())
-				//u.Exif.GPS.Altitude = gi.Altitude
-			}
-		}
-	}
-	return nil
 }

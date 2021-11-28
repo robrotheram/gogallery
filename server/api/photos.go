@@ -40,6 +40,7 @@ var deletePhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	datastore.Cache.DB.One("Id", photoID, &oldPicture)
 	datastore.Cache.DB.DeleteStruct(&oldPicture)
 	oldPicture.Delete()
+	templateengine.Templates.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(oldPicture)
 })

@@ -43,6 +43,7 @@ const SettingsForm = () => {
       Name:  settings.Name,
       Basepath:  settings.Basepath,
       Url:  settings.Url,
+      Theme: settings.Theme,
       ImagesPerPage:  settings.ImagesPerPage,
       PictureBlacklist:  settings.PictureBlacklist || [],
       AlbumBlacklist:  settings.AlbumBlacklist || [],
@@ -64,6 +65,8 @@ const SettingsForm = () => {
         <Form.Item label="Gallery Url" name='Url'><Input />
         </Form.Item>
         <Form.Item label="Images Per Page" name='ImagesPerPage'><InputNumber min={1} max={100} style={{width:"100%"}}/>
+        </Form.Item>
+        <Form.Item label="Theme Path" name='Theme'><Input />
         </Form.Item>
         <Form.Item label="Image Folder" name='Basepath'><Input />
         </Form.Item>

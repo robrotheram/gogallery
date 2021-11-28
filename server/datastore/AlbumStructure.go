@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/robrotheram/gogallery/config"
 	Config "github.com/robrotheram/gogallery/config"
 )
 
@@ -66,4 +67,9 @@ func GetAlbumFromStructure(as AlbumStrcure, id string) Album {
 		}
 	}
 	return album
+}
+
+func GetAlbumStructure(config config.GalleryConfiguration) AlbumStrcure {
+	newalbms := SliceToTree(GetAlbums(), config.Basepath)
+	return newalbms
 }

@@ -17,10 +17,12 @@ const PhotoTemplate = "photo"
 
 func RenderIndex(w http.ResponseWriter, r *http.Request) {
 	page := NewPage(r)
-	image := datastore.GetFilteredPictures()
-	page.Images = image
+	images := datastore.GetFilteredPictures()
+	page.Images = images
 	page.Albums = datastore.GetAlbumStructure(page.Settings)
-	page.SEO.SetImage(image[0])
+	if len(images) > 0 {
+		page.SEO.SetImage(images[0])
+	}
 	w.Write([]byte(Templates.RenderPage(HomeTemplate, page)))
 }
 
@@ -47,8 +49,9 @@ func RenderAlbumPage(w http.ResponseWriter, r *http.Request) {
 	page.Images = images
 	page.Album = album
 	page.Picture, _ = datastore.GetPictureByID(album.ProfileID)
-
-	page.SEO.SetImage(images[0])
+	if len(images) > 0 {
+		page.SEO.SetImage(images[0])
+	}
 	w.Write([]byte(Templates.RenderPage(CollectionTemplate, page)))
 }
 
@@ -70,11 +73,14 @@ func RenderCollection(w http.ResponseWriter, r *http.Request) {
 	}
 	images := datastore.GetPhotosByDate(yourDate)
 	page.Images = images
-	page.SEO.SetImage(images[0])
+	if len(images) > 0 {
+		page.SEO.SetImage(images[0])
+	}
 	w.Write([]byte(Templates.RenderPage(CollectionTemplate, page)))
 }
 
 func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
+	fs := http.FileServer(http.Dir(config.Gallery.Theme + "/assets/"))
 	err := Templates.Load(config.Gallery.Theme)
 	if err != nil {
 		fmt.Printf("there Was an error loading the templates, Error %v", err)
@@ -84,6 +90,7 @@ func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router
 	r.HandleFunc("/collection/{query}", RenderCollection)
 	r.HandleFunc("/photo/{id}", RenderPhoto)
 	r.HandleFunc("/", RenderIndex)
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets", fs))
 
 	return r
 }

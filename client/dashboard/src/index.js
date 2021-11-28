@@ -30,7 +30,7 @@ const Protect = (element) => {
 
 const  AppComponent = () => {
   return(
-      <BrowserRouter>
+      <BrowserRouter basename="dashboard">
           <Routes>
             <Route path="/" element={Protect(<Main/>)} />
             <Route path="/settings" element={Protect(<Settings/>)} />

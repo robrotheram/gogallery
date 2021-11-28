@@ -20,7 +20,7 @@ func RenderPhoto(w http.ResponseWriter, r *http.Request) {
 	images := datastore.GetPicturesByAlbumID(alb.Id)
 	for i, p := range images {
 		if p.Id == pic.Id {
-			if i-1 > 0 {
+			if i-1 >= 0 {
 				page.PreImageID = images[i-1].Id
 			}
 			if i+1 < len(images) {

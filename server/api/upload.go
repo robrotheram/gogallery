@@ -15,8 +15,13 @@ import (
 	"github.com/robrotheram/gogallery/worker"
 )
 
+type UploadCollection struct {
+	Album  string   `json:"album"`
+	Photos []string `json:"photos"`
+}
+
 var uploadHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var uploadCollection datastore.UploadCollection
+	var uploadCollection UploadCollection
 	_ = json.NewDecoder(r.Body).Decode(&uploadCollection)
 	var album datastore.Album
 	datastore.Cache.DB.One("Id", uploadCollection.Album, &album)

@@ -30,7 +30,13 @@ img {
 }
 
 
-
+.photoWrapper{
+  width: 100%; 
+  height: calc(100vh - 9rem); 
+  padding:20px 20px 20px 20px; 
+  background-color: #343a40;
+  margin-top:-20px;
+}
 
 
 .navbar-brand {
@@ -53,6 +59,11 @@ img {
   }
 
 
+  .card {
+    margin-bottom: 20px;
+    text-decoration: none;
+  }
+
   header {
       position: fixed;
       top: 0px;
@@ -64,6 +75,7 @@ img {
   main {
     margin-top: 110px;
   }
+
 
 @media only screen and (max-width: 1024px) {
     .navbar-brand > span {
@@ -89,12 +101,15 @@ img {
       align-items: center;
       justify-content: center;
     }
+
+    .photoWrapper{
+      height: calc(100vh - 15.75rem); 
+      padding:10px; 
+    }
+    
 }
 
-.card {
-  margin-bottom: 20px;
-  text-decoration: none;
-}
+
 
 
 
