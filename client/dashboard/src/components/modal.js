@@ -15,6 +15,7 @@ const MoveModal = ({selectedPhotos}) => {
   const [form] = Form.useForm();
   const dispatch = useDispatch()
 
+  const { photos } = useSelector(state => state.PhotoReducer)
   const {collections} = useSelector(state => state.CollectionsReducer);
 
   const showModal = () => {
@@ -33,7 +34,8 @@ const MoveModal = ({selectedPhotos}) => {
       okType: 'danger',
       cancelText: 'No',
       onOk() {
-        selectedPhotos.forEach(photo => {
+        selectedPhotos.forEach(pos => {
+          let photo = photos[pos]
           dispatch(collectionActions.remove(photo.id))
         })
         
@@ -47,7 +49,7 @@ const MoveModal = ({selectedPhotos}) => {
 
   const handleCreate = () => {
     form.validateFields().then(values => {
-      values["photos"] = selectedPhotos
+      values["photos"] = selectedPhotos.map(pos => photos[pos])
       console.log('Received values of Move form: ', values);
       dispatch(collectionActions.move(values))
       setVisable(false)

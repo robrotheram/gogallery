@@ -55,7 +55,7 @@ const Main = () => {
     setSelectedPhoto(photos.findIndex(x => x.id === photo.id))
     setSelectedElements([photos.findIndex(x => x.id === photo.id)])
 
-    console.log("Clear Selected", selectedPhoto)
+    console.log("Set Selected", selectedPhoto)
   }
 
   const clearSelection = () => {
