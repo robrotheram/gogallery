@@ -75,7 +75,7 @@ func RenderCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
-	err := Templates.Load("../templates/beta")
+	err := Templates.Load(config.Gallery.Theme)
 	if err != nil {
 		fmt.Printf("there Was an error loading the templates, Error %v", err)
 	}
