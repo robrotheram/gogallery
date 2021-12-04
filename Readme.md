@@ -51,6 +51,19 @@ Dashboard url `%GALLERY_PATH/dashboard`
 If you forget the admin password for any reason you can use the `gogallery --reset-admin` which will recrate the admin username and password
 
 
+## Themes
+
+
+
+
+
+
+
+
+
+
+
+
 #### Configuration 
 Config can be also edited via environmental variables
  
