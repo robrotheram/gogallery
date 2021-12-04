@@ -70,6 +70,12 @@ func GetAlbumFromStructure(as AlbumStrcure, id string) Album {
 }
 
 func GetAlbumStructure(config config.GalleryConfiguration) AlbumStrcure {
-	newalbms := SliceToTree(GetAlbums(), config.Basepath)
+	albums := []Album{}
+	for _, alb := range GetAlbums() {
+		if !IsAlbumInBlacklist(alb.Name) {
+			albums = append(albums, alb)
+		}
+	}
+	newalbms := SliceToTree(albums, config.Basepath)
 	return newalbms
 }
