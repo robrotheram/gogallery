@@ -54,6 +54,7 @@ func (te *TemplateEngine) walk(root string) error {
 				return nil
 			}
 
+			root = strings.Replace(root, "./", "", -1)
 			pattern := root + string(filepath.Separator) + "*"
 			matched, err := filepath.Match(pattern, path)
 			subpath := strings.Replace(path, root+"/", "", -1)
