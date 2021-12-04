@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AutoComplete, Button, Col, Form, Row } from 'antd';
+import { AutoComplete, Form } from 'antd';
 // as an array
 import { Layout, Input, Select, TreeSelect, Typography } from 'antd';
 import { Collapse } from 'antd';
@@ -9,7 +9,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { config } from '../store';
 import { getOptions, photoActions } from '../store/actions';
 import { LocationModal } from './Map'
-import {RetweetOutlined} from '@ant-design/icons';
 import axios from 'axios';
 
 const { Paragraph } = Typography;
