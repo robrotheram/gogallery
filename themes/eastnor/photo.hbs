@@ -10,11 +10,7 @@
           </div>
      {{/if}}
      <div class="container">
-          <span style="font-size: 20px;">{{ Picture.Name }}</span>
-          {{#if Picture.Caption }}
-          <br />
-          <span style="font-size: 14px;">{{ Picture.Caption }}</span>
-          {{/if}}
+          <span style="font-size: 20px;">{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}</span>
      </div>
      {{#if NextImageID }}
           <div style="position: absolute; right:0px; top:0px; bottom: 0px; padding: 15px 30px 15px 15px;">

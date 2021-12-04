@@ -1,4 +1,4 @@
-package datastore
+package worker
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	Config "github.com/robrotheram/gogallery/config"
-	"github.com/robrotheram/gogallery/worker"
+	"github.com/robrotheram/gogallery/config"
+	"github.com/robrotheram/gogallery/datastore"
 )
 
 var validExtension = []string{"jpg", "png", "gif"}
-var gConfig *Config.GalleryConfiguration
 var IsScanning bool
+var gConfig = config.Config.Gallery
 
 // FileInfo is a struct created from os.FileInfo interface for serialization.
 type FileInfo struct {
@@ -67,37 +67,6 @@ func RemoveContents(dir string) error {
 	return nil
 }
 
-func IsAlbumInBlacklist(album string) bool {
-	if strings.EqualFold(album, "instagram") {
-		return true
-	}
-	if strings.EqualFold(album, "images") {
-		return true
-	}
-	if strings.EqualFold(album, "temp") {
-		return true
-	}
-	for _, n := range gConfig.AlbumBlacklist {
-		if strings.EqualFold(album, n) {
-			return true
-		}
-	}
-	return false
-}
-
-func IsPictureInBlacklist(pic string) bool {
-	for _, n := range gConfig.PictureBlacklist {
-		if strings.EqualFold(pic, n) {
-			return true
-		}
-	}
-	return false
-}
-func doesPictureExist(p Picture) bool {
-	err := Cache.DB.One("Id", p.Id, &Picture{})
-	return err == nil
-}
-
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -107,9 +76,8 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*Node, error) {
-	gConfig = g_config
-	rubishPath := fmt.Sprintf("%s/%s", g_config.Basepath, "rubish")
+func ScanPath(path string) (map[string]*Node, error) {
+	rubishPath := fmt.Sprintf("%s/%s", gConfig.Basepath, "rubish")
 	if _, err := os.Stat(rubishPath); os.IsNotExist(err) {
 		os.Mkdir(rubishPath, 0755)
 	}
@@ -132,41 +100,41 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 		if checkEXT(path) && !info.IsDir() {
 			albumName := filepath.Base(filepath.Dir(path))
 			picName := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
-			if !IsAlbumInBlacklist(albumName) && !IsPictureInBlacklist(picName) {
-				p := Picture{
-					Id:       Config.GetMD5Hash(path),
+			if !datastore.IsAlbumInBlacklist(albumName) && !datastore.IsPictureInBlacklist(picName) {
+				p := datastore.Picture{
+					Id:       config.GetMD5Hash(path),
 					Name:     picName,
 					Path:     path,
-					Album:    Config.GetMD5Hash(filepath.Dir(path)),
-					Exif:     Exif{},
-					RootPath: g_config.Basepath,
-					Meta: PictureMeta{
+					Album:    config.GetMD5Hash(filepath.Dir(path)),
+					Exif:     datastore.Exif{},
+					RootPath: gConfig.Basepath,
+					Meta: datastore.PictureMeta{
 						PostedToIG:   false,
 						Visibility:   "PUBLIC",
 						DateAdded:    time.Now(),
 						DateModified: time.Now()}}
 				p.CreateExif()
-				if !doesPictureExist(p) {
-					Cache.DB.Save(&p)
+				if !datastore.DoesPictureExist(p) {
+					p.Save()
 				}
-				Cache.DB.UpdateField(&Album{Id: Config.GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
-				worker.SendToThumbnail(path)
+				datastore.Cache.DB.UpdateField(&datastore.Album{Id: config.GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
+				SendToThumbnail(p)
 			}
 		}
 
 		if info.IsDir() {
-			if !IsAlbumInBlacklist(info.Name()) {
-				if filepath.Base(filepath.Dir(path)) != g_config.Basepath {
+			if !datastore.IsAlbumInBlacklist(info.Name()) {
+				if filepath.Base(filepath.Dir(path)) != gConfig.Basepath {
 					info := fileInfoFromInterface(info)
-					album := Album{}
-					Cache.DB.One("Id", Config.GetMD5Hash(path), &album)
-					album.Update(Album{
-						Id:          Config.GetMD5Hash(path),
+					album := datastore.Album{}
+					datastore.Cache.DB.One("Id", config.GetMD5Hash(path), &album)
+					album.Update(datastore.Album{
+						Id:          config.GetMD5Hash(path),
 						Name:        info.Name,
 						ModTime:     info.ModTime,
 						Parent:      filepath.Base(filepath.Dir(path)),
 						ParenetPath: (filepath.Dir(path))})
-					Cache.DB.Save(&album)
+					datastore.Cache.DB.Save(&album)
 				}
 			}
 		}
@@ -180,7 +148,7 @@ func ScanPath(path string, g_config *Config.GalleryConfiguration) (map[string]*N
 
 func NewTree(path string) (result *Node, err error) {
 	var root = &Node{}
-	paths, err := ScanPath(path, nil)
+	paths, err := ScanPath(path)
 	if err != nil {
 		return nil, err
 	}

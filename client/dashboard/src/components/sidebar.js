@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Form } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AutoComplete, Button, Col, Form, Row } from 'antd';
 // as an array
 import { Layout, Input, Select, TreeSelect, Typography } from 'antd';
 import { Collapse } from 'antd';
@@ -7,8 +7,10 @@ import moment from 'moment';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { config } from '../store';
-import { photoActions } from '../store/actions';
+import { getOptions, photoActions } from '../store/actions';
 import { LocationModal } from './Map'
+import {RetweetOutlined} from '@ant-design/icons';
+import axios from 'axios';
 
 const { Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -21,25 +23,37 @@ const SideBar = ({ photo }) => {
   const dispatch = useDispatch()
   const [form] = Form.useForm();
   const [data, setData] = useState({})
+  const [captionOptions, setCaptionOptions] = useState([])
   
   const editPhoto = () => {
     let formData = form.getFieldValue()
-    let newPhoto = {...data, ...formData}
-    if (JSON.stringify(newPhoto) !== JSON.stringify(data)){
+    let newPhoto = { ...data, ...formData }
+    if (JSON.stringify(newPhoto) !== JSON.stringify(data)) {
       dispatch(photoActions.edit(newPhoto))
     }
-    
+
   }
 
-  useEffect(()=>{ 
-    if (photo){
+  const getCaptionList = useCallback(() => {
+    axios.get(`${config.baseUrl}/photo/${photo.id}/caption`, getOptions()).then(res => {
+      console.log("CAPTIONS", res)
+      if (res.data.status === "ok") {
+         let options = res.data.predictions.map( prediction => { return {value: prediction.caption}})
+         setCaptionOptions(options)
+      }
+    }).catch(err => console.log(err))
+  }, [photo]); 
+
+  useEffect(() => {
+    if (photo) {
       console.log("Photo Update")
       setData(photo)
+      getCaptionList()
       form.setFieldsValue(photo)
-    }else{
+    } else {
       setData({})
     }
-  },[photo, form])
+  }, [photo, form, getCaptionList])
 
   const updateGPS = (lat, lng) => {
     data.exif.GPS = {
@@ -66,33 +80,36 @@ const SideBar = ({ photo }) => {
     return formattedDate;
   }
 
+  
 
   return (
-    <Sider width={data.name? 400: 0} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
+    <Sider width={data.name ? 500 : 0} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
       <img src={config.imageUrl + data.id + "?size=tiny&token=" + localStorage.getItem('token')} width="100%" alt="thumbnail" />
       <Form
-      form={form}
-      layout="horizontal"
-      {...formItemLayout}>
+        form={form}
+        layout="horizontal"
+        {...formItemLayout}>
 
         <Collapse bordered={false} defaultActiveKey={['1']}>
           <Panel header="Properties" key="1">
             <Form.Item label="id" name="id">
-              <Paragraph ellipsis style={{marginBottom:"0px"}}>
-                {data.id} 
+              <Paragraph ellipsis style={{ marginBottom: "0px" }}>
+                {data.id}
               </Paragraph>
             </Form.Item>
             <Form.Item label="Photo Name" name="name">
-              <Input onBlur={editPhoto}/>
+              <Input onBlur={editPhoto} />
             </Form.Item>
             <Form.Item label="Caption" name="caption">
-              <Input onBlur={editPhoto}/>
+              <AutoComplete options={captionOptions}>
+                <Input onBlur={editPhoto} />
+              </AutoComplete>
             </Form.Item>
             <Form.Item label="Path" name="path">
-              <Input onBlur={editPhoto}/>
+              <Input onBlur={editPhoto} />
             </Form.Item>
             <Form.Item label="Location">
-              <LocationModal lat={data.exif ? data.exif.GPS.latitude :0} lng={data.exif ?  data.exif.GPS.longitude: 0} onUpdate={updateGPS} />
+              <LocationModal lat={data.exif ? data.exif.GPS.latitude : 0} lng={data.exif ? data.exif.GPS.longitude : 0} onUpdate={updateGPS} />
             </Form.Item>
 
             <Form.Item label="Collection" name="album">
@@ -117,13 +134,13 @@ const SideBar = ({ photo }) => {
           </Panel>
           <Panel header="History" key="3">
             <Form.Item label="Captured">
-              {data.exif ? formatDate(data.exif.DateTaken): ""}
+              {data.exif ? formatDate(data.exif.DateTaken) : ""}
             </Form.Item>
             <Form.Item label="Uploaded">
-              {data.meta ? formatDate(data.meta.DateAdded): ""}
+              {data.meta ? formatDate(data.meta.DateAdded) : ""}
             </Form.Item>
             <Form.Item label="Modified">
-              {data.meta ? formatDate(data.meta.DateModified): ""}
+              {data.meta ? formatDate(data.meta.DateModified) : ""}
             </Form.Item>
           </Panel>
         </Collapse>

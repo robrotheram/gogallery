@@ -46,7 +46,7 @@ var uploadHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 					DateModified: time.Now()}}
 			p.CreateExif()
 			datastore.Cache.DB.Save(&p)
-			worker.SendToThumbnail(newPath)
+			worker.SendToThumbnail(p)
 		}
 	}
 })

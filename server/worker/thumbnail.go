@@ -11,17 +11,18 @@ import (
 
 	"github.com/disintegration/gift"
 	galleryConfig "github.com/robrotheram/gogallery/config"
+	"github.com/robrotheram/gogallery/datastore"
 )
 
-var thumbnailChan = make(chan string, 1000)
+var thumbnailChan = make(chan datastore.Picture, 1000)
 var Config *galleryConfig.GalleryConfiguration
 
 func QueSize() int {
 	return len(thumbnailChan)
 }
-func SendToThumbnail(image string) {
-	if !CheckCacheFolder(image) {
-		thumbnailChan <- image
+func SendToThumbnail(picture datastore.Picture) {
+	if !CheckCacheFolder(picture.Path) || picture.Caption == "" {
+		thumbnailChan <- picture
 	}
 }
 
@@ -59,9 +60,6 @@ func sendToCommand(path string, size int, prefix string) {
 		fmt.Printf("%s", err)
 	}
 	fmt.Println("Command Thumbnail generatet: " + path)
-	// output := string(out[:])
-	// fmt.Println(output)
-
 }
 
 func generateThumbnail(path string, size int, prefix string) {
@@ -106,11 +104,11 @@ func MakeThumbnail(path string) {
 	}
 }
 
-func worker(id int, jobs <-chan string) {
+func worker(id int, jobs <-chan datastore.Picture) {
 	log.Printf("Strarting Worker: %d \n", id)
 	makeCacheFolder()
 	for j := range jobs {
-		MakeThumbnail(j)
+		MakeThumbnail(j.Path)
 	}
 }
 

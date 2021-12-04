@@ -20,8 +20,9 @@ type DatabaseConfiguration struct {
 }
 
 type ServerConfiguration struct {
-	Port  string
-	Debug bool
+	Port       string
+	CaptionURL string
+	Debug      bool
 }
 
 type InstagramConfiguration struct {

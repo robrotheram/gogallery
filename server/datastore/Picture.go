@@ -5,10 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
+	"github.com/robrotheram/gogallery/config"
 )
 
 type Picture struct {
@@ -29,6 +31,10 @@ type PictureMeta struct {
 	Visibility   string    `json:"visibility,omitempty"`
 	DateAdded    time.Time `json: date_added,omitempty`
 	DateModified time.Time `json: date_modified,omitempty`
+}
+
+func (p *Picture) Save() {
+	Cache.DB.Save(p)
 }
 
 func (picture *Picture) MoveToAlbum(newAlbum string) {
@@ -175,4 +181,36 @@ func GetPhotosByDate(yourDate time.Time) []Picture {
 		}
 	}
 	return latests
+}
+
+func IsAlbumInBlacklist(album string) bool {
+	if strings.EqualFold(album, "instagram") {
+		return true
+	}
+	if strings.EqualFold(album, "images") {
+		return true
+	}
+	if strings.EqualFold(album, "temp") {
+		return true
+	}
+	for _, n := range config.Config.Gallery.AlbumBlacklist {
+		if strings.EqualFold(album, n) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsPictureInBlacklist(pic string) bool {
+	for _, n := range config.Config.Gallery.PictureBlacklist {
+		if strings.EqualFold(pic, n) {
+			return true
+		}
+	}
+	return false
+}
+
+func DoesPictureExist(p Picture) bool {
+	_, err := GetPictureByID(p.Id)
+	return err == nil
 }

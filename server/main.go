@@ -48,7 +48,7 @@ func main() {
 
 	checkAndCreateAdmin()
 	go func() {
-		datastore.ScanPath(Config.Gallery.Basepath, &Config.Gallery)
+		worker.ScanPath(Config.Gallery.Basepath)
 	}()
 
 	Serve()

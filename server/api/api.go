@@ -42,6 +42,7 @@ func InitApiRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 
 	r.Handle("/api/admin/photos", auth.AuthMiddleware(getAllAdminPhotosHandler))
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(getPhotoHandler)).Methods("GET")
+	r.Handle("/api/admin/photo/{id}/caption", auth.AuthMiddleware(CaptionHandler)).Methods("GET")
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(editPhotoHandler)).Methods("POST")
 
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(deletePhotoHandler)).Methods("DELETE")
