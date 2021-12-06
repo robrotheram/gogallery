@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DeleteOutlined, DownloadOutlined, SyncOutlined, UploadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DownloadOutlined, SyncOutlined, UploadOutlined, ClearOutlined } from '@ant-design/icons';
 import { message, Row, Col, Upload, Button, Modal } from 'antd';
 import { useDispatch } from 'react-redux';
 import { taskActions } from '../../store/actions';
@@ -54,6 +54,20 @@ const Maintenance = () => {
     });
   }
   
+  const showClearTemplateCache = () => {
+    confirm({
+      title: 'Are you sure you want to run the clear template cache task?',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        dispatch(taskActions.templateCacheClear())
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  }
   
   const props = {
     name: 'file',
@@ -87,6 +101,9 @@ const Maintenance = () => {
     <Row gutter={[16,16]}>
       <Col span={12}>
         <Button type="default" icon={<SyncOutlined />} size="large" style={{"width":"100%"}} onClick={showResacanConfirm}> Resacan image folder </Button>
+      </Col>
+      <Col span={12}>
+        <Button type="default" icon={<ClearOutlined />} size="large" style={{"width":"100%"}} onClick={showClearTemplateCache}> Clear Template Cache </Button><br/>
       </Col>
       <Col span={12}>
         <Button type="default" icon={<DeleteOutlined />} size="large" style={{"width":"100%"}} onClick={showPurgeConfirm} > Purge cache </Button><br/>

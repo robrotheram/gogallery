@@ -1,12 +1,16 @@
 <div id="lightgallery" class="photoWrapper">
-     <img style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-          src='/img/{{Picture.Id}}?size=original' class="img-fluid rounded" />
+     <img 
+          style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
+          src='/img/{{Picture.Id}}?size=original' 
+          class="img-fluid rounded" 
+          alt="{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}"
+          loading="eager" />
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
      {{#if PreImageID }}
           <div style="position: absolute; left:0px; top:0px; bottom: 0px; padding: 15px 15px 15px 30px;">
-               <a href="/photo/{{ PreImageID }}" style="color: white;"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
+               <a href="/photo/{{ PreImageID }}" style="color: white;" alt="Navigate to previous Image"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
           </div>
      {{/if}}
      <div class="container">
@@ -14,7 +18,7 @@
      </div>
      {{#if NextImageID }}
           <div style="position: absolute; right:0px; top:0px; bottom: 0px; padding: 15px 30px 15px 15px;">
-               <a href="/photo/{{ NextImageID }}" style="color: white;"><i class="fa-solid fa-chevron-right fa-2x"></i></a>
+               <a href="/photo/{{ NextImageID }}" style="color: white;" alt="Navigate to next Image" ><i class="fa-solid fa-chevron-right fa-2x"></i></a>
           </div>
      {{/if}}
 </footer>
@@ -32,12 +36,6 @@
                          </tr>
                          <tr>
                               <th scope="row">
-                                   <img src="/assets/img/icons/lens.svg" width="50px" alt="lens icon">
-                              </th>
-                              <td>{{Picture.Exif.LensModel}}</td>
-                         </tr>
-                         <tr>
-                              <th scope="row">
                                    <img src="/assets/img/icons/focal-length.svg" width="50px" alt="focal icon">
                               </th>
                               <td>{{Picture.Exif.FocalLength}} mm</td>
@@ -46,7 +44,7 @@
                               <th scope="row">
                                    <img src="/assets/img/icons/apature.svg" width="50px" alt="apature icon">
                               </th>
-                              <td>{{Picture.Exif.FStop}}</td>
+                              <td>f/{{Picture.Exif.FStop}}</td>
                          </tr>
                          <tr>
                               <th scope="row">
@@ -92,10 +90,7 @@
                          }
                     });
                }
-               
           </script>
-
-
 
           {{#if Picture.Exif.GPS.Lat }}
           <div class="col-lg">

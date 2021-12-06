@@ -8,7 +8,7 @@ picture > img, picture > a > img {
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
+  height: 100% !important;
   width: 100%;
   object-fit: cover;
 
@@ -74,6 +74,7 @@ img {
 
   main {
     margin-top: 110px;
+    margin-bottom: 20px;
   }
 
 

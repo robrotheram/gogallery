@@ -1,10 +1,10 @@
 <a href="/album/{{this.Id}}">
-    <div class="card">
+    <div class="card rounded">
         <picture>
             {{#if this.ProfileID}}
-                <img src="/img/{{this.ProfileID}}"  alt="{{this.Name}}">
+                <img src="/img/{{this.ProfileID}}"  alt="{{this.Name}}" class="img-fluid rounded">
             {{else}}
-                <img src="/assets/img/placeholder.png"  alt="{{this.Name}}">
+                <img src="/assets/img/placeholder.png"  alt="{{this.Name}}" class="img-fluid rounded">
             {{/if}}
         </picture>
         <div class="card-body">
