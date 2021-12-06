@@ -195,6 +195,9 @@ func IsAlbumInBlacklist(album string) bool {
 	if strings.EqualFold(album, "temp") {
 		return true
 	}
+	if strings.EqualFold(album, "rubish") {
+		return true
+	}
 	for _, n := range config.Config.Gallery.AlbumBlacklist {
 		if strings.EqualFold(album, n) {
 			return true

@@ -37,10 +37,9 @@ func RenderAlbumPage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	as := datastore.GetAlbumStructure(page.Settings)
-	album := datastore.GetAlbumFromStructure(as, id)
+	album, err := datastore.GetAlbumByID(id)
 
-	if album.Id == "" {
+	if album.Id == "" || err != nil || datastore.IsAlbumInBlacklist(album.Name) {
 		w.Write([]byte(Templates.RenderPage("404", page)))
 		return
 	}
@@ -50,6 +49,7 @@ func RenderAlbumPage(w http.ResponseWriter, r *http.Request) {
 	page.Album = album
 	page.Picture, _ = datastore.GetPictureByID(album.ProfileID)
 	page.SEO.Description = fmt.Sprintf("Album: %s", album.Name)
+
 	if len(images) > 0 {
 		page.SEO.SetImage(images[0])
 	}

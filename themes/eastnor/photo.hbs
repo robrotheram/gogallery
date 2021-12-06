@@ -1,10 +1,11 @@
 <div id="lightgallery" class="photoWrapper">
      <img 
           style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-          src='/img/{{Picture.Id}}?size=original' 
-          class="img-fluid rounded" 
+          src='/img/{{Picture.Id}}' 
+          class="img-fluid rounded lazy" 
           alt="{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}"
-          loading="eager" />
+          data-src="/img/{{Picture.Id}}?size=original" />
+
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
@@ -75,6 +76,7 @@
                     </tbody>
                </table>
           </div>
+          <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.5.0/dist/lazyload.min.js"></script>
           <script>
                window.onload = function () {
                     var customDate = document.getElementById('dateTaken').innerHTML;
@@ -89,6 +91,9 @@
                               default: return;
                          }
                     });
+
+                    var lazyLoadInstance = new LazyLoad({});
+                    lazyLoadInstance.update();
                }
           </script>
 
