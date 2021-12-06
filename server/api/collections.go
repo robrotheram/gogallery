@@ -36,17 +36,17 @@ var moveCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http
 		if oldPicture.Album != moveCollection.Album {
 			photo.MoveToAlbum(moveCollection.Album)
 			photo.Meta.DateModified = time.Now()
-			datastore.Cache.DB.Save(&photo)
+			photo.Save()
 		}
 	}
-	templateengine.Templates.InvalidCache()
+	templateengine.InvalidCache()
 })
 
 var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	albumID := mux.Vars(r)["id"]
-	var oldAlbum datastore.Album
+	oldAlbum, _ := datastore.GetAlbumByID(albumID)
+
 	var album datastore.Album
-	datastore.Cache.DB.One("Id", albumID, &oldAlbum)
 	_ = json.NewDecoder(r.Body).Decode(&album)
 
 	if oldAlbum.Name != album.Name {
@@ -64,18 +64,16 @@ var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 		oldAlbum.GPS = album.GPS
 	}
 
-	datastore.Cache.DB.Save(&oldAlbum)
-	templateengine.Templates.InvalidCache()
+	oldAlbum.Save()
+	templateengine.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(oldAlbum)
 })
 
 var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var album datastore.Album
-	var newAlbum datastore.Album
-
 	_ = json.NewDecoder(r.Body).Decode(&album)
-	datastore.Cache.DB.One("Id", album.Id, &newAlbum)
+	newAlbum, _ := datastore.GetAlbumByID(album.Id)
 
 	path := fmt.Sprintf("%s/%s/%s", newAlbum.ParenetPath, newAlbum.Name, album.Name)
 
@@ -88,39 +86,34 @@ var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, 0755)
 	}
-	templateengine.Templates.InvalidCache()
-	datastore.Cache.DB.Save(&album)
+	templateengine.InvalidCache()
+	album.Save()
 })
 
 var getAllCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var albms []datastore.Album
-	datastore.Cache.DB.All(&albms)
-	newalbms := datastore.SliceToTree(albms, Config.Gallery.Basepath)
+	newalbms := datastore.GetAlbumStructure(Config.Gallery)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newalbms)
 })
 
 var getCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	albumID := mux.Vars(r)["id"]
-	var album datastore.Album
-	datastore.Cache.DB.One("Name", albumID, &album)
+	album, _ := datastore.GetAlbumByID(albumID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(album)
 })
 
 var getCollectionPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	albumID := mux.Vars(r)["id"]
-	var pictures []datastore.Picture
-	datastore.Cache.DB.Find("Album", albumID, &pictures)
+	pictures := datastore.GetPicturesByAlbumID(albumID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pictures)
 })
 
 var getCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var pics []datastore.Picture
-	datastore.Cache.DB.All(&pics)
-	var albms []datastore.Album
-	datastore.Cache.DB.All(&albms)
+
+	pics := datastore.GetPictures()
+	albms := datastore.GetAlbums()
 	newalbms := datastore.SliceToTree(albms, Config.Gallery.Basepath)
 	dates := []string{}
 	uploadDates := []string{}

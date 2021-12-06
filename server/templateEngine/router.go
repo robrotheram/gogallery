@@ -17,7 +17,7 @@ const PhotoTemplate = "photo"
 
 func RenderIndex(w http.ResponseWriter, r *http.Request) {
 	page := NewPage(r)
-	images := datastore.GetFilteredPictures()
+	images := datastore.GetFilteredPictures(false)
 	page.Images = images
 	page.Albums = datastore.GetAlbumStructure(page.Settings)
 	if len(images) > 0 {
@@ -49,6 +49,7 @@ func RenderAlbumPage(w http.ResponseWriter, r *http.Request) {
 	page.Images = images
 	page.Album = album
 	page.Picture, _ = datastore.GetPictureByID(album.ProfileID)
+	page.SEO.Description = fmt.Sprintf("Album: %s", album.Name)
 	if len(images) > 0 {
 		page.SEO.SetImage(images[0])
 	}
@@ -79,6 +80,13 @@ func RenderCollection(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(Templates.RenderPage(CollectionTemplate, page)))
 }
 
+func CacheControlWrapper(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=86400")
+		h.ServeHTTP(w, r)
+	})
+}
+
 func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 	fs := http.FileServer(http.Dir(config.Gallery.Theme + "/assets/"))
 	err := Templates.Load(config.Gallery.Theme)
@@ -90,7 +98,7 @@ func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router
 	r.HandleFunc("/collection/{query}", RenderCollection)
 	r.HandleFunc("/photo/{id}", RenderPhoto)
 	r.HandleFunc("/", RenderIndex)
-	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets", fs))
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets", CacheControlWrapper(fs)))
 
 	return r
 }

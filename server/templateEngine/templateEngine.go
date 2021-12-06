@@ -2,6 +2,7 @@ package templateengine
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -141,8 +142,9 @@ func (te *TemplateEngine) RenderPage(pageName string, data Page) string {
 	return output
 }
 
-func (te *TemplateEngine) InvalidCache() {
-	te.Cache = make(map[string]string)
+func InvalidCache() {
+	log.Println("Invalidating Template cache")
+	Templates.Cache = make(map[string]string)
 }
 
 func NewTemplateEgine() *TemplateEngine {

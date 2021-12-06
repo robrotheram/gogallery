@@ -53,11 +53,13 @@ func (picture *Picture) MoveToAlbum(newAlbum string) {
 	}
 }
 
-func (picture *Picture) Delete() {
+func (picture *Picture) Delete() error {
 	err := os.Remove(picture.Path)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+	Cache.DB.DeleteStruct(&picture)
+	return nil
 }
 
 func (u *Picture) CreateExif() error {
@@ -134,25 +136,25 @@ func GetAlbumByID(id string) (Album, error) {
 	}
 	return album, nil
 }
-func GetFilteredPictures() []Picture {
+func GetFilteredPictures(admin bool) []Picture {
 	var filterPics []Picture
 	for _, pic := range GetPictures() {
-		if !IsAlbumInBlacklist(pic.Album) {
-			if pic.Meta.Visibility == "PUBLIC" {
-				var album Album
-				Cache.DB.One("Id", pic.Album, &album)
-				cleanpic := Picture{
-					Id:         pic.Id,
-					Name:       pic.Name,
-					Caption:    pic.Caption,
-					Album:      pic.Album,
-					AlbumName:  album.Name,
-					FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
-					Exif:       pic.Exif,
-					Meta:       pic.Meta,
-				}
-				filterPics = append(filterPics, cleanpic)
+		if admin {
+			filterPics = append(filterPics, pic)
+		} else if !IsAlbumInBlacklist(pic.Album) && pic.Meta.Visibility == "PUBLIC" {
+			var album Album
+			Cache.DB.One("Id", pic.Album, &album)
+			cleanpic := Picture{
+				Id:         pic.Id,
+				Name:       pic.Name,
+				Caption:    pic.Caption,
+				Album:      pic.Album,
+				AlbumName:  album.Name,
+				FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
+				Exif:       pic.Exif,
+				Meta:       pic.Meta,
 			}
+			filterPics = append(filterPics, cleanpic)
 		}
 	}
 	sort.Slice(filterPics, func(i, j int) bool {
@@ -201,9 +203,9 @@ func IsAlbumInBlacklist(album string) bool {
 	return false
 }
 
-func IsPictureInBlacklist(pic string) bool {
+func IsPictureInBlacklist(name string) bool {
 	for _, n := range config.Config.Gallery.PictureBlacklist {
-		if strings.EqualFold(pic, n) {
+		if strings.EqualFold(name, n) {
 			return true
 		}
 	}

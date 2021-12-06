@@ -29,6 +29,6 @@ func RenderPhoto(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	page.Picture = pic
-	page.SEO.SetImage(pic)
+	page.SEO.SetNameFromPhoto(pic)
 	w.Write([]byte(Templates.RenderPage(PhotoTemplate, page)))
 }

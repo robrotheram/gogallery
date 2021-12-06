@@ -36,6 +36,10 @@ func (a *Album) Update(alb Album) {
 	}
 }
 
+func (a *Album) Save() {
+	Cache.DB.Save(a)
+}
+
 func GetAlbums() []Album {
 	var albums []Album
 	Cache.DB.All(&albums)

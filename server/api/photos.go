@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -16,10 +15,20 @@ import (
 
 var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	var oldPicture datastore.Picture
 	var picture datastore.Picture
-	datastore.Cache.DB.One("Id", photoID, &oldPicture)
-	_ = json.NewDecoder(r.Body).Decode(&picture)
+	err := json.NewDecoder(r.Body).Decode(&picture)
+
+	if err != nil {
+		NewAPIError(err).HandleError(w)
+		return
+	}
+
+	oldPicture, err := datastore.GetPictureByID(photoID)
+
+	if err != nil {
+		NewAPIError(err).HandleError(w)
+		return
+	}
 
 	if oldPicture.Name != picture.Name {
 		newName := fmt.Sprintf("%s/%s%s", filepath.Dir(oldPicture.Path), picture.Name, filepath.Ext(oldPicture.Path))
@@ -36,81 +45,55 @@ var editPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 	}
 
 	picture.Meta.DateModified = time.Now()
-	datastore.Cache.DB.Save(&picture)
-	templateengine.Templates.InvalidCache()
+	picture.Save()
+	templateengine.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 })
 
 var deletePhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	var oldPicture datastore.Picture
-	datastore.Cache.DB.One("Id", photoID, &oldPicture)
-	datastore.Cache.DB.DeleteStruct(&oldPicture)
-	oldPicture.Delete()
-	templateengine.Templates.InvalidCache()
+	picture, err := datastore.GetPictureByID(photoID)
+	if err != nil {
+		NewAPIError(err).HandleError(w)
+		return
+	}
+	err = picture.Delete()
+	if err != nil {
+		NewAPIError(err).HandleError(w)
+		return
+	}
+
+	templateengine.InvalidCache()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(oldPicture)
+	json.NewEncoder(w).Encode(picture)
 })
 
 var getPhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	var picture datastore.Picture
-	datastore.Cache.DB.One("Id", photoID, &picture)
+	picture, err := datastore.GetPictureByID(photoID)
+	if err != nil {
+		NewAPIError(err).HandleError(w)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 })
 
 var getAllAdminPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var pics []datastore.Picture
-	var filterPics []datastore.Picture
-	datastore.Cache.DB.All(&pics)
-	for _, pic := range pics {
-		if !datastore.IsAlbumInBlacklist(pic.Album) {
-			filterPics = append(filterPics, pic)
-		}
-	}
-	sort.Slice(filterPics, func(i, j int) bool {
-		return filterPics[i].Exif.DateTaken.Sub(filterPics[j].Exif.DateTaken) > 0
-	})
+	pics := datastore.GetFilteredPictures(true)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(filterPics)
+	json.NewEncoder(w).Encode(pics)
 })
 
 var getAllPhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var pics []datastore.Picture
-	var filterPics []datastore.Picture
-	datastore.Cache.DB.All(&pics)
-	for _, pic := range pics {
-		if !datastore.IsAlbumInBlacklist(pic.Album) {
-			if pic.Meta.Visibility == "PUBLIC" {
-				var album datastore.Album
-				datastore.Cache.DB.One("Id", pic.Album, &album)
-				cleanpic := datastore.Picture{
-					Id:         pic.Id,
-					Name:       pic.Name,
-					Caption:    pic.Caption,
-					Album:      pic.Album,
-					AlbumName:  album.Name,
-					FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
-					Exif:       pic.Exif,
-					Meta:       pic.Meta,
-				}
-				filterPics = append(filterPics, cleanpic)
-			}
-
-		}
-	}
-	sort.Slice(filterPics, func(i, j int) bool {
-		return filterPics[i].Exif.DateTaken.Sub(filterPics[j].Exif.DateTaken) > 0
-	})
+	filterPics := datastore.GetFilteredPictures(false)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(filterPics)
 })
 
 var getLatestCollectionsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	var pics []datastore.Picture
-	datastore.Cache.DB.All(&pics)
+	pics := datastore.GetFilteredPictures(false)
 	latests := pics[0].Exif.DateTaken
 	for _, p := range pics {
 		if p.Exif.DateTaken.After(latests) {
@@ -129,14 +112,7 @@ var getByDatePhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *htt
 	if err != nil {
 		http.Error(w, "Invalid date", http.StatusBadRequest)
 	}
-	var pics []datastore.Picture
-	datastore.Cache.DB.All(&pics)
-	latests := []datastore.Picture{}
-	for _, p := range pics {
-		if DateEqual(p.Exif.DateTaken, yourDate) {
-			latests = append(latests, p)
-		}
-	}
+	latests := datastore.GetPhotosByDate(yourDate)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(latests)
 })

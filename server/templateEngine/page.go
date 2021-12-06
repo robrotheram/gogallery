@@ -37,6 +37,14 @@ func (s *SocailSEO) SetImage(picture datastore.Picture) {
 	s.ImageHeight = 683
 }
 
+func (s *SocailSEO) SetNameFromPhoto(picture datastore.Picture) {
+	s.Title = picture.Name
+	if picture.Caption != "" {
+		s.Description = picture.Caption
+	}
+	s.SetImage(picture)
+}
+
 func NewSocailSEO(path string) SocailSEO {
 	return SocailSEO{
 		Site:        fmt.Sprintf("%s%s", config.Config.Gallery.Url, path),
