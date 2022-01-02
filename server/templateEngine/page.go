@@ -9,17 +9,17 @@ import (
 )
 
 type Page struct {
-	Settings    config.GalleryConfiguration
-	SEO         SocailSEO
-	Author      config.AboutConfiguration
-	Images      []datastore.Picture
-	Albums      datastore.AlbumStrcure
-	Album       datastore.Album
-	Picture     datastore.Picture
-	NextImageID string
-	PreImageID  string
-	Body        string
-	pagePath    string
+	Settings      config.GalleryConfiguration
+	SEO           SocailSEO
+	Author        config.AboutConfiguration
+	Images        []datastore.Picture
+	Albums        datastore.AlbumStrcure
+	Album         datastore.Album
+	Picture       datastore.Picture
+	NextImagePath string
+	PreImagePath  string
+	Body          string
+	pagePath      string
 }
 
 type SocailSEO struct {

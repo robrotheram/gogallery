@@ -125,7 +125,7 @@ func GetPictureByID(id string) (Picture, error) {
 func GetPicturesByAlbumID(id string) []Picture {
 	var pic []Picture
 	Cache.DB.Find("Album", id, &pic)
-	return pic
+	return SortByTime(pic)
 }
 
 func GetAlbumByID(id string) (Album, error) {
@@ -157,10 +157,14 @@ func GetFilteredPictures(admin bool) []Picture {
 			filterPics = append(filterPics, cleanpic)
 		}
 	}
-	sort.Slice(filterPics, func(i, j int) bool {
-		return filterPics[i].Exif.DateTaken.Sub(filterPics[j].Exif.DateTaken) > 0
+	return SortByTime(filterPics)
+}
+
+func SortByTime(p []Picture) []Picture {
+	sort.Slice(p, func(i, j int) bool {
+		return p[i].Exif.DateTaken.Sub(p[j].Exif.DateTaken) > 0
 	})
-	return filterPics
+	return p
 }
 
 func GetLatestPhotoDate() time.Time {

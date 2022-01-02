@@ -104,7 +104,7 @@ img {
     }
 
     .photoWrapper{
-      height: calc(100vh - 15.75rem); 
+      height: calc(100vh - 9rem); 
       padding:10px; 
     }
     

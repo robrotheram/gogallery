@@ -3,6 +3,7 @@ package templateengine
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -147,7 +148,21 @@ func InvalidCache() {
 	Templates.Cache = make(map[string]string)
 }
 
+func CacheVersionID(n int) string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
 func NewTemplateEgine() *TemplateEngine {
+	version := CacheVersionID(10)
+	raymond.RegisterHelper("assets", func(asset string) string {
+		return fmt.Sprintf("%s?v=%s", asset, version)
+	})
+
 	return &TemplateEngine{
 		partialSrc: make(map[string]string),
 		pagesSrc:   make(map[string]string),

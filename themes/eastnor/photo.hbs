@@ -1,25 +1,26 @@
 <div id="lightgallery" class="photoWrapper">
-     <img 
-          style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-          src='/img/{{Picture.Id}}' 
-          class="img-fluid rounded lazy" 
-          alt="{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}"
-          data-src="/img/{{Picture.Id}}?size=original" />
-
+     <a data-fslightbox href="/img/{{Picture.Id}}?size=original"> 
+          <img 
+               style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
+               src='/img/{{Picture.Id}}' 
+               class="img-fluid rounded lazy" 
+               alt="{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}"
+               data-src="/img/{{Picture.Id}}?size=original" />
+     </a>
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
-     {{#if PreImageID }}
+     {{#if PreImagePath }}
           <div style="position: absolute; left:0px; top:0px; bottom: 0px; padding: 15px 15px 15px 30px;">
-               <a href="/photo/{{ PreImageID }}" style="color: white;" alt="Navigate to previous Image"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
+               <a href="{{ PreImagePath }}" style="color: white;" alt="Navigate to previous Image"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
           </div>
      {{/if}}
      <div class="container">
           <span style="font-size: 20px;">{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}</span>
      </div>
-     {{#if NextImageID }}
+     {{#if NextImagePath }}
           <div style="position: absolute; right:0px; top:0px; bottom: 0px; padding: 15px 30px 15px 15px;">
-               <a href="/photo/{{ NextImageID }}" style="color: white;" alt="Navigate to next Image" ><i class="fa-solid fa-chevron-right fa-2x"></i></a>
+               <a href="{{ NextImagePath }}" style="color: white;" alt="Navigate to next Image" ><i class="fa-solid fa-chevron-right fa-2x"></i></a>
           </div>
      {{/if}}
 </footer>
@@ -77,6 +78,8 @@
                </table>
           </div>
           <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.5.0/dist/lazyload.min.js"></script>
+          <script src="https://hammerjs.github.io/dist/hammer.js"></script>
+          <script src="/assets/js/fslightbox.js"></script>
           <script>
                window.onload = function () {
                     var customDate = document.getElementById('dateTaken').innerHTML;
@@ -86,9 +89,23 @@
 
                     document.addEventListener('keydown', (e) => {
                          switch(e.code){
-                              case "ArrowLeft": window.location = "{{ PreImageID }}"; break
-                              case "ArrowRight": window.location = "{{ NextImageID }}"; break
+                              case "ArrowLeft": window.location = "{{ PreImagePath }}"; break
+                              case "ArrowRight": window.location = "{{ NextImagePath }}"; break
                               default: return;
+                         }
+                    });
+                    
+                    var mc = new Hammer(document.body, {recognizers: [[Hammer.Pan, { direction: Hammer.DIRECTION_HORIZONTAL, pointers: 1, threshold: 10 }]]});
+                    mc.on("panleft panright", function(ev) {
+                         ev.preventDefault();
+                         if (ev.eventType !== Hammer.INPUT_MOVE) return;
+                         if (ev.pointerType == 'touch' && (Math.abs(ev.deltaX) <= Math.abs(ev.deltaY)+5)) return;
+                         if (ev.srcEvent.type !== 'pointercancel') {
+                              switch(ev.type){
+                                   case "panright": window.location = "{{ PreImagePath }}"; break
+                                   case "panleft": window.location = "{{ NextImagePath }}"; break
+                                   default: return;
+                              }
                          }
                     });
 
