@@ -53,7 +53,10 @@ func FindInAlbumStrcureById(ab Album, id string) Album {
 		return ab
 	}
 	for _, v := range ab.Children {
-		return FindInAlbumStrcureById(v, id)
+		a := FindInAlbumStrcureById(v, id)
+		if a.Id == id {
+			return a
+		}
 	}
 	return Album{}
 }
