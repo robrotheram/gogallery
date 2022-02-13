@@ -3,13 +3,6 @@ import axios from 'axios';
 import {config} from '../index';
 import {getOptions, notify} from './index';
 
-export const taskActions = {
-    purge,
-    rescan,
-    clear,
-    backup
-};
-
 function download(content, fileName, contentType) {
     var a = document.createElement("a");
     var file = new Blob([JSON.stringify(content,null,2)], {type: contentType});
@@ -55,3 +48,22 @@ function backup(){
         })
     };
 }
+
+function templateCacheClear(){
+    return dispatch => {
+        axios.get(config.baseUrl+"/tasks/clearTemplateCache",getOptions()).then(()=>{
+            notify("success", "Template Cache Cleared")
+        }).catch((err)=>{
+            notify("warning", "Error from server: "+err)
+        })
+    }
+}
+
+
+export const taskActions = {
+    purge,
+    rescan,
+    clear,
+    backup,
+    templateCacheClear
+};

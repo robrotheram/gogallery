@@ -51,6 +51,39 @@ Dashboard url `%GALLERY_PATH/dashboard`
 If you forget the admin password for any reason you can use the `gogallery --reset-admin` which will recrate the admin username and password
 
 
+## Themes
+
+Version 3.0 has support for users themes. The theme engine chosen is a version of handlebars  using the  https://github.com/mailgun/raymond rendering engine. It mainly inspired by themes written for the very popular blogging engine Ghost.io
+ 
+All Themes will need to have the following pages in order for the site to work:
+ - 404.hbs  
+ - albums.hbs 
+ - collections.hbs    
+ - main.hbs 
+ - photo.hbs
+
+Optionally you can have a  *"default.hbs"* to define common heading and footers 
+The engine has support for partials that can be stored in the subfolder partials and all other assests can be stored the assets folder. 
+
+See the example theme **eastnor** for reference
+
+### Caching 
+
+The server implements its own caching layer after the page has been visited it will cache the page in memory so next load of that page becomes very quick this can produce 10X improvement of load times. 
+
+The Cache gets invalidated if the server restarts or if you have made a change in the dashboard. 
+
+
+## Caption Generation (Experimental)
+
+There is support for automaitic caption generation of photos. To keep everything local we are using the Image Caption Generator from IBM https://github.com/IBM/MAX-Image-Caption-Generator From experiments this produces terrible captions and its being left in as a POC 
+
+To enable it simply run the docker container and add set the GLLRY_SERVER_CAPTIONURL to the above container IP it will be in form http://172.17.0.2:5000/model/predict"
+
+Now in the Dashboard when you edit the detail of a picture you will see a dropdown of some examples of what the caption generator through of the image. You can chose one or write your own.
+
+
+
 #### Configuration 
 Config can be also edited via environmental variables
  
@@ -58,6 +91,7 @@ Config can be also edited via environmental variables
 ```
 GLLRY_SERVER_PORT
 GLLRY_SERVER_WORKERS
+GLLRY_SERVER_CAPTIONURL
 
 GLLRY_DATABASE_BASEURL
 

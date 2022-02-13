@@ -2,6 +2,7 @@
 import axios from 'axios';
 import {getOptions, notify} from './index';
 import {config} from '../index';
+import { logout } from './user';
 
 export const photoActions = {
     getAll,
@@ -14,16 +15,12 @@ function getAll(){
         axios.get(config.baseUrl+"/photos", getOptions()).then((response)=>{
             console.log(response.data);
             dispatch(setPhotoDetails(response.data));
-        }).catch((err)=>{
-            
-            if(err === undefined){
-                return
-            }
-            console.log("Error reposes", err.response.status);
-            if (err.response.status === "401" ){
-                window.location.href = '/dashboard/login';
+        }).catch((error)=>{
+            console.log(error.response)
+            if (error.response.status === 401 ){
+                dispatch(logout());
             };
-            notify("warning", "Error from server: "+err)
+            notify("warning", "Error from server: "+error)
         })
     }
 
@@ -36,6 +33,9 @@ function edit(photo){
             notify("success", "Photo edited successfully")
             dispatch(getAll(response.data));
         }).catch((err)=>{
+            if (err.response.status === 401 ){
+                dispatch(logout());
+            };
             notify("warning", "Error from server: "+err)
         })
     }

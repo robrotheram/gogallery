@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ContainerOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Modal, Button, TreeSelect,Form } from 'antd';
 
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { collectionActions } from '../store/actions';
 
 const { confirm } = Modal;
@@ -10,16 +10,20 @@ const ButtonGroup = Button.Group;
 
 
 
-const MoveModal = (props) => {
+const MoveModal = ({selectedPhotos}) => {
   const [visible, setVisable] = useState(false)
   const [form] = Form.useForm();
+  const dispatch = useDispatch()
+
+  const { photos } = useSelector(state => state.PhotoReducer)
+  const {collections} = useSelector(state => state.CollectionsReducer);
 
   const showModal = () => {
     setVisable(true)
   };
 
   const handleCancel = () => {
-    setVisable(true)
+    setVisable(false)
   };
 
   const showDeleteConfirm = () =>{
@@ -30,8 +34,9 @@ const MoveModal = (props) => {
       okType: 'danger',
       cancelText: 'No',
       onOk() {
-        props.selectedPhotos.forEach(photo => {
-          props.dispatch(collectionActions.remove(photo.id))
+        selectedPhotos.forEach(pos => {
+          let photo = photos[pos]
+          dispatch(collectionActions.remove(photo.id))
         })
         
         console.log('OK');
@@ -44,9 +49,9 @@ const MoveModal = (props) => {
 
   const handleCreate = () => {
     form.validateFields().then(values => {
-      values["photos"] = props.selectedPhotos
+      values["photos"] = selectedPhotos.map(pos => photos[pos])
       console.log('Received values of Move form: ', values);
-      props.dispatch(collectionActions.move(values))
+      dispatch(collectionActions.move(values))
       setVisable(false)
     })
     .catch(err => {})
@@ -72,7 +77,7 @@ const MoveModal = (props) => {
             rules={[{ required: true, message: 'Please select the collection to upload photos to!' }]}
           >
               <TreeSelect
-                  treeData={props.collections}
+                  treeData={collections}
                   placeholder="Select Collection"
                 />
           </Form.Item>
@@ -82,16 +87,5 @@ const MoveModal = (props) => {
     );
 }
 
-const mapToProps = (state) =>{
-  const photos = state.PhotoReducer.photos;
-  const dates = state.CollectionsReducer.dates
-  const uploadDates = state.CollectionsReducer.uploadDates
-  const collections = state.CollectionsReducer.collections
-  return {
-    photos,
-    dates,
-    collections,
-    uploadDates
-  };
-}
-export default connect(mapToProps)(MoveModal)
+
+export default MoveModal

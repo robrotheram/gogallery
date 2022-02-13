@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { Form } from "antd"
 import { Input, Divider, Button, Tree, Row, Col, Select } from 'antd';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { collectionActions } from '../../store/actions';
 import {notify} from '../../store/actions';
 import {LocationModal} from '../Map'
@@ -30,11 +30,16 @@ const tailFormItemLayout = {
   },
 };
 
-const AlbumSettings = (props) => {
+const AlbumSettings = () => {
 
-  const [albumName, setAlbumName] = useState(props.albumName)
-  const [albumPic, setAlbumPic] = useState(props.albumPic)
+  const photos = useSelector(state =>state.PhotoReducer.photos);
+  const collections = useSelector(state =>state.CollectionsReducer.collections);
+  const dispatch = useDispatch();
+  
+  const [albumName, setAlbumName] = useState("")
+  const [albumPic, setAlbumPic] = useState("")
   const [albumID, setAlbumID] = useState("")
+  
   const [GPS, setGPS] = useState({
     latitude:0,
     longitude:0
@@ -58,7 +63,7 @@ const AlbumSettings = (props) => {
       notify("warning", "Please Select album")
       return;
     }
-    props.dispatch(collectionActions.update({
+    dispatch(collectionActions.update({
       id: albumID,
       name: albumName,
       profile_image: albumPic,
@@ -67,7 +72,7 @@ const AlbumSettings = (props) => {
   };
 
   const onTreeSelect = (selectedKeys, info) => {
-    let alb = findInTree(props.collections, selectedKeys[0])
+    let alb = findInTree(collections, selectedKeys[0])
     console.log("TREE_SELECT", alb, selectedKeys)
     if(alb === undefined){
       return
@@ -112,7 +117,7 @@ const AlbumSettings = (props) => {
   }
 
 
-  console.log("COLLECTIONS:", props.collections)
+  console.log("COLLECTIONS:", collections)
    return (
       <Row>
         <Col span={8} style={{"overflowY": "auto","maxHeight": "500px"}} >
@@ -121,7 +126,7 @@ const AlbumSettings = (props) => {
             defaultExpandedKeys={[]}
             blockNode
             onSelect={onTreeSelect}
-            treeData={props.collections}
+            treeData={collections}
           />
         </Col>
         <Col span={16} style={{"paddingLeft":"30px"}}>
@@ -137,10 +142,10 @@ const AlbumSettings = (props) => {
                 optionFilterProp="children"
                 onChange={onChange}
                 filterOption={(input, option) =>
-                  option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
               >
-              {props.photos.map((el, index) => (<Option key={el.id}>{el.name}</Option> ))}
+              {photos.map((el, index) => (<Option key={el.id}>{el.name}</Option> ))}
               </Select>
             </Form.Item>
             <Form.Item label="Location">
@@ -160,17 +165,4 @@ const AlbumSettings = (props) => {
     );
   }
 
-const mapToProps = (state) =>{
-  console.log("REG",state.UserReducer);
-  const auth = state.UserReducer;
-  const photos = state.PhotoReducer.photos;
-  const collections = state.CollectionsReducer.collections
-  return {
-    auth,
-    collections,
-    GPS:{},
-    photos
-  };
-}
-
-export default connect(mapToProps)(AlbumSettings);
+export default AlbumSettings;

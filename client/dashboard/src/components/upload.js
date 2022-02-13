@@ -5,22 +5,24 @@ import { Modal, TreeSelect } from 'antd';
 import {config} from "../store";
 import axios from "axios"
 import {notify} from '../store/actions';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {galleryActions, collectionActions, getOptions} from '../store/actions'
 import { useState } from 'react';
 
 import { Upload, message } from 'antd';
 const { Dragger } = Upload;
 
+const UploadCollection = () => {
+  const  {uploadModalVisable} = useSelector(state => state.GalleryReducer);
+  const {collections} = useSelector(state => state.CollectionsReducer)
 
-
-const UploadCollection = (props) => {
-  const {collections } = props;
   const [upload, setEnableUpload] = useState(false)
   const [files, setFiles] = useState([])
+  
   const [form] = Form.useForm();
+  const dispatch = useDispatch()
 
-  const enableUpload = (collection) =>{
+  const enableUpload = () =>{
     setEnableUpload(true);
   }
 
@@ -39,17 +41,18 @@ const UploadCollection = (props) => {
     })
   }
   const onCancel = () => {
-    props.dispatch(galleryActions.hideUpload())
+    dispatch(galleryActions.hideUpload())
   }
+
   const onCreate = () => {
     form.validateFields().then(values => {
       console.log('Received values of form: ', values);
       form.resetFields();
-      props.dispatch(collectionActions.upload({
+      dispatch(collectionActions.upload({
         album: values.select,
         photos: files
       }))
-      props.dispatch(galleryActions.hideUpload())
+      dispatch(galleryActions.hideUpload())
 
     }).catch(() => {
       notify("warning", "Invaild data, could not upload")
@@ -59,7 +62,7 @@ const UploadCollection = (props) => {
 
   return (
       <Modal
-        visible={props.uploadModalVisable}
+        visible={uploadModalVisable}
         title="Upload New Photos"
         okText="Upload"
         onCancel={onCancel}
@@ -100,45 +103,5 @@ const UploadCollection = (props) => {
       </Modal>
     );
 }
-
-// const ssUploadCollection = (props) => {
-//   const handleCancel = () => {
-//     props.dispatch(galleryActions.hideUpload())
-//   };
-
-//   const handleCreate = () => {
-    
-//     form.validateFields((err, values) => {
-//       if (err) {
-//         return;
-//       }
-//       console.log('Received values of form: ', values);
-//       form.resetFields();
-
-//       this.props.dispatch(collectionActions.upload({
-//         album: values.select,
-//         photos: values.photos.map(a => a.name)
-//       }))
-//       this.props.dispatch(galleryActions.hideUpload())
-//     });
-//   };
-
-
-//     return (
-//         <CollectionCreateForm
-//           visible={this.props.uploadModalVisable}
-//           onCancel={this.handleCancel}
-//           onCreate={this.handleCreate}
-//           collections ={this.props.collections}
-//         />
-//     );
-//   }
-
-
-const mapToProps = (state) =>{
-  const uploadModalVisable = state.GalleryReducer.uploadModalVisable;
-  const collections = state.CollectionsReducer.collections
-  return {uploadModalVisable, collections};
-}
-export default connect(mapToProps)(UploadCollection)
+export default UploadCollection
 

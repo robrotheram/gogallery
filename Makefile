@@ -20,19 +20,13 @@ dep:
 test:
 	cd server && $(GOTEST) -v ./...
 
-build: build-dashboard build-ui build-server
+build: build-dashboard build-server
 
 build-dashboard:
 	cd client/dashboard && yarn
 	cd client/dashboard && yarn run build
 	mkdir -p ui/dashboard
 	cp -r client/dashboard/build/* ui/dashboard/.
-
-build-ui:
-	cd client/frontend && yarn
-	cd client/frontend && yarn run build
-	mkdir -p ui/frontend
-	cp -r client/frontend/build/* ui/frontend/.
 
 build-server:
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v

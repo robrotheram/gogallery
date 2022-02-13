@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { history, config} from '../index';
+import { config} from '../index';
 import {getOptions, notify} from './index';
 export const userActions = {
     login,
@@ -9,7 +9,7 @@ export const userActions = {
     update
 };
 
-function login(username, password){
+function login(username, password, navigate){
     console.log('login: ', username);
     return dispatch => {
         let payload = {
@@ -24,8 +24,7 @@ function login(username, password){
                 localStorage.setItem('email', response.data.email);
                 localStorage.setItem('username', response.data.username);
                 dispatch(setUserDetails(response.data));
-                console.log("push history ");
-                history.push('/');
+                navigate('/');
             }else{
                 dispatch(logout())
             }
@@ -67,13 +66,13 @@ function reauth(){
     };
 }
 
-function logout(){
+export function logout(){
     return dispatch => {
         localStorage.removeItem('email');
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         dispatch(logoutUser());
-        history.push('/');
+       // history.push('/');
     }
 }
 

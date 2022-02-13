@@ -6,9 +6,9 @@ import { Row, Col } from 'antd';
 const Gallery = ({ images, imageSize,addElementRef,selectPhoto,getStyle, scrollPosition }) => (
     <Row gutter={[16, 16]}>
         {images.map((image, index) =>
-            <Col key={image.id} span={parseInt(imageSize)} style={{ padding: 2 }}>
+            <Col key={image.id} span={parseInt(imageSize)}>
                 <div
-                    ref={addElementRef}
+                    //ref={addElementRef}
                     className={`item`}
                 >
                     <figure className="galleryImg" style={getStyle(image.id)} onClick={(e) => selectPhoto(e, image)}>

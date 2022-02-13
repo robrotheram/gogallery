@@ -20,8 +20,9 @@ type DatabaseConfiguration struct {
 }
 
 type ServerConfiguration struct {
-	Port  string
-	Debug bool
+	Port       string
+	CaptionURL string
+	Debug      bool
 }
 
 type InstagramConfiguration struct {
@@ -58,7 +59,7 @@ type AboutConfiguration struct {
 	Website         string
 }
 
-var config = Configuration{}
+var Config = Configuration{}
 
 func LoadConfig() *Configuration {
 	viper.SetConfigName("config")
@@ -70,22 +71,22 @@ func LoadConfig() *Configuration {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
 	}
-	err := viper.Unmarshal(&config)
+	err := viper.Unmarshal(&Config)
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
-	return &config
+	return &Config
 }
 
 func (c *AboutConfiguration) Save() {
 	log.Println("Saving About Config")
 	viper.Set("about", c)
 	viper.WriteConfig()
-	config.About = *c
+	Config.About = *c
 }
 func (c *GalleryConfiguration) Save() {
 	log.Println("Saving Gallery Config")
 	viper.Set("gallery", c)
 	viper.WriteConfig()
-	config.Gallery = *c
+	Config.Gallery = *c
 }

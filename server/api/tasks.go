@@ -10,6 +10,8 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
+	templateengine "github.com/robrotheram/gogallery/templateEngine"
+	"github.com/robrotheram/gogallery/worker"
 )
 
 type backup struct {
@@ -25,13 +27,13 @@ var purgeTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Requ
 
 var rescanTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	go func() {
-		datastore.ScanPath(Config.Gallery.Basepath, &Config.Gallery)
+		worker.ScanPath(Config.Gallery.Basepath)
 	}()
 })
 
 var clearTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	log.Info(r.URL)
-	datastore.RemoveContents("cache")
+	worker.RemoveContents("cache")
 })
 
 var uploadTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -68,4 +70,8 @@ var backupTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Disposition", "attachment; filename=Gallery-Backup.json")
 	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 	json.NewEncoder(w).Encode(bk)
+})
+
+var templateInvalidateHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	templateengine.InvalidCache()
 })

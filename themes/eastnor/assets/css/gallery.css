@@ -1,0 +1,120 @@
+picture {
+  display: block;
+  position: relative;
+  padding-top: 75%;
+}
+
+picture > img, picture > a > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  width: 100%;
+  object-fit: cover;
+
+  -webkit-transition: 0.3s -webkit-filter linear;
+  -moz-transition: 0.3s -moz-filter linear;
+  -moz-transition: 0.3s filter linear;
+  -ms-transition: 0.3s -ms-filter linear;
+  -o-transition: 0.3s -o-filter linear;
+  transition: 0.3s filter linear, 0.3s -webkit-filter linear;
+}
+
+picture > img:hover, picture > a > img:hover {
+  filter: brightness(50%);
+}
+
+img {
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+
+.photoWrapper{
+  width: 100%; 
+  height: calc(100vh - 9rem); 
+  padding:20px 20px 20px 20px; 
+  background-color: #343a40;
+  margin-top:-20px;
+}
+
+
+.navbar-brand {
+    position: absolute;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    top: 22px
+}
+
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: red;
+    color: white;
+    text-align: center;
+  }
+
+
+  .card {
+    margin-bottom: 20px;
+    text-decoration: none;
+  }
+
+  header {
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      z-index: 999;
+  }
+
+  main {
+    margin-top: 110px;
+    margin-bottom: 20px;
+  }
+
+
+@media only screen and (max-width: 1024px) {
+    .navbar-brand > span {
+        display: none;
+    }
+    .navbar-brand {
+        top: 14px
+    }
+    .nav-item {
+      text-align: center;
+    }
+    .footer {
+        position: relative;
+    }
+    header {
+        position: relative;
+    }
+    main {
+      margin-top: 20px;
+    }
+    .icon-nav{
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photoWrapper{
+      height: calc(100vh - 9rem); 
+      padding:10px; 
+    }
+    
+}
+
+
+
+
+
+
+
+
+  
