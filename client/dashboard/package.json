@@ -24,7 +24,7 @@
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.6.0",
     "moment": "^2.27.0",
-    "node-sass": "^6",
+    "node-sass": "^7",
     "react": "^17.0.2",
     "react-bootstrap": "^2.0.2",
     "react-dom": "^17.0.2",
