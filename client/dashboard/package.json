@@ -23,7 +23,7 @@
     "less-loader": "^10.2.0",
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.6.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "node-sass": "^7",
     "react": "^17.0.2",
     "react-bootstrap": "^2.0.2",
