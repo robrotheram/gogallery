@@ -28,6 +28,7 @@ const UploadCollection = () => {
 
   const customRequest = (options ) => {
     const data= new FormData()
+    console.log("FILE UPLOAD", options);
     data.append('file', options.file)
     let config = getOptions();
     config.headers["content-type"] = 'multipart/form-data; boundary=----WebKitFormBoundaryqTqJIxvkWFYqvP5s';
@@ -35,7 +36,7 @@ const UploadCollection = () => {
     axios.post(options.action, data, config).then((res) => {
       options.onSuccess(res.data, options.file)
       message.success(`${options.file.name} file uploaded successfully.`);
-      setFiles([...files, options.file.name])
+      setFiles(files => [...files, options.file.name]);
     }).catch(() => {
       message.error(`${options.file.name} file upload failed.`);
     })
@@ -46,7 +47,7 @@ const UploadCollection = () => {
 
   const onCreate = () => {
     form.validateFields().then(values => {
-      console.log('Received values of form: ', values);
+      console.log('Received values of form: ', values, files);
       form.resetFields();
       dispatch(collectionActions.upload({
         album: values.select,

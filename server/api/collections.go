@@ -73,9 +73,14 @@ var updateCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 var createCollectionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var album datastore.Album
 	_ = json.NewDecoder(r.Body).Decode(&album)
-	newAlbum, _ := datastore.GetAlbumByID(album.Id)
 
-	path := fmt.Sprintf("%s/%s/%s", newAlbum.ParenetPath, newAlbum.Name, album.Name)
+	path := ""
+	if album.Id != "" {
+		newAlbum, _ := datastore.GetAlbumByID(album.Id)
+		path = fmt.Sprintf("%s/%s/%s", newAlbum.ParenetPath, newAlbum.Name, album.Name)
+	} else {
+		path = fmt.Sprintf("%s/%s", Config.Gallery.Basepath, album.Name)
+	}
 
 	album.Id = config.GetMD5Hash(path)
 	album.ParenetPath = filepath.Dir(path)

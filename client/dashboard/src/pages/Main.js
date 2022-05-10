@@ -187,7 +187,7 @@ const Main = () => {
             >
               <li className="menu-tree">
                 <DirectoryTree
-                  draggable
+                  //draggable
                   blockNode
                   onSelect={onTreeSelect}
                   treeData={collections}

@@ -59,6 +59,7 @@ var deletePhotoHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		return
 	}
 	err = picture.Delete()
+	err = datastore.Cache.DB.DeleteStruct(&picture)
 	if err != nil {
 		NewAPIError(err).HandleError(w)
 		return

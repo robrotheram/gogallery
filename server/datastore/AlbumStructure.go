@@ -11,6 +11,19 @@ import (
 
 type AlbumStrcure = map[string]Album
 
+func Sort(as AlbumStrcure) AlbumStrcure {
+	keys := make([]string, 0, len(as))
+	for k := range as {
+		keys = append(keys, k)
+	}
+	data := make(map[string]Album)
+	sort.Strings(keys)
+	for _, k := range keys {
+		data[k] = as[k]
+	}
+	return data
+}
+
 func SliceToTree(albms []Album, basepath string) AlbumStrcure {
 	newalbms := make(map[string]Album)
 	sort.Slice(albms, func(i, j int) bool {

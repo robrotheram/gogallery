@@ -1,21 +1,25 @@
 import React from 'react';
 import { Modal, Input, TreeSelect, Form } from 'antd';
 import {galleryActions, collectionActions} from '../store/actions'
+import { useDispatch, useSelector } from 'react-redux';
 
+const AddCollection = () => {
+  const  {addCollectionModalVisable} = useSelector(state => state.GalleryReducer);
+  const {collections} = useSelector(state => state.CollectionsReducer)
 
-const AddCollection = (props) => {
   const [form] = Form.useForm();
+  const dispatch = useDispatch()
 
   const handleCancel = () => {
-    props.dispatch(galleryActions.hideAdd())
+    dispatch(galleryActions.hideAdd())
   };
 
   const handleCreate = () => {    
     form.validateFields().then(values => {
         console.log('Received values of form: ', values);
         form.resetFields();
-        props.dispatch(collectionActions.create(values))
-        props.dispatch(galleryActions.hideAdd())
+        dispatch(collectionActions.create(values))
+        dispatch(galleryActions.hideAdd())
     })
     .catch(err => {
         console.log("error:",err)
@@ -24,16 +28,16 @@ const AddCollection = (props) => {
   
   return (
     <Modal
-      visible={props.addCollectionModalVisable}
+      visible={addCollectionModalVisable}
       title="Create a new collection"
       okText="Create"
       onCancel={handleCancel}
       onOk={handleCreate}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Choose collection" hasFeedback name="id" rules={[{ required: true, message: 'Please select the collection to upload photos to!' }]}>
+        <Form.Item label="Choose collection" hasFeedback name="id" rules={[{ required: false, message: 'Please select the collection to upload photos to!' }]}>
               <TreeSelect
-                  treeData={props.collections}
+                  treeData={collections}
                   placeholder="Select Collection"
                   //onChange={enableUpload}
                 />

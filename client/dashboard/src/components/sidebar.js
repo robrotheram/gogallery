@@ -47,7 +47,7 @@ const SideBar = ({ photo }) => {
     if (photo) {
       console.log("Photo Update")
       setData(photo)
-      getCaptionList()
+      //getCaptionList()
       form.setFieldsValue(photo)
     } else {
       setData({})
@@ -59,8 +59,8 @@ const SideBar = ({ photo }) => {
       latitude: lat,
       longitude: lng
     }
-    setData(data)
-    editPhoto();
+    console.log("UPDATE GPS", data)
+    dispatch(photoActions.edit(data))
   }
 
   const formItemLayout = {

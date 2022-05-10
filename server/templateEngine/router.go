@@ -19,7 +19,7 @@ func RenderIndex(w http.ResponseWriter, r *http.Request) {
 	page := NewPage(r)
 	images := datastore.GetFilteredPictures(false)
 	page.Images = images
-	page.Albums = datastore.GetAlbumStructure(page.Settings)
+	page.Albums = datastore.Sort(datastore.GetAlbumStructure(page.Settings))
 	if len(images) > 0 {
 		page.SEO.SetImage(images[0])
 	}
@@ -28,7 +28,7 @@ func RenderIndex(w http.ResponseWriter, r *http.Request) {
 
 func RenderAlbums(w http.ResponseWriter, r *http.Request) {
 	page := NewPage(r)
-	page.Albums = datastore.GetAlbumStructure(page.Settings)
+	page.Albums = datastore.Sort(datastore.GetAlbumStructure(page.Settings))
 	w.Write([]byte(Templates.RenderPage(AlbumTemplate, page)))
 }
 
