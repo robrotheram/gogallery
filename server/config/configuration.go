@@ -126,7 +126,7 @@ func (c *Configuration) Validate() {
 		log.Panic("path to images does not exist")
 		os.Exit(1)
 	}
-	if !c.FileExists(c.Gallery.Theme) {
+	if !c.FileExists(c.Gallery.Theme) || c.Gallery.Theme != "default" {
 		log.Panic("path to theme does not exist")
 	}
 }

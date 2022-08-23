@@ -15,12 +15,15 @@ var serveCMD = &cobra.Command{
 	Use:   "serve",
 	Short: "serve static site",
 	Long:  "serve static site",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
+
 		config := config.LoadConfig()
 		datastore.Cache = &datastore.DataStore{}
 		datastore.Cache.Open(config.Gallery.Basepath)
 		defer datastore.Cache.Close()
+		if len(args) == 1 {
+			config.Server.Port = ":" + args[0]
+		}
 		serve.Serve(config)
-		return nil
 	},
 }

@@ -2,14 +2,15 @@ package serve
 
 import (
 	"fmt"
-	"html/template"
+	"io"
+	"log"
+	"mime"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/robrotheram/gogallery/datastore"
+	"github.com/robrotheram/gogallery/embeds"
 )
 
 // spaHandler implements the http.Handler interface, so we can use it
@@ -17,85 +18,43 @@ import (
 // path to the index file within that static directory are used to
 // serve the SPA in the given static directory.
 type spaHandler struct {
-	staticPath    string
-	indexTemplate *template.Template
+	staticPath string
 }
 
-// ServeHTTP inspects the URL path to locate a file within the static dir
-// on the SPA handler. If a file is found, it will be served. If not, the
-// file located at the index path on the SPA handler will be served. This
-// is suitable behavior for serving an SPA (single page application).
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// get the absolute path to prevent directory traversal
-	w.Header().Set("Cache-Control", "max-age=2592000")
-	path, err := filepath.Abs(r.URL.Path)
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	path := filepath.Clean(r.URL.Path)
+	if path == "/" || !strings.HasPrefix(path, "/static/") { // Add other paths that you route on the UI side here
+		path = "/index.html"
+	}
+	path = strings.TrimPrefix(path, "/")
+	file, err := embeds.DashboardFS(path)
 	if err != nil {
-		// if we failed to get the absolute path respond with a 400 bad request
-		// and stop
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	path = filepath.Join(h.staticPath, path)
-
-	// check whether a file exists at the given path
-	_, err = os.Stat(path)
-	if os.IsNotExist(err) || path == h.staticPath {
-		//if os.IsNotExist(err) {
-		// file does not exist, serve index.html+
-		h.indexTemplate.Execute(w, getTemplateData(r.Host, r.URL))
-		// index, _ := h.staticPath.Find(h.indexPath)
-		// w.Write(index)
-		return
-	} else if err != nil {
-		// if we got an error (that wasn't that the file doesn't exist) stating the
-		// file, return a 500 internal server error and stop
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	// otherwise, use http.FileServer to serve the static dir
-	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
-}
-
-type M map[string]interface{}
-
-func getTemplateData(host string, url *url.URL) map[string]interface{} {
-	model := M{
-		"name":        "Config.Gallery.Name",
-		"site":        cleanURL(host, url),
-		"description": "Config.About.Description",
-		"imageWidth":  1024,
-		"imageHeight": 683,
-	}
-	urls := strings.Split(url.String(), "/")
-	if len(urls) >= 3 {
-		switch gtype := urls[1]; gtype {
-		case "photo":
-			model["socialImage"] = photoImgURL(host, urls[2])
-		case "album":
-			model["socialImage"] = albumImgURL(host, urls[2])
-		default:
-			model["socialImage"] = defaultImgURL(host)
+		if os.IsNotExist(err) {
+			log.Println("file", path, "not found:", err)
+			http.NotFound(w, r)
+			return
 		}
-	} else {
-		model["socialImage"] = defaultImgURL(host)
+		log.Println("file", path, "cannot be read:", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-	return model
-}
 
-func cleanURL(host string, url *url.URL) string {
-	return fmt.Sprintf("https://%s%s", host, url.Path)
-}
-func albumImgURL(host string, id string) string {
-	var album datastore.Album
-	datastore.Cache.DB.One("Id", id, &album)
-	return fmt.Sprintf("https://%s/img/%s", host, album.ProfileID)
-}
-func photoImgURL(host string, id string) string {
-	var photo datastore.Picture
-	datastore.Cache.DB.One("Id", id, &photo)
-	return fmt.Sprintf("https://%s/img/%s", host, photo.Id)
-}
-func defaultImgURL(host string) string {
-	return fmt.Sprintf("Config.About.BackgroundPhoto")
+	contentType := mime.TypeByExtension(filepath.Ext(path))
+	w.Header().Set("Content-Type", contentType)
+	if strings.HasPrefix(path, "static/") {
+		w.Header().Set("Cache-Control", "public, max-age=31536000")
+	}
+	stat, err := file.Stat()
+	if err == nil && stat.Size() > 0 {
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
+	}
+
+	n, _ := io.Copy(w, file)
+	log.Println("file", path, "copied", n, "bytes")
+
 }

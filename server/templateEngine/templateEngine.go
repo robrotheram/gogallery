@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mailgun/raymond/v2"
+	"github.com/robrotheram/gogallery/embeds"
 )
 
 type TemplateEngine struct {
@@ -79,6 +80,12 @@ func (te *TemplateEngine) loadPartials(tpl *raymond.Template) {
 }
 
 func (te *TemplateEngine) Load(templatePath string) error {
+
+	if templatePath == "default" {
+		templatePath = "/tmp/gogallery/theme"
+		embeds.CopyTheme(templatePath)
+	}
+
 	//find all partial sorce
 	err := te.walk(templatePath)
 	if err != nil {
