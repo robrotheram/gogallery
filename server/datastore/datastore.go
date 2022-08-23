@@ -1,9 +1,9 @@
 package datastore
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ahmdrz/goinsta/v2"
@@ -15,11 +15,10 @@ type DataStore struct {
 }
 
 var Cache *DataStore
-var dbVer = "1.0"
 
 func (d *DataStore) Open(dbPath string) {
 	os.MkdirAll(dbPath, os.ModePerm)
-	path := fmt.Sprintf("%sgogallery-V%s.db", dbPath, dbVer)
+	path := filepath.Join(dbPath, "gogallery.db")
 	db, err := storm.Open(path)
 	if err != nil {
 		log.Fatalf("Unable to open db at: %s \n Error: %v", path, err)

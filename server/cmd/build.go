@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	"github.com/robrotheram/gogallery/pipeline"
@@ -19,24 +21,16 @@ var buildCMD = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		config := config.LoadConfig()
+		config.Validate()
 		datastore.Cache = &datastore.DataStore{}
-		datastore.Cache.Open(config.Database.Baseurl)
+		datastore.Cache.Open(config.Gallery.Basepath)
 		defer datastore.Cache.Close()
 
 		worker.ScanPath(config.Gallery.Basepath)
-		render := pipeline.NewRenderPipeline()
-		// bar := progressbar.NewOptions(10,
-		// 	progressbar.OptionEnableColorCodes(true),
-		// 	progressbar.OptionShowBytes(false),
-		// 	progressbar.OptionFullWidth(),
-		// 	progressbar.OptionSetPredictTime(true),
-		// 	progressbar.OptionSetElapsedTime(true),
-		// 	progressbar.OptionOnCompletion(func() {
-		// 		fmt.Printf("\n")
-		// 	}))
-		// bar.Describe("Building Site")
+		log.Println("Building Site at: " + config.Gallery.Destpath)
+		render := pipeline.NewRenderPipeline(config.Gallery.Destpath)
 		render.BuildSite()
-		//bar.Finish()
+		log.Println("Building Complete")
 		return nil
 	},
 }

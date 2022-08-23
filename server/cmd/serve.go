@@ -18,7 +18,7 @@ var serveCMD = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config := config.LoadConfig()
 		datastore.Cache = &datastore.DataStore{}
-		datastore.Cache.Open(config.Database.Baseurl)
+		datastore.Cache.Open(config.Gallery.Basepath)
 		defer datastore.Cache.Close()
 		serve.Serve(config)
 		return nil

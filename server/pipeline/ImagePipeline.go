@@ -9,8 +9,6 @@ import (
 	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
-var imgDir = filepath.Join(root, "img")
-
 func ImageGenV2(pic datastore.Picture) error {
 	destPath := filepath.Join(imgDir, pic.Id)
 	os.MkdirAll(destPath, os.ModePerm)

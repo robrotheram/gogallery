@@ -2,11 +2,16 @@ package pipeline
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/robrotheram/gogallery/datastore"
 )
 
-var root = "/home/robertfletcher/workspace/site"
+var root = ""
+var imgDir string
+var photoDir string
+var albumsDir string
+var albumDir string
 
 type RenderPipeline struct {
 	AlbumRender *BatchProcessing[datastore.Album]
@@ -14,7 +19,13 @@ type RenderPipeline struct {
 	ImageRender *BatchProcessing[datastore.Picture]
 }
 
-func NewRenderPipeline() *RenderPipeline {
+func NewRenderPipeline(dest string) *RenderPipeline {
+	root = dest
+	imgDir = filepath.Join(root, "img")
+	photoDir = filepath.Join(root, "photo")
+	albumsDir = filepath.Join(root, "albums")
+	albumDir = filepath.Join(root, "album")
+
 	render := RenderPipeline{}
 	render.AlbumRender = NewBatchProcessing(renderAlbumTemplate)
 	render.PageRender = NewBatchProcessing(renderPhotoTemplate)

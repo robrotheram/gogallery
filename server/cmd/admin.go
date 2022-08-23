@@ -15,9 +15,9 @@ var adminCMD = &cobra.Command{
 	Short: "reset admin password",
 	Long:  "reset admin password",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config.Config = config.LoadConfig()
+		config := config.LoadConfig()
 		datastore.Cache = &datastore.DataStore{}
-		datastore.Cache.Open(config.Config.Database.Baseurl)
+		datastore.Cache.Open(config.Gallery.Basepath)
 		defer datastore.Cache.Close()
 		datastore.CreateDefaultUser()
 		return nil

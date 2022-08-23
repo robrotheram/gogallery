@@ -10,8 +10,6 @@ import (
 	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
-var albumsDir = filepath.Join(root, "albums")
-
 func renderIndex() {
 	f, _ := os.Create(filepath.Join(root, "index.html"))
 	w := bufio.NewWriter(f)

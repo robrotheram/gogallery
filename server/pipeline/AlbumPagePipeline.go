@@ -11,8 +11,6 @@ import (
 	templateengine "github.com/robrotheram/gogallery/templateEngine"
 )
 
-var albumDir = filepath.Join(root, "album")
-
 func renderAlbumTemplate(alb datastore.Album) error {
 	alb_path := filepath.Join(albumDir, slug.Make(alb.Id))
 	os.MkdirAll(alb_path, os.ModePerm)
