@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dsoprea/go-exif/v3"
-	exifcommon "github.com/dsoprea/go-exif/v3/common"
+	"github.com/evanoberholster/imagemeta"
 	"github.com/robrotheram/gogallery/config"
 )
 
@@ -18,6 +17,7 @@ type Picture struct {
 	Name       string      `json:"name"`
 	Caption    string      `json:"caption"`
 	Path       string      `json:"path,omitempty"`
+	Ext        string      `json:"extention,omitempty"`
 	FormatTime string      `json:"format_time"`
 	Album      string      `json:"album"`
 	AlbumName  string      `json:"album_name"`
@@ -63,42 +63,46 @@ func (picture *Picture) Delete() error {
 }
 
 func (u *Picture) CreateExif() error {
-	raw, err := GetRawExif(u.Path)
+	f, _ := os.Open(u.Path)
+	defer f.Close()
+	u.Exif = Exif{}
+
+	m, err := imagemeta.Parse(f)
 	if err != nil {
 		return err
 	}
-	exifData := GetExifTags(raw)
-
-	u.Exif = Exif{
-		FStop:        fnumber(exifData["FNumber"]),
-		FocalLength:  fnumber(exifData["FocalLength"]),
-		ShutterSpeed: exifData["ExposureTime"],
-		ISO:          exifData["ISOSpeedRatings"],
-		Dimension:    fmt.Sprintf("%sx%s", exifData["PixelXDimension"], exifData["PixelYDimension"]),
-		Camera:       exifData["ISOSpeedRatings"],
-		LensModel:    exifData["ISOSpeedRatings"],
-		DateTaken:    convertTime(exifData["DateTime"]),
-		GPS:          GPS{},
+	exif, err := m.Exif()
+	if err != nil {
+		return err
 	}
 
-	var exifIfdMapping *exifcommon.IfdMapping
-	var exifTagIndex = exif.NewTagIndex()
-
-	exifIfdMapping = exifcommon.NewIfdMapping()
-
-	if err := exifcommon.LoadStandardIfds(exifIfdMapping); err != nil {
-		fmt.Printf("metadata: %s \n", err.Error())
+	if a, err := exif.Aperture(); err == nil {
+		u.Exif.FStop = float64(a)
+	}
+	if a, err := exif.FocalLength(); err == nil {
+		u.Exif.FocalLength = float64(a)
+	}
+	if a, err := exif.ShutterSpeed(); err == nil {
+		u.Exif.ShutterSpeed = fmt.Sprintf("%d/%d", a[0], a[1])
+	}
+	if a, err := exif.ISOSpeed(); err == nil {
+		u.Exif.ISO = fmt.Sprint(a)
+	}
+	if a := exif.CameraModel(); a != "" {
+		u.Exif.Camera = a
+	}
+	if a, err := exif.LensModel(); err == nil {
+		u.Exif.LensModel = a
+	}
+	if a, err := exif.DateTime(nil); err == nil {
+		u.Exif.DateTaken = a
 	}
 
-	_, index, err := exif.Collect(exifIfdMapping, exifTagIndex, raw)
-
-	if err == nil {
-		if ifd, err := index.RootIfd.ChildWithIfdPath(exifcommon.IfdGpsInfoStandardIfdIdentity); err == nil {
-			if gi, err := ifd.GpsInfo(); err == nil {
-				u.Exif.GPS.Lat = float64(gi.Latitude.Decimal())
-				u.Exif.GPS.Lng = float64(gi.Longitude.Decimal())
-				//u.Exif.GPS.Altitude = gi.Altitude
-			}
+	lat, long, err := exif.GPSCoords()
+	if err != nil {
+		u.Exif.GPS = GPS{
+			Lat: lat,
+			Lng: long,
 		}
 	}
 	return nil
@@ -153,6 +157,7 @@ func GetFilteredPictures(admin bool) []Picture {
 				FormatTime: pic.Exif.DateTaken.Format("01-02-2006 15:04:05"),
 				Exif:       pic.Exif,
 				Meta:       pic.Meta,
+				Ext:        pic.Ext,
 			}
 			filterPics = append(filterPics, cleanpic)
 		}
@@ -176,6 +181,19 @@ func GetLatestPhotoDate() time.Time {
 		}
 	}
 	return latests
+}
+
+func GetLatestAlbumId() string {
+	pics := GetPictures()
+	latests := pics[0].Exif.DateTaken
+	album := pics[0].Album
+	for _, p := range pics {
+		if p.Exif.DateTaken.After(latests) {
+			latests = p.Exif.DateTaken
+			album = p.Album
+		}
+	}
+	return album
 }
 
 func GetPhotosByDate(yourDate time.Time) []Picture {

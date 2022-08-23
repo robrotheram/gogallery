@@ -1,4 +1,4 @@
-package api
+package serve
 
 import (
 	"io/ioutil"
@@ -23,7 +23,7 @@ func MakeStats() Stats {
 	datastore.Cache.DB.All(&albms)
 	s.Photos = len(pics)
 	s.Albums = len(albms)
-	files, _ := ioutil.ReadDir(Config.Gallery.Basepath + "/rubish")
+	files, _ := ioutil.ReadDir(config.Config.Gallery.Basepath + "/rubish")
 	s.Rubish = len(files)
 	return s
 }

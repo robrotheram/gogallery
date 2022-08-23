@@ -1,6 +1,7 @@
 package templateengine
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,7 +16,7 @@ func RenderPhotoHandle(w http.ResponseWriter, r *http.Request) {
 	RenderPhoto(w, id, images, page)
 }
 
-func RenderPhoto(w http.ResponseWriter, picID string, images []datastore.Picture, page Page) {
+func RenderPhoto(w io.Writer, picID string, images []datastore.Picture, page Page) {
 	pic, err := datastore.GetPictureByID(picID)
 	if err != nil {
 		w.Write([]byte(Templates.RenderPage("404", Page{})))

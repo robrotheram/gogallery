@@ -130,6 +130,7 @@ func depricatedRedirect(path string) func(http.ResponseWriter, *http.Request) {
 }
 
 func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
+	fmt.Println("THEME PATH: " + config.Gallery.Theme)
 	fs := http.FileServer(http.Dir(config.Gallery.Theme + "/assets/"))
 	err := Templates.Load(config.Gallery.Theme)
 	if err != nil {

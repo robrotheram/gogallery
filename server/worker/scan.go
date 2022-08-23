@@ -16,6 +16,8 @@ var validExtension = []string{"jpg", "png", "gif"}
 var IsScanning bool
 var gConfig = config.Config.Gallery
 
+//var ImagePipeline = pipeline.NewImageRenderPipeline()
+
 // FileInfo is a struct created from os.FileInfo interface for serialization.
 type FileInfo struct {
 	Name    string      `json:"name"`
@@ -76,7 +78,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func ScanPath(path string) (map[string]*Node, error) {
+func ScanPath(path string) error {
 	rubishPath := fmt.Sprintf("%s/%s", gConfig.Basepath, "rubish")
 	if _, err := os.Stat(rubishPath); os.IsNotExist(err) {
 		os.Mkdir(rubishPath, 0755)
@@ -90,9 +92,8 @@ func ScanPath(path string) (map[string]*Node, error) {
 
 	absRoot, err := filepath.Abs(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	parents := make(map[string]*Node)
 	walkFunc := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -105,6 +106,7 @@ func ScanPath(path string) (map[string]*Node, error) {
 					Id:       config.GetMD5Hash(path),
 					Name:     picName,
 					Path:     path,
+					Ext:      filepath.Ext(path),
 					Album:    config.GetMD5Hash(filepath.Dir(path)),
 					Exif:     datastore.Exif{},
 					RootPath: gConfig.Basepath,
@@ -118,7 +120,6 @@ func ScanPath(path string) (map[string]*Node, error) {
 					p.Save()
 				}
 				datastore.Cache.DB.UpdateField(&datastore.Album{Id: config.GetMD5Hash(filepath.Dir(path))}, "ProfileID", p.Id)
-				SendToThumbnail(p)
 			}
 		}
 
@@ -143,26 +144,5 @@ func ScanPath(path string) (map[string]*Node, error) {
 	err = filepath.Walk(absRoot, walkFunc)
 	log.Println("Scanning Complete")
 	IsScanning = false
-	return parents, err
-}
-
-func NewTree(path string) (result *Node, err error) {
-	var root = &Node{}
-	paths, err := ScanPath(path)
-	if err != nil {
-		return nil, err
-	}
-	for path, node := range paths {
-		parentPath := filepath.Dir(path)
-		parent, exists := paths[parentPath]
-		if !exists { // If a parent does not exist, this is the root.
-			root = node
-		} else {
-			node.Parent = parent
-			parent.Children = append(parent.Children, node)
-
-		}
-	}
-	//GalleryCache.AddAlbum()
-	return root, nil
+	return err
 }

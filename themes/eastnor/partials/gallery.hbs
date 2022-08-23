@@ -3,8 +3,21 @@
     {{#each Images}}
     <div class="col-sm-12 col-md-6 col-lg-3">
         <picture>
-            <a href="photo/{{this.id}}">
-                <img loading=lazy src="/img/{{this.id}}" width="100%" alt="{{this.name}}" class="img-fluid rounded">
+            <a href="/photo/{{this.id}}">
+                <img loading=lazy  width="100%" alt="{{this.name}}" 
+                src="/img/{{this.id}}/xlarge.webp" 
+                srcset="
+                    {{#each ImgSizes}}
+                    /img/{{this.id}}/{{@key}}.webp {{this}}w,
+                    {{/each}}
+                "
+                sizes="
+                    (min-width: 1200px) 640px,
+                    (min-width: 960px) 350px,
+                    (min-width: 750px) 1024px, 
+                    1600px
+                "
+                class="img-fluid rounded"/>
             </a>
         </picture>
     </div>

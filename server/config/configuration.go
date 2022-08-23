@@ -59,11 +59,9 @@ type AboutConfiguration struct {
 	Website         string
 }
 
-var Config = Configuration{}
+var Config = &Configuration{}
 
 func LoadConfig() *Configuration {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
 	viper.SetEnvPrefix("GLLRY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
@@ -75,7 +73,7 @@ func LoadConfig() *Configuration {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
-	return &Config
+	return Config
 }
 
 func (c *AboutConfiguration) Save() {

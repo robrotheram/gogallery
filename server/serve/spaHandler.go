@@ -1,4 +1,4 @@
-package main
+package serve
 
 import (
 	"fmt"
@@ -61,9 +61,9 @@ type M map[string]interface{}
 
 func getTemplateData(host string, url *url.URL) map[string]interface{} {
 	model := M{
-		"name":        Config.Gallery.Name,
+		"name":        "Config.Gallery.Name",
 		"site":        cleanURL(host, url),
-		"description": Config.About.Description,
+		"description": "Config.About.Description",
 		"imageWidth":  1024,
 		"imageHeight": 683,
 	}
@@ -97,5 +97,5 @@ func photoImgURL(host string, id string) string {
 	return fmt.Sprintf("https://%s/img/%s", host, photo.Id)
 }
 func defaultImgURL(host string) string {
-	return fmt.Sprintf(Config.About.BackgroundPhoto)
+	return fmt.Sprintf("Config.About.BackgroundPhoto")
 }

@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/robrotheram/gogallery/config"
@@ -36,7 +37,7 @@ func CreateDefaultUser() {
 		Password: HashAndSalt(pasword),
 		Email:    "admin@admin.com"}
 	Cache.DB.Save(&user)
-	log.Printf("New Admin account created! \n Account details: \n username: %s \n password: %s \n", user.Username, pasword)
+	fmt.Printf("Account details: \n username: %s \n password: %s \n", user.Username, pasword)
 }
 
 func HashAndSalt(plainPwd string) string {

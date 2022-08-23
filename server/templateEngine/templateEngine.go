@@ -24,7 +24,6 @@ var Templates = NewTemplateEgine()
 
 func (te *TemplateEngine) loadPartialSrc(filePath string) error {
 	name := fileNameFromPath(filePath)
-	fmt.Println(name, filePath, "LOADING partials")
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
@@ -58,12 +57,11 @@ func (te *TemplateEngine) walk(root string) error {
 
 			root = strings.Replace(root, "./", "", -1)
 			pattern := root + string(filepath.Separator) + "*"
-			matched, err := filepath.Match(pattern, path)
+			matched, _ := filepath.Match(pattern, path)
 			subpath := strings.Replace(path, root+"/", "", -1)
 
 			if matched {
 				if fileNameFromPath(path) != "default" {
-					fmt.Println(path, "LOADING PAGE")
 					te.loadPageSrc(fileNameFromPath(path), path)
 				}
 			} else if strings.HasPrefix(subpath, "partials") {
@@ -98,7 +96,7 @@ func (te *TemplateEngine) Load(templatePath string) error {
 
 	//Check and load base template
 	basePath := templatePath + "/default.hbs"
-	if fileExists(basePath) {
+	if FileExists(basePath) {
 		data, err := os.ReadFile(basePath)
 		if err != nil {
 			return nil
@@ -108,7 +106,6 @@ func (te *TemplateEngine) Load(templatePath string) error {
 			return err
 		}
 		te.loadPartials(te.Base)
-		fmt.Println("LOADING BASE")
 	}
 	return nil
 }
@@ -124,9 +121,8 @@ func (te *TemplateEngine) ListPages() []string {
 }
 
 func (te *TemplateEngine) RenderPage(pageName string, data Page) string {
-	if data.pagePath != "" {
-		if val, ok := te.Cache[data.pagePath]; ok {
-			fmt.Println("Using Cache: " + data.pagePath)
+	if data.PagePath != "" {
+		if val, ok := te.Cache[data.PagePath]; ok {
 			return val
 		}
 	}
@@ -138,7 +134,7 @@ func (te *TemplateEngine) RenderPage(pageName string, data Page) string {
 	}
 	data.Body = body
 	output := te.Base.MustExec(data)
-	te.Cache[data.pagePath] = output
+	te.Cache[data.PagePath] = output
 
 	return output
 }
