@@ -13,3 +13,8 @@ jobs:
           
     - name: Install dependencies
       run: make build
+      
+    - uses: actions/upload-artifact@v3
+      with:
+        name: gogallery
+        path: gogallery
