@@ -1,18 +1,24 @@
 <div id="lightgallery" class="photoWrapper">
-     <a data-fslightbox href="/img/{{Picture.Id}}?size=original"> 
+     <a data-fslightbox href="/img/{{Picture.Id}}/original{{Picture.Ext}}"> 
           <img 
                style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
-               src='/img/{{Picture.Id}}' 
+               src="/img/{{Picture.id}}/xlarge.webp" 
+               srcset="
+                    {{#each ImgSizes}}
+                    /img/{{Picture.id}}/{{@key}}.webp {{this}}w,
+                    {{/each}}
+               "
+               
                class="img-fluid rounded lazy" 
                alt="{{#if Picture.Caption }}{{ Picture.Caption }}{{else}}{{ Picture.Name }}{{/if}}"
-               data-src="/img/{{Picture.Id}}?size=original" />
+               data-src="/img/{{Picture.id}}/original{{Picture.Ext}}"  />
      </a>
 </div>
 
 <footer class="footer mt-auto py-3 bg-black" style="z-index: 9999;">
      {{#if PreImagePath }}
           <div style="position: absolute; left:0px; top:0px; bottom: 0px; padding: 15px 15px 15px 30px;">
-               <a href="{{ PreImagePath }}" style="color: white;" alt="Navigate to previous Image"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
+               <a href="/photo/{{ PreImagePath }}" style="color: white;" alt="Navigate to previous Image"><i class="fa-solid fa-chevron-left fa-2x"></i></a>
           </div>
      {{/if}}
      <div class="container">
@@ -20,7 +26,7 @@
      </div>
      {{#if NextImagePath }}
           <div style="position: absolute; right:0px; top:0px; bottom: 0px; padding: 15px 30px 15px 15px;">
-               <a href="{{ NextImagePath }}" style="color: white;" alt="Navigate to next Image" ><i class="fa-solid fa-chevron-right fa-2x"></i></a>
+               <a href="/photo/{{ NextImagePath }}" style="color: white;" alt="Navigate to next Image" ><i class="fa-solid fa-chevron-right fa-2x"></i></a>
           </div>
      {{/if}}
 </footer>

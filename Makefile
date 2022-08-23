@@ -29,6 +29,7 @@ build-dashboard:
 	cp -r client/dashboard/build/* ui/dashboard/.
 
 build-server:
+	cd server && go generate embeds/ui.go
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
 	
 clean: 

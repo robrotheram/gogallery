@@ -1,13 +1,13 @@
-package api
+package serve
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
-	"github.com/prometheus/common/log"
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	templateengine "github.com/robrotheram/gogallery/templateEngine"
@@ -21,7 +21,7 @@ type backup struct {
 }
 
 var purgeTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	log.Info("DeletingDB")
+	log.Println("DeletingDB")
 	datastore.Cache.RestDB()
 })
 
@@ -32,7 +32,7 @@ var rescanTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 })
 
 var clearTaskHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	log.Info(r.URL)
+	log.Println(r.URL)
 	worker.RemoveContents("cache")
 })
 

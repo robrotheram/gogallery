@@ -1,51 +1,36 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 )
 
 type Configuration struct {
-	Server   ServerConfiguration
-	Database DatabaseConfiguration
-	About    AboutConfiguration
-	Gallery  GalleryConfiguration
-	IG       InstagramConfiguration
+	Server  ServerConfiguration
+	About   AboutConfiguration
+	Gallery GalleryConfiguration
 }
-
-type DatabaseConfiguration struct {
-	Baseurl string
-}
-
 type ServerConfiguration struct {
-	Port       string
-	CaptionURL string
-	Debug      bool
-}
-
-type InstagramConfiguration struct {
-	Username string
-	Password string
-	Enable   bool
-	SyncRate int
+	Port  string
+	Debug bool
 }
 
 type GalleryConfiguration struct {
 	Name             string
 	Basepath         string
+	Destpath         string
 	Url              string
 	Theme            string
-	ImagesPerPage    int
-	QueThreshold     int
 	AlbumBlacklist   []string
 	PictureBlacklist []string
-	Renderer         string
 }
 
 type AboutConfiguration struct {
-	Enable          bool
 	Twitter         string
 	Facebook        string
 	Email           string
@@ -59,11 +44,9 @@ type AboutConfiguration struct {
 	Website         string
 }
 
-var Config = Configuration{}
+var Config = &Configuration{}
 
 func LoadConfig() *Configuration {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
 	viper.SetEnvPrefix("GLLRY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
@@ -75,7 +58,7 @@ func LoadConfig() *Configuration {
 	if err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
-	return &Config
+	return Config
 }
 
 func (c *AboutConfiguration) Save() {
@@ -89,4 +72,61 @@ func (c *GalleryConfiguration) Save() {
 	viper.Set("gallery", c)
 	viper.WriteConfig()
 	Config.Gallery = *c
+}
+
+func (c *Configuration) Save() {
+	viper.Set("about", c.About)
+	viper.Set("gallery", c.Gallery)
+	viper.Set("server", c.Server)
+	viper.WriteConfig()
+}
+
+func (c *Configuration) PromptSiteName() {
+	prompt := promptui.Prompt{Label: "Site Name", Default: c.Gallery.Name}
+	result, _ := prompt.Run()
+	c.Gallery.Name = result
+}
+
+func (c *Configuration) PromptGalleryBasePath() {
+	prompt := promptui.Prompt{
+		Label:   "Path to your images",
+		Default: c.Gallery.Basepath,
+		Validate: func(s string) error {
+			if !c.FileExists(s) {
+				return fmt.Errorf("path %s, does not exits", s)
+			}
+			return nil
+		},
+	}
+	result, _ := prompt.Run()
+	c.Gallery.Basepath = result
+}
+
+func (c *Configuration) PromptGalleryDest() {
+	prompt := promptui.Prompt{Label: "Path to destination", Default: c.Gallery.Destpath}
+	result, _ := prompt.Run()
+	c.Gallery.Destpath = result
+}
+
+func (c *Configuration) PromptGalleryTheme() {
+	prompt := promptui.Prompt{Label: "Theme to use", Default: "./theme/estnor"}
+	result, _ := prompt.Run()
+	c.Gallery.Theme = result
+}
+
+func (c *Configuration) FileExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func (c *Configuration) Validate() {
+	if !c.FileExists(c.Gallery.Basepath) {
+		log.Panic("path to images does not exist")
+		os.Exit(1)
+	}
+	if !c.FileExists(c.Gallery.Theme) || c.Gallery.Theme != "default" {
+		log.Panic("path to theme does not exist")
+	}
 }

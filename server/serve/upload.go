@@ -1,9 +1,9 @@
-package api
+package serve
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
-	"github.com/robrotheram/gogallery/worker"
 )
 
 type UploadCollection struct {
@@ -37,6 +36,7 @@ var uploadHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 				Name:     picName,
 				Path:     newPath,
 				Album:    album.Id,
+				Ext:      filepath.Ext(newPath),
 				Exif:     datastore.Exif{},
 				RootPath: Config.Gallery.Basepath,
 				Meta: datastore.PictureMeta{
@@ -46,7 +46,7 @@ var uploadHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 					DateModified: time.Now()}}
 			p.CreateExif()
 			p.Save()
-			worker.SendToThumbnail(p)
+			//worker.SendToThumbnail(p)
 		}
 	}
 })
@@ -88,7 +88,7 @@ var uploadFileHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 
 	// read all of the contents of our uploaded file into a
 	// byte array
-	fileBytes, err := ioutil.ReadAll(file)
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println(err)
 		return

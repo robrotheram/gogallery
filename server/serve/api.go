@@ -1,4 +1,4 @@
-package api
+package serve
 
 import (
 	"io/ioutil"
@@ -23,7 +23,7 @@ func MakeStats() Stats {
 	datastore.Cache.DB.All(&albms)
 	s.Photos = len(pics)
 	s.Albums = len(albms)
-	files, _ := ioutil.ReadDir(Config.Gallery.Basepath + "/rubish")
+	files, _ := ioutil.ReadDir(config.Config.Gallery.Basepath + "/rubish")
 	s.Rubish = len(files)
 	return s
 }
@@ -42,7 +42,6 @@ func InitApiRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
 
 	r.Handle("/api/admin/photos", auth.AuthMiddleware(getAllAdminPhotosHandler))
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(getPhotoHandler)).Methods("GET")
-	r.Handle("/api/admin/photo/{id}/caption", auth.AuthMiddleware(CaptionHandler)).Methods("GET")
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(editPhotoHandler)).Methods("POST")
 
 	r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(deletePhotoHandler)).Methods("DELETE")

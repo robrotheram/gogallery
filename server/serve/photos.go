@@ -1,4 +1,4 @@
-package api
+package serve
 
 import (
 	"encoding/json"
@@ -116,23 +116,6 @@ var getByDatePhotosHandler = http.HandlerFunc(func(w http.ResponseWriter, r *htt
 	latests := datastore.GetPhotosByDate(yourDate)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(latests)
-})
-
-var CaptionHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	photoID := mux.Vars(r)["id"]
-	photo, err := datastore.GetPictureByID(photoID)
-	if err != nil {
-		http.Error(w, "Photo Not Found", http.StatusBadRequest)
-		return
-	}
-	caption, err := datastore.GetCaptions(&photo)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get Caption: %v", err), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(caption)
 })
 
 func DateEqual(date1, date2 time.Time) bool {

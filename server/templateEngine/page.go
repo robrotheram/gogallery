@@ -15,11 +15,13 @@ type Page struct {
 	Images        []datastore.Picture
 	Albums        datastore.AlbumStrcure
 	Album         datastore.Album
+	LatestAlbum   string
 	Picture       datastore.Picture
 	NextImagePath string
 	PreImagePath  string
 	Body          string
-	pagePath      string
+	PagePath      string
+	ImgSizes      map[string]int
 }
 
 type SocailSEO struct {
@@ -29,6 +31,14 @@ type SocailSEO struct {
 	ImageUrl    string
 	ImageWidth  int
 	ImageHeight int
+}
+
+var ImageSizes = map[string]int{
+	"xsmall": 350,
+	"small":  640,
+	"medium": 1024,
+	"large":  1600,
+	"xlarge": 1920,
 }
 
 func (s *SocailSEO) SetImage(picture datastore.Picture) {
@@ -54,10 +64,15 @@ func NewSocailSEO(path string) SocailSEO {
 }
 
 func NewPage(r *http.Request) Page {
-	return Page{
-		Settings: config.Config.Gallery,
-		Author:   config.Config.About,
-		SEO:      NewSocailSEO(r.URL.EscapedPath()),
-		pagePath: r.URL.EscapedPath(),
+	page := Page{
+		Settings:    config.Config.Gallery,
+		Author:      config.Config.About,
+		LatestAlbum: datastore.GetLatestAlbumId(),
+		ImgSizes:    ImageSizes,
 	}
+	if r != nil {
+		page.SEO = NewSocailSEO(r.URL.EscapedPath())
+		page.PagePath = r.URL.EscapedPath()
+	}
+	return page
 }

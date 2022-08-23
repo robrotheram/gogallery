@@ -1,9 +1,10 @@
-package api
+package serve
 
 import (
 	"encoding/json"
-	"github.com/robrotheram/gogallery/config"
 	"net/http"
+
+	"github.com/robrotheram/gogallery/config"
 )
 
 var statsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

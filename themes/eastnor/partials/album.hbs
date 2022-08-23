@@ -2,7 +2,16 @@
     <div class="card rounded">
         <picture>
             {{#if this.ProfileID}}
-                <img src="/img/{{this.ProfileID}}"  alt="{{this.Name}}" class="img-fluid rounded">
+                <img 
+                    alt="{{this.Name}}" 
+                    src="/img/{{this.ProfileID}}/xlarge.webp" 
+                    srcset="
+                        {{#each ImgSizes}}
+                        /img/{{this.ProfileID}}/{{@key}}.webp {{this}}w,
+                        {{/each}}
+                    "
+                    sizes="(min-width: 960px) 540px, 100vw"
+                    class="img-fluid rounded"/>
             {{else}}
                 <img src="/assets/img/placeholder.png"  alt="{{this.Name}}" class="img-fluid rounded">
             {{/if}}
