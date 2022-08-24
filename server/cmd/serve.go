@@ -4,6 +4,7 @@ import (
 	"github.com/robrotheram/gogallery/config"
 	"github.com/robrotheram/gogallery/datastore"
 	"github.com/robrotheram/gogallery/serve"
+	"github.com/robrotheram/gogallery/worker"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,7 @@ var serveCMD = &cobra.Command{
 		datastore.Cache = &datastore.DataStore{}
 		datastore.Cache.Open(config.Gallery.Basepath)
 		defer datastore.Cache.Close()
+		worker.ScanPath(config.Gallery.Basepath)
 		if len(args) == 1 {
 			config.Server.Port = ":" + args[0]
 		}

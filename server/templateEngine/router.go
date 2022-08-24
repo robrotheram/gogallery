@@ -130,12 +130,16 @@ func depricatedRedirect(path string) func(http.ResponseWriter, *http.Request) {
 }
 
 func InitTemplateRoutes(r *mux.Router, config *config.Configuration) *mux.Router {
-	fmt.Println("THEME PATH: " + config.Gallery.Theme)
-	fs := http.FileServer(http.Dir(config.Gallery.Theme + "/assets/"))
 	err := Templates.Load(config.Gallery.Theme)
 	if err != nil {
 		fmt.Printf("there Was an error loading the templates, Error %v", err)
 	}
+
+	assetPath := config.Gallery.Theme
+	if assetPath == "default" {
+		assetPath = "/tmp/gogallery/theme"
+	}
+	fs := http.FileServer(http.Dir(assetPath + "/assets/"))
 
 	r.HandleFunc("/albums", RenderAlbums)
 	r.HandleFunc("/album/{id}/", RenderAlbumPage)

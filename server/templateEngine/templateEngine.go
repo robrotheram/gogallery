@@ -80,13 +80,12 @@ func (te *TemplateEngine) loadPartials(tpl *raymond.Template) {
 }
 
 func (te *TemplateEngine) Load(templatePath string) error {
-
+	//find all partial sorce
 	if templatePath == "default" {
 		templatePath = "/tmp/gogallery/theme"
 		embeds.CopyTheme(templatePath)
 	}
 
-	//find all partial sorce
 	err := te.walk(templatePath)
 	if err != nil {
 		return err

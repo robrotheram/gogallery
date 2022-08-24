@@ -3,7 +3,7 @@ package templateengine
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -29,7 +29,7 @@ func FileExists(filename string) bool {
 
 func Dir(src string, dst string) error {
 	var err error
-	var fds []os.FileInfo
+	var fds []fs.DirEntry
 	var srcinfo os.FileInfo
 
 	if srcinfo, err = os.Stat(src); err != nil {
@@ -40,7 +40,7 @@ func Dir(src string, dst string) error {
 		return err
 	}
 
-	if fds, err = ioutil.ReadDir(src); err != nil {
+	if fds, err = os.ReadDir(src); err != nil {
 		return err
 	}
 	for _, fd := range fds {
