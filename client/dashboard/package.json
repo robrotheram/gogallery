@@ -19,7 +19,7 @@
     "lodash": "^4.17.20",
     "mapbox-gl": "npm:empty-npm-package@^1.0.0",
     "maplibre-gl": "^2.1.9",
-    "moment": "^2.27.0",
+    "moment": "^2.29.4",
     "node-sass": "^7",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-preset-env": "^7.4.3",
