@@ -10,6 +10,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: apt install -y libvips libvips-dev
           
     - name: Install dependencies
       run: make build
