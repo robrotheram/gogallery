@@ -92,11 +92,18 @@
                     let date = new Date(customDate.split(' +')[0])
                     date = date.toLocaleDateString('en-us', { weekday: "long", year: "numeric", month: "short", day: "numeric" })
                     document.getElementById('dateTaken').innerHTML = date;
+                    
+                    let PreImagePath = "{{ PreImagePath }}"
+                    let NextImagePath = "{{ NextImagePath }}"
+
+                    PreImagePath = PreImagePath ?  PreImagePath : "{{Picture.id}}"
+                    NextImagePath = PreImagePath ?  NextImagePath : "{{Picture.id}}"
+
 
                     document.addEventListener('keydown', (e) => {
                          switch(e.code){
-                              case "ArrowLeft": window.location = "{{ PreImagePath }}"; break
-                              case "ArrowRight": window.location = "{{ NextImagePath }}"; break
+                              case "ArrowLeft": window.location = "/photo/"+PreImagePath; break
+                              case "ArrowRight": window.location = "/photo/"+NextImagePath; break
                               default: return;
                          }
                     });
@@ -108,8 +115,8 @@
                          if (ev.pointerType == 'touch' && (Math.abs(ev.deltaX) <= Math.abs(ev.deltaY)+5)) return;
                          if (ev.srcEvent.type !== 'pointercancel') {
                               switch(ev.type){
-                                   case "panright": window.location = "{{ PreImagePath }}"; break
-                                   case "panleft": window.location = "{{ NextImagePath }}"; break
+                                   case "panright": window.location =  "/photo/"+PreImagePath; break
+                                   case "panleft": window.location = "/photo/"+NextImagePath; break
                                    default: return;
                               }
                          }

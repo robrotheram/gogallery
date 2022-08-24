@@ -6,19 +6,19 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Aug 24 18:38:18 2022
+# Make data base, printed on Wed Aug 24 21:01:07 2022
 
 # Variables
 
 # environment
 PROVIDE_FULLSTACK_ACTION = true
 # environment
+ 
 GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
 GNOME_SHELL_SESSION_MODE = pop
- 
 # environment
 SSH_AGENT_LAUNCHER = gnome-keyring
 # makefile (from 'Makefile', line 3)
@@ -26,7 +26,7 @@ GOCLEAN = $(GOCMD) clean
 # environment
 UUID = dde15d4b-151a-4d75-93a0-8d4e1238ab86
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-0eb4ba76-fa74-4e0b-93e4-8a2fcbea126f.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-856cdab1-bd9d-425a-a321-ffb601903919.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/pop.mandatory.path
 # environment
@@ -92,7 +92,7 @@ VSCODE_PIPE_LOGGING = true
 # environment
 UTM_SOURCE = vscode
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # automatic
@@ -118,7 +118,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 478847
+VSCODE_PID = 587888
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -319,6 +319,7 @@ docker-publish:
 #  recipe to execute (from 'Makefile', line 54):
 		docker push robrotheram/gogallery:$(CIRCLE_BRANCH)
 		docker push robrotheram/gogallery:latest
+ 
 
 package:
 #  Implicit rule search has not been done.
@@ -338,8 +339,7 @@ docker:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
- 
-#  Last modified 2022-08-24 11:26:42.131727833
+#  Last modified 2022-08-24 19:46:29.656019201
 #  File has been updated.
 #  Successfully updated.
 
@@ -425,6 +425,13 @@ build-server:
 	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
 	
 
+install:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 58):
+	cp gogallery /home/robertfletcher/.local/bin/gogallery
+
 build-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -449,19 +456,19 @@ build-dashboard:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=15/1024=1%, Rehash=0, Collisions=0/37=0%
+# Load=16/1024=2%, Rehash=0, Collisions=0/38=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 38 / storage = 363 B / avg = 9 B
-# current buf: size = 8162 B / used = 363 B / count = 38 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 39 / storage = 371 B / avg = 9 B
+# current buf: size = 8162 B / used = 371 B / count = 39 / avg = 9 B
 
-# strcache performance: lookups = 61 / hit rate = 37%
+# strcache performance: lookups = 63 / hit rate = 38%
 # hash-table stats:
-# Load=38/8192=0%, Rehash=0, Collisions=0/61=0%
-# Finished Make data base on Wed Aug 24 18:38:18 2022
+# Load=39/8192=0%, Rehash=0, Collisions=0/63=0%
+# Finished Make data base on Wed Aug 24 21:01:07 2022
 
  
