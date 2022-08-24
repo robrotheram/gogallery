@@ -109,17 +109,7 @@ The server implements its own caching layer after the page has been visited it w
 The Cache gets invalidated if the server restarts or if you have made a change in the dashboard. 
 
 
-## Caption Generation (Experimental)
-
-There is support for automaitic caption generation of photos. To keep everything local we are using the Image Caption Generator from IBM https://github.com/IBM/MAX-Image-Caption-Generator From experiments this produces terrible captions and its being left in as a POC 
-
-To enable it simply run the docker container and add set the GLLRY_SERVER_CAPTIONURL to the above container IP it will be in form http://172.17.0.2:5000/model/predict"
-
-Now in the Dashboard when you edit the detail of a picture you will see a dropdown of some examples of what the caption generator through of the image. You can chose one or write your own.
-
-
-
-#### Configuration 
+#### Docker Configuration 
 Config can be also edited via environmental variables
  
 
@@ -155,4 +145,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[apache-2.0](https://choosealicense.com/licenses/apache-2.0)

@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: robrotheram/gogoallery_ci:1.16
+      - image: robrotheram/gogoallery_ci:1.19
     steps:
       - checkout
       - setup_remote_docker
