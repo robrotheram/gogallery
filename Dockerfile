@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 RUN apt-get update; apt-get install -y libvips && rm -rf /var/lib/apt/lists/*
 RUN mkdir /app
 # Copy the current directory contents into the container at /app
