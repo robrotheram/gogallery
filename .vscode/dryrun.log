@@ -1,0 +1,16 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/robertfletcher/workspace/gogallery'
+cd server && go clean
+cd server && rm -f ../gogallery
+cd server && rm -f ../gogallery_unix
+rm -rf ui/frontend
+rm -rf ui/dashboard
+cd server && go test -v ./...
+cd client/dashboard && yarn
+cd client/dashboard && yarn run build
+mkdir -p ui/dashboard
+cp -r client/dashboard/build/* ui/dashboard/.
+cd server && go generate embeds/ui.go
+cd server && go build -o ../gogallery -v
+make: Leaving directory '/home/robertfletcher/workspace/gogallery'
+ 

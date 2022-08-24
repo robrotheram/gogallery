@@ -53,3 +53,6 @@ docker:
 docker-publish:
 		docker push robrotheram/gogallery:$(CIRCLE_BRANCH)
 		docker push robrotheram/gogallery:latest
+
+install:
+	cp gogallery /home/robertfletcher/.local/bin/gogallery

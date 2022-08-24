@@ -1,0 +1,1 @@
+{"buildTargets":["all","build","build-dashboard","build-linux","build-server","clean","dep","docker","docker-publish","package","run","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

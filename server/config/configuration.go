@@ -14,7 +14,9 @@ type Configuration struct {
 	Server  ServerConfiguration
 	About   AboutConfiguration
 	Gallery GalleryConfiguration
+	Deploy  DeployConfig
 }
+
 type ServerConfiguration struct {
 	Port  string
 	Debug bool
@@ -42,6 +44,12 @@ type AboutConfiguration struct {
 	BackgroundPhoto string
 	Blog            string
 	Website         string
+}
+
+type DeployConfig struct {
+	SiteId    string
+	Draft     bool
+	AuthToken string
 }
 
 var Config = &Configuration{}
@@ -126,7 +134,7 @@ func (c *Configuration) Validate() {
 		log.Panic("path to images does not exist")
 		os.Exit(1)
 	}
-	if !c.FileExists(c.Gallery.Theme) || c.Gallery.Theme != "default" {
+	if !c.FileExists(c.Gallery.Theme) && c.Gallery.Theme != "default" {
 		log.Panic("path to theme does not exist")
 	}
 }
