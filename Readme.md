@@ -4,7 +4,7 @@
 GoGallery is a static site generator designed just for large photo sets. 
 The problem is that just my modest approximate 1000 image gallery is around 5GB in size. This means traditional static stie generators where you host everything is github is not going to work. Also I do not want to keep reorgaising my photos or rely on some database. I have my photo in folders (albums) and I needed a tool to generate a webpage for those images.
 
-Incomes GoGallery just point it at your photos and it will generate a static site for theme. You can customize the templates to your hearts content. The template language is Handlebars no fancy Javascript single page webapps here. What is included. is image optomization into multiple sizes for the web and the site also generates a PWA so it can act like a desktop/mobile app. Chrome Lighthouse scores the site at 93/100 for performance and 95/100 for accessibility
+Incomes GoGallery just point it at your photos and it will generate a static site for with a  customizable theme. The template language is Handlebars no fancy Javascript single page webapps here. What is included. is image optomization into multiple sizes for the web and the site also generates a PWA so it can act like a desktop/mobile app. Chrome Lighthouse scores the site at 93/100 for performance and 95/100 for accessibility
 
 The Software also has a dashboard that you can use to manage the photos e.g change captions add albums to be hidden etc. You can also preview the site using the serve command 
 
