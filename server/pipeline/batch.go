@@ -6,7 +6,6 @@ import (
 )
 
 type BatchProcessing[T any] struct {
-	wg        sync.WaitGroup
 	work      func(T) error
 	chunkSize int
 }
@@ -24,18 +23,19 @@ func chunkSlice[T any](slice []T, chunkSize int) [][]T {
 }
 
 func (batch *BatchProcessing[T]) Run(items []T) {
+	var wg sync.WaitGroup
 	for _, chunk := range chunkSlice(items, batch.chunkSize) {
-		go batch.processing(chunk)
+		wg.Add(1)
+		go batch.processing(chunk, &wg)
 	}
-	batch.wg.Wait()
+	wg.Wait()
 }
 
-func (poc *BatchProcessing[T]) processing(batch []T) {
-	poc.wg.Add(1)
-	defer poc.wg.Done()
+func (poc *BatchProcessing[T]) processing(batch []T, wg *sync.WaitGroup) {
 	for _, pic := range batch {
 		poc.work(pic)
 	}
+	wg.Done()
 }
 
 func NewBatchProcessing[T any](processing func(T) error) *BatchProcessing[T] {
