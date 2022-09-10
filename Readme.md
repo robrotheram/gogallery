@@ -24,11 +24,14 @@ gogallery [flags]
 
 ### SEE ALSO
 
-* [gogallery build](docs/gogallery_build.md)	 - build static site
-* [gogallery init](docs/gogallery_init.md)	 - create site
-* [gogallery reset-password](docs/gogallery_reset-password.md)	 - reset admin password
-* [gogallery serve](docs/gogallery_serve.md)	 - serve static site
-* [gogallery template](docs/gogallery_template.md)	 - extract template
+* [gogallery build](docs/cli/gogallery_build.md)	 - build static site
+* [gogallery completion](docs/cli/gogallery_completion.md)	 - Generate the autocompletion script for the specified shell
+* [gogallery dashboard](docs/cli/gogallery_dashboard.md)	 - dashboard
+* [gogallery deploy](docs/cli/gogallery_deploy.md)	 - deploy static site
+* [gogallery docs](docs/cli/gogallery_docs.md)	 - cli docs
+* [gogallery init](docs/cli/gogallery_init.md)	 - create site
+* [gogallery serve](docs/cli/gogallery_serve.md)	 - serve static site
+* [gogallery template](docs/cli/gogallery_template.md)	 - extract template
 
 ---
 

@@ -23,6 +23,9 @@ var rootCmd = &cobra.Command{
 	Short: "Photo Gallery Static Site generator ",
 	Long:  `Generates a full static site that you can host all use the local provided server`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return LaunchDashboard()
+		}
 		return cmd.Help()
 	},
 }
