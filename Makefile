@@ -15,7 +15,7 @@ endif
 all: clean test build
 
 dep:
-	npm install -g yarn
+	go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
 test:
 	cd server && $(GOTEST) -v ./...

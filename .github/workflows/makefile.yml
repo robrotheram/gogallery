@@ -18,8 +18,11 @@ jobs:
     
     - name: Install dependencies
       run: sudo apt install -y libvips libvips-dev
-          
-    - name: Install dependencies
+
+    - name: Get dependencies
+      run: make dep
+
+    - name: Build
       run: make build
       
     - uses: actions/upload-artifact@v3
