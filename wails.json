@@ -1,0 +1,13 @@
+{
+  "name": "gogallery",
+  "outputfilename": "gogallery",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "robrotheram",
+    "email": "robrotheram@gmail.com"
+  },
+  "appargs": "dashboard"
+}

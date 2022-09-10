@@ -7,7 +7,6 @@ vendor
 cache
 config.yml
 !.circleci/config.yml
-gogallery
 WIP
 _old/**
 server/ui/**

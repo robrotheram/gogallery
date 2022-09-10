@@ -2,7 +2,7 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ "master", "v4" ]
+    branches: [ "master", "v4", v5 ]
 
 jobs:
   build:
@@ -25,4 +25,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: gogallery
-        path: gogallery
+        path: build/bin/gogallery

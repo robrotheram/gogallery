@@ -1,3 +1,4 @@
+{{ define "header" }}
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
@@ -11,20 +12,21 @@
               <a class="nav-link" href="/albums">Albums </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/album/{{LatestAlbum}}">Latest</a>
+              <a class="nav-link" href="/album/{{.LatestAlbum}}">Latest</a>
             </li>
           </ul>
 
           <ul class="navbar-nav icon-nav">
-            {{#if Author.Instagram}} <li class="nav-item"><a class="nav-link" href="https://instagram.com/{{Author.Instagram}}"><i class="fa-brands fa-instagram fa-2x"></i></a></li>{{/if}}
-            {{#if Author.Twitter}} <li class="nav-item"><a class="nav-link" href="https://twitter.com/{{Author.Twitter}}"><i class="fa-brands fa-twitter fa-2x"></i></a></li>{{/if}}
-            {{#if Author.Website}} <li class="nav-item"><a class="nav-link" href="{{Author.Website}}"><i class="fa-solid fa-earth-europe fa-2x"></i></a></li>{{/if}}
+            {{if .Author.Instagram}} <li class="nav-item"><a class="nav-link" href="https://instagram.com/{{.Author.Instagram}}"><i class="fa-brands fa-instagram fa-2x"></i></a></li>{{end}}
+            {{if .Author.Twitter}} <li class="nav-item"><a class="nav-link" href="https://twitter.com/{{.Author.Twitter}}"><i class="fa-brands fa-twitter fa-2x"></i></a></li>{{end}}
+            {{if .Author.Website}} <li class="nav-item"><a class="nav-link" href="{{.Author.Website}}"><i class="fa-solid fa-earth-europe fa-2x"></i></a></li>{{end}}
         </div>
         <a class="navbar-brand mx-auto justify-content-center" href="/">
           <img src="/assets/img/logo.png" alt="Gallery Logo"
             style="margin-right: 10px;" height="50px">
-          <span>{{Settings.Name}}</span>
+          <span>{{.Settings.Name}}</span>
         </a>
       </div>
     </nav>
   </header>
+  {{end}}

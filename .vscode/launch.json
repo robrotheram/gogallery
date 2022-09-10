@@ -7,7 +7,7 @@
             "mode": "auto",
             "cwd": "${workspaceFolder}",
             "program": "server",
-            "args": ["serve", "8080"]
+            "args": ["build"]
         }
     ]
 }
