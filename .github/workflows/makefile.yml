@@ -2,7 +2,7 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ "master", "v4", v5 ]
+    branches: [ "master", "v4", "v5" ]
 
 jobs:
   build:
