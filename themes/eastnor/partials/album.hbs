@@ -1,23 +1,25 @@
-<a href="/album/{{this.Id}}">
+{{ define "albums" }}
+<a href="/album/{{.Id}}">
     <div class="card rounded">
         <picture>
-            {{#if this.ProfileID}}
+            {{if .ProfileID}}
                 <img 
-                    alt="{{this.Name}}" 
-                    src="/img/{{this.ProfileID}}/xlarge.webp" 
+                    alt="{{.Name}}" 
+                    src="/img/{{.ProfileID}}/xlarge.webp" 
                     srcset="
-                        {{#each ImgSizes}}
-                        /img/{{this.ProfileID}}/{{@key}}.webp {{this}}w,
-                        {{/each}}
+                    {{range $key, $val := ImgSizes}}
+                        /img/{{$.ProfileID}}/{{$key}}.webp {{$val}}w,
+                    {{end}}
                     "
                     sizes="(min-width: 960px) 540px, 100vw"
                     class="img-fluid rounded"/>
             {{else}}
-                <img src="/assets/img/placeholder.png"  alt="{{this.Name}}" class="img-fluid rounded">
-            {{/if}}
+                <img src="/assets/img/placeholder.png"  alt="{{.Name}}" class="img-fluid rounded">
+            {{end}}
         </picture>
         <div class="card-body">
-            <h5 class="card-title" style="text-align: center;">{{this.Name}}</h5>
+            <h5 class="card-title" style="text-align: center;">{{.Name}}</h5>
         </div>
     </div>
 </a>
+{{end}}

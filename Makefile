@@ -15,38 +15,18 @@ endif
 all: clean test build
 
 dep:
-	npm install -g yarn
+	go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
 test:
 	cd server && $(GOTEST) -v ./...
 
-build: build-dashboard build-server
-
-build-dashboard:
-	cd client/dashboard && yarn
-	cd client/dashboard && yarn run build
-	mkdir -p ui/dashboard
-	cp -r client/dashboard/build/* ui/dashboard/.
-
-build-server:
-	cd server && go generate embeds/ui.go
-	cd server && $(GOBUILD) -o $(BINARY_NAME) -v
-	
-clean: 
-	cd server && $(GOCLEAN)
-	cd server && rm -f $(BINARY_NAME)
-	cd server && rm -f $(BINARY_UNIX)
-	rm -rf ui/frontend
-	rm -rf ui/dashboard
-run:
-	cd server && $(GOBUILD) -o $(BINARY_NAME) -v ./...
-	./$(BINARY_NAME)
+build: build-linux
 
 package:
 	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
 # Cross compilation
 build-linux:
-		cd server && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+		wails build
 docker:
 		docker build . -t robrotheram/gogallery:$(CIRCLE_BRANCH)
 		docker build . -t robrotheram/gogallery:latest

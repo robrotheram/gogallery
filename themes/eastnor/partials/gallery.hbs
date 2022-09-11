@@ -1,15 +1,16 @@
-
+{{ define "gallery" }}
 <div class="row g-3">
-    {{#each Images}}
+    {{range $img := .Images}}
+
     <div class="col-sm-12 col-md-6 col-lg-3">
         <picture>
-            <a href="/photo/{{this.id}}">
-                <img loading=lazy  width="100%" alt="{{this.name}}" 
-                src="/img/{{this.id}}/xlarge.webp" 
+            <a href="/photo/{{$img.Id}}">
+                <img loading=lazy  width="100%" alt="{{$img.Name}}" 
+                src="/img/{{.Id}}/xlarge.webp" 
                 srcset="
-                    {{#each ImgSizes}}
-                    /img/{{this.id}}/{{@key}}.webp {{this}}w,
-                    {{/each}}
+                    {{range $key, $val := ImgSizes}}
+                    /img/{{$img.Id}}/{{$key}}.webp {{$val}}w,
+                    {{end}}
                 "
                 sizes="
                     (min-width: 1200px) 640px,
@@ -21,5 +22,6 @@
             </a>
         </picture>
     </div>
-    {{/each}}
+    {{end}}
 </div>
+{{end}}
