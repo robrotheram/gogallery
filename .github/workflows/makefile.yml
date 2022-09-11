@@ -47,6 +47,8 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: gogallery-linux-amd64
+      - name: List
+        run: ls -la 
       - name: Upload Linux package to release
         id: upload-linux-release-asset
         uses: actions/upload-release-asset@v1
@@ -54,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./gogallery-linux-amd64
+          asset_path: ./gogallery/gogallery-linux-amd64
           asset_name: gogallery-linux-amd64
           asset_content_type: application/octet-stream
      
