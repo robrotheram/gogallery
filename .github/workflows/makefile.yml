@@ -49,7 +49,7 @@ jobs:
           name: gogallery-linux-amd64
           path: ./
       - name: List
-        run: ls -la /home/runner/work/gogallery/gogallery/gogallery-linux-amd64
+        run: ls -la /home/runner/work/gogallery/gogallery
       - name: Upload Linux package to release
         id: upload-linux-release-asset
         uses: actions/upload-release-asset@v1
