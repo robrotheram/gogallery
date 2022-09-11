@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Install dependencies
-      run: sudo apt install -y libvips libvips-dev
+      run: sudo apt install -y libvips libvips-dev libgtk-3-dev libwebkit2gtk-4.0-dev
 
     - name: Get dependencies
       run: make dep
