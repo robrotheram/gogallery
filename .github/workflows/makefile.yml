@@ -56,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: .
+          asset_path: gogallery
           asset_name: gogallery-linux-amd64
           asset_content_type: application/octet-stream
      
