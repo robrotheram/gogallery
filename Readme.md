@@ -57,6 +57,7 @@ Demo at https://gallery.exceptionerror.io
 
 ![Screenshot1](/docs/dashboard1.jpg?raw=true "Gallery Image")
 ![Screenshot1](/docs/dashboard2.png?raw=true "Gallery Image")
+![Screenshot1](/docs/dashboard3.png?raw=true "Gallery Image")
 
 
 ## Installation
