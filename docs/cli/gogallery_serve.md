@@ -1,10 +1,10 @@
 ## gogallery serve
 
-serve static site
+Serve static site
 
 ### Synopsis
 
-serve static site
+Serve static site
 
 ```
 gogallery serve [flags]

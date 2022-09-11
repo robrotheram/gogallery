@@ -1,10 +1,10 @@
 ## gogallery template
 
-extract template
+Extract template to directory
 
 ### Synopsis
 
-extract the internal template to any directory
+Extract the internal template to any directory
 
 ```
 gogallery template [flags]

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/robrotheram/gogallery/backend/config"
@@ -21,8 +20,8 @@ type backup struct {
 }
 
 func (api *GoGalleryAPI) purgeTaskHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("DeletingDB")
-	api.db.RestDB()
+	pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).DeleteSite()
+	fmt.Fprintf(w, "Deleted Site")
 }
 
 func (api *GoGalleryAPI) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +36,7 @@ func (api *GoGalleryAPI) rescanTaskHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (api *GoGalleryAPI) buildTaskHandler(w http.ResponseWriter, r *http.Request) {
-	go pipeline.NewRenderPipeline(api.config.Gallery.Destpath, api.db, api.monitor).BuildSite()
+	go pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).BuildSite()
 	fmt.Fprintf(w, "Build task started")
 }
 

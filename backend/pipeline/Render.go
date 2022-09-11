@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
 	"github.com/robrotheram/gogallery/backend/datastore/models"
 )
@@ -20,10 +21,11 @@ type RenderPipeline struct {
 	ImageRender *BatchProcessing[models.Picture]
 	monitor     *TasksMonitor
 	db          *datastore.DataStore
+	config      *config.GalleryConfiguration
 }
 
-func NewRenderPipeline(dest string, db *datastore.DataStore, monitor *TasksMonitor) *RenderPipeline {
-	root = dest
+func NewRenderPipeline(config *config.GalleryConfiguration, db *datastore.DataStore, monitor *TasksMonitor) *RenderPipeline {
+	root = config.Destpath
 	imgDir = filepath.Join(root, "img")
 	photoDir = filepath.Join(root, "photo")
 	albumsDir = filepath.Join(root, "albums")
@@ -35,8 +37,8 @@ func NewRenderPipeline(dest string, db *datastore.DataStore, monitor *TasksMonit
 		PageRender:  NewBatchProcessing(renderPhotoTemplate(db)),
 		ImageRender: NewBatchProcessing(ImageGenV2),
 		monitor:     monitor,
+		config:      config,
 	}
-
 	return &render
 }
 
@@ -47,11 +49,15 @@ func (r *RenderPipeline) CreateDir() {
 	os.MkdirAll(albumDir, os.ModePerm)
 }
 
+func (r *RenderPipeline) DeleteSite() {
+	os.RemoveAll(root)
+}
+
 func (r *RenderPipeline) BuildSite() {
 	db := r.db
 	r.CreateDir()
 	build()
-	renderIndex(db)
+	renderIndex(db, r.config)
 	renderAlbums(db)
 	r.AlbumRender.Run(db.Albums.GetAll(), r.monitor.NewTask("albums"))
 	r.PageRender.Run(db.Pictures.GetAll(), r.monitor.NewTask("photos"))

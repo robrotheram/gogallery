@@ -11,7 +11,7 @@ import (
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func renderIndex(db *datastore.DataStore) {
+func renderIndex(db *datastore.DataStore, config *config.GalleryConfiguration) {
 	f, _ := os.Create(filepath.Join(root, "index.html"))
 	w := bufio.NewWriter(f)
 	indexPage := templateengine.NewPage(nil)
@@ -25,7 +25,7 @@ func renderIndex(db *datastore.DataStore) {
 
 	f, _ = os.Create(filepath.Join(root, "manifest.json"))
 	w = bufio.NewWriter(f)
-	templateengine.ManifestWriter(w, "test")
+	templateengine.ManifestWriter(w, config)
 	w.Flush()
 	f.Close()
 

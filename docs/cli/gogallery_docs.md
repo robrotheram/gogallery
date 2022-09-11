@@ -1,10 +1,10 @@
 ## gogallery docs
 
-cli docs
+Generate CLI documentation
 
 ### Synopsis
 
-Update cli documentation
+Generate CLI documentation
 
 ```
 gogallery docs [flags]

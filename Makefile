@@ -35,4 +35,4 @@ docker-publish:
 		docker push robrotheram/gogallery:latest
 
 install:
-	cp gogallery /home/robertfletcher/.local/bin/gogallery
+	cp build/bin/gogallery /home/robertfletcher/.local/bin/gogallery

@@ -13,8 +13,8 @@ func init() {
 
 var initCMD = &cobra.Command{
 	Use:   "init",
-	Short: "create site",
-	Long:  "create site",
+	Short: "Create site",
+	Long:  "Create site",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.LoadConfig()
 		config.PromptSiteName()

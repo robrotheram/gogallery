@@ -1,10 +1,10 @@
 ## gogallery dashboard
 
-dashboard
+Launch UI
 
 ### Synopsis
 
-dashboard UI
+Launch UI
 
 ```
 gogallery dashboard [flags]

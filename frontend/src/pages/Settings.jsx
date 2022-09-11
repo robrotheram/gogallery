@@ -7,7 +7,7 @@ import {
   PictureOutlined,
   ProfileOutlined,
   SettingOutlined,
-  ToolOutlined,
+  RocketOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 
@@ -37,7 +37,7 @@ const tabListNoTitle = [
   },
   {
     key: 'maintenance',
-    tab: <span><ToolOutlined style={{ "marginRight": "5px" }} /> Maintenance</span>,
+    tab: <span><RocketOutlined style={{ "marginRight": "5px" }} /> Tasks </span>,
   },
 ];
 

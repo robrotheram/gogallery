@@ -13,8 +13,8 @@ func init() {
 
 var serveCMD = &cobra.Command{
 	Use:   "serve",
-	Short: "serve static site",
-	Long:  "serve static site",
+	Short: "Serve static site",
+	Long:  "Serve static site",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		config := config.LoadConfig()

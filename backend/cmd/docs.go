@@ -14,8 +14,8 @@ func init() {
 
 var docCMD = &cobra.Command{
 	Use:   "docs",
-	Short: "cli docs",
-	Long:  "Update cli documentation",
+	Short: "Generate CLI documentation",
+	Long:  "Generate CLI documentation",
 	Run: func(cmd *cobra.Command, args []string) {
 		os.MkdirAll("./docs/cli", os.ModePerm)
 		err := doc.GenMarkdownTree(rootCmd, "./docs/cli")

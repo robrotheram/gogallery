@@ -13,11 +13,11 @@ func init() {
 
 var templateCMD = &cobra.Command{
 	Use:   "template",
-	Short: "extract template",
-	Long:  "extract the internal template to any directory",
+	Short: "Extract template to directory",
+	Long:  "Extract the internal template to any directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			fmt.Println("Please suply path to template")
+			fmt.Println("Please supply path to template directory")
 			return
 		}
 		embeds.CopyTheme(args[0])

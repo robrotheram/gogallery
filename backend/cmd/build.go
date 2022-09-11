@@ -15,8 +15,8 @@ func init() {
 
 var buildCMD = &cobra.Command{
 	Use:   "build",
-	Short: "build static site",
-	Long:  "build static site",
+	Short: "Build static site",
+	Long:  "Build static site",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config := config.LoadConfig()
 		config.Validate()
@@ -28,7 +28,7 @@ var buildCMD = &cobra.Command{
 		db.ScanPath(config.Gallery.Basepath)
 		log.Println("Building Site at: " + config.Gallery.Destpath)
 		monitor := pipeline.NewMonitor()
-		render := pipeline.NewRenderPipeline(config.Gallery.Destpath, db, monitor)
+		render := pipeline.NewRenderPipeline(&config.Gallery, db, monitor)
 		render.BuildSite()
 		log.Println("Building Complete")
 		return nil

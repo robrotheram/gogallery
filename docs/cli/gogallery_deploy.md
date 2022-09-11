@@ -1,10 +1,10 @@
 ## gogallery deploy
 
-deploy static site
+Deploy static site
 
 ### Synopsis
 
-deploy static site
+Deploy static site
 
 ```
 gogallery deploy [flags]

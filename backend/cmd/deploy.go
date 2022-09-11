@@ -15,8 +15,8 @@ func init() {
 
 var deployCMD = &cobra.Command{
 	Use:   "deploy",
-	Short: "deploy static site",
-	Long:  "deploy static site",
+	Short: "Deploy static site",
+	Long:  "Deploy static site",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.LoadConfig()
 		monitor := pipeline.NewMonitor()

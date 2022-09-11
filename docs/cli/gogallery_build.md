@@ -1,10 +1,10 @@
 ## gogallery build
 
-build static site
+Build static site
 
 ### Synopsis
 
-build static site
+Build static site
 
 ```
 gogallery build [flags]

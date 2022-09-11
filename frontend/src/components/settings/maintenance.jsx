@@ -28,7 +28,7 @@ const Maintenance = () => {
 
   const showPurgeConfirm = () => {
     confirm({
-      title: 'Are you sure you want to Delete the Database?',
+      title: 'Are you sure you want to Delete the Site?',
       okText: 'Yes',
       okType: 'danger',
       cancelText: 'No',
@@ -135,7 +135,7 @@ const Maintenance = () => {
           <Button type="default" icon={<SyncOutlined />} size="large" style={{"width":"100%"}} onClick={showResacanConfirm}> Resacan image folder </Button>
         </Col>
         <Col span={12}>
-          <Button type="default" icon={<DeleteOutlined />} size="large" style={{"width":"100%"}} onClick={showPurgeConfirm} > Purge cache </Button><br/>
+          <Button type="default" icon={<DeleteOutlined />} size="large" style={{"width":"100%"}} onClick={showPurgeConfirm} > Delete Site </Button><br/>
         </Col>
         <Col span={12}>
           <Button type="default" icon={<DownloadOutlined />} size="large" style={{"width":"100%"}} onClick={() => dispatch(taskActions.backup())}> Backup Database </Button><br/>

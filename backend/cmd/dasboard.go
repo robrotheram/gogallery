@@ -16,8 +16,8 @@ func init() {
 
 var dashboadCMD = &cobra.Command{
 	Use:   "dashboard",
-	Short: "dashboard",
-	Long:  "dashboard UI",
+	Short: "Launch UI",
+	Long:  "Launch UI",
 	Run: func(cmd *cobra.Command, args []string) {
 		LaunchDashboard()
 	},

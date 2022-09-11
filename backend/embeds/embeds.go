@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"embed"
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -18,13 +17,11 @@ func CopyTheme(templatePath string) {
 	os.MkdirAll(templatePath, os.ModePerm)
 	fs.WalkDir(ThemeFS, ".", func(path string, d fs.DirEntry, err error) error {
 		newPath := filepath.Join(templatePath, path)
-		fmt.Println(newPath)
 		if d.IsDir() {
 			os.MkdirAll(newPath, os.ModePerm)
 		} else {
-			file, err := ThemeFS.ReadFile(path)
+			file, _ := ThemeFS.ReadFile(path)
 			os.WriteFile(newPath, file, os.ModePerm)
-			fmt.Println(err)
 		}
 		return nil
 	})

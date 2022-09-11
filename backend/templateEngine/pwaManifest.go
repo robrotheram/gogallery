@@ -3,6 +3,8 @@ package templateengine
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/robrotheram/gogallery/backend/config"
 )
 
 type Manifest struct {
@@ -95,11 +97,12 @@ const serviceWorker = `
 	})
 `
 
-func ManifestWriter(w io.Writer, siteName string) {
+func ManifestWriter(w io.Writer, config *config.GalleryConfiguration) {
 	manifest := Manifest{}
 	json.Unmarshal([]byte(mainifestTemplate), &manifest)
-	manifest.ShortName = siteName
-	manifest.Name = siteName
+	manifest.ShortName = config.Name
+	manifest.Name = config.Name
+	manifest.StartURL = config.Url
 	json.NewEncoder(w).Encode(manifest)
 }
 

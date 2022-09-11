@@ -1,10 +1,10 @@
 ## gogallery init
 
-create site
+Create site
 
 ### Synopsis
 
-create site
+Create site
 
 ```
 gogallery init [flags]
