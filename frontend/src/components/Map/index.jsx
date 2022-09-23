@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
 import { Modal,  Input, Button} from 'antd';
 import Map from './Map'
-
-// If no location data set it to center of UK
-// TODO: Use config
+import "./Map.css"
 
 const defaultLat = 52.56815737826566
 const defaultLng =-1.4654394633258416
@@ -34,7 +32,7 @@ export const LocationModal = (props) =>{
     }
     const onCancel = () => {setVisable(false)}
 
-    const onLocationChange = (lat, lng) => {
+    const onLocationChange = ({lat, lng}) => {
         setLng(lng)
         setLat(lat)
     }
@@ -51,13 +49,14 @@ export const LocationModal = (props) =>{
           okText="Update"
           onCancel={onCancel}
           onOk={onUpdate}
+          className="map-model"
         >
           
-           <div style={{width:"100%", height:"500px", marginBottom:"20px"}}> <Map lat={lat} lng={lng} onLocation={onLocationChange}/></div>
-           <InputGroup compact style={{width:"100%"}}>
-                <Input style={{ width: '35%' }} value={lat}/>
-                <Input style={{ width: '35%' }} value={lng}/>
-                <Button type="danger" style={{ width: '30%' }} onClick={() => onLocationChange(0,0)}>Clear Location</Button>
+           <div style={{width:"100%", height:"400px"}}> <Map lat={lat} lng={lng} onLocation={onLocationChange}/></div>
+           <InputGroup compact style={{width:"100%", padding:"12px"}}>
+                <Input style={{ width: '35%' }} value={lat.toFixed(6)}/>
+                <Input style={{ width: '35%' }} value={lng.toFixed(6)}/>
+                <Button type="danger" style={{ width: '30%' }} onClick={() => onLocationChange({lat:0, lng:0})}>Clear Location</Button>
             </InputGroup>
         </Modal>
         </div>

@@ -1,63 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import Map, {Marker} from 'react-map-gl';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet'
 
+const  LocationMarker = ({onLocation, center}) => {
+  const [position, setPosition] = useState(center)
+  const map = useMapEvents({
+    click(e) {
+      console.log("Map click evebt", e.latlng)
+      setPosition(e.latlng)
+      onLocation(e.latlng)
+    }
+  })
+
+  return position === null || (position.lat === 0 && position.lng === 0) ? null : (
+    <Marker position={position}>
+      <Popup>You are here</Popup>
+    </Marker>
+  )
+}
 
 const MapView = (props) => {
-
-  const [lng, setLng] = useState(-1.5);
-  const [lat, setLat] = useState(52.5);
-  const [zoom, setZoom] = useState(8);
-
-  const [marker_lng, setMarkerLng] = useState(-1.5);
-  const [marker_lat, setMarkerLat] = useState(52.5);
-
-  useEffect(() => {
-    if (props.lng !== undefined){
-      setLng(props.lng);
-      setMarkerLng(props.lng);
-    }
-    if (props.lat !== undefined){
-      setLat(props.lat);
-      setMarkerLat(props.lat)
-    }
-    if ((parseInt(props.lat)|| 0) === 0 && (parseInt(props.lng)|| 0) === 0){
-      console.log("set zoom")
-      setZoom(1)
-    }
-  }, [props.lng, props.lat]);
-
-  const onMarkerDragEnd = (event) => {
-    console.log(event);
-    props.onLocation(event.lngLat.lat, event.lngLat.lng)
-  };
-  return <Map
-    initialViewState={{
-      width: "100%",
-      height: "100%",
-      latitude: lat,
-      longitude: lng,
-      zoom: zoom
-    }}
-    mapLib={maplibregl}
-    mapStyle='https://api.maptiler.com/maps/topo/style.json?key=TcB1jNiCmLlNPGRfj3mM'
-    onMouseDown={(event)=>{
-      setMarkerLat(event.lngLat.lat)
-      setMarkerLng(event.lngLat.lng)
-      console.log(event);
-      props.onLocation(event.lngLat.lat, event.lngLat.lng)
-    }}
-  >
-  <Marker
-          longitude={marker_lng}
-          latitude={marker_lat}
-          anchor="center"
-          draggable
-          onDragEnd={onMarkerDragEnd}
-        />
-</Map>
-;
+  let center = [props.lat, props.lng]
+  if (props.lng === 0 && props.lat === 0) {
+    center = [51.505, -0.09]
+  }
+  return (
+    <MapContainer style={{height:"100%", width:"100%"}} center={center} zoom={13} scrollWheelZoom={true}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+     <LocationMarker onLocation={props.onLocation} center={{lat:props.lat, lng:props.lng}} />
+    </MapContainer>
+  )
 };
 
 export default MapView;
