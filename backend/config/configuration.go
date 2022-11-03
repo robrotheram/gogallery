@@ -61,7 +61,7 @@ func LoadConfig() *Configuration {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		log.Printf("error reading config file, %s", err)
 	}
 	err := viper.Unmarshal(&Config)
 	if err != nil {
