@@ -70,11 +70,12 @@ func LoadConfig() *Configuration {
 	return Config
 }
 func (c *ServerConfiguration) GetAddr() string {
-	if len(c.Host) == 0 {
-		c.Host = "localhost"
+	host := c.Host
+	if len(host) == 0 {
+		host = "localhost"
 	}
 	c.Port = strings.Replace(c.Port, ":", "", 1)
-	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+	return fmt.Sprintf("%s:%s", host, c.Port)
 }
 
 func (c *ServerConfiguration) GetLocalAddr() string {
