@@ -71,11 +71,18 @@ func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
 	//http.ServeFile(w, r, pic.Path)
 }
 
-func (api *GoGalleryAPI) Serve() {
+func (api *GoGalleryAPI) DashboardAPI() {
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
-	log.Println("Starting server on port: http://" + api.config.Server.Port)
-	log.Fatal(http.ListenAndServe(api.config.Server.Port, handlers.CORS(origins, headers, methods)(api.router)))
+	log.Println("Starting server on port: http://" + api.config.Server.GetLocalAddr())
+	log.Fatal(http.ListenAndServe(api.config.Server.GetLocalAddr(), handlers.CORS(origins, headers, methods)(api.router)))
+}
+
+func (api *GoGalleryAPI) Serve() {
+	fs := http.FileServer(http.Dir(api.config.Gallery.Destpath))
+	http.Handle("/", fs)
+	log.Println("Starting server on port: http://" + api.config.Server.GetAddr())
+	log.Fatal(http.ListenAndServe(api.config.Server.GetAddr(), nil))
 }

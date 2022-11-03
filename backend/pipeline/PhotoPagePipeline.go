@@ -18,9 +18,8 @@ func renderPhotoTemplate(db *datastore.DataStore) func(alb models.Picture) error
 		if err != nil {
 			return err
 		}
-
-		templateengine.RenderPhoto(f, pic, db.Pictures.GetByAlbumID(pic.Album), templateengine.NewPage(nil))
-
+		latestAlbumId := db.Pictures.GetLatestAlbum()
+		templateengine.RenderPhoto(f, pic, db.Pictures.GetByAlbumID(pic.Album), templateengine.NewPage(nil, latestAlbumId))
 		f.Close()
 		return nil
 	}

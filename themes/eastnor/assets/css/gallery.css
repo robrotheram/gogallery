@@ -76,6 +76,10 @@ img {
     margin-top: 110px;
     margin-bottom: 20px;
   }
+  
+  .galleryRow {
+    margin-top: 0px;
+  }
 
 
 @media only screen and (max-width: 1024px) {

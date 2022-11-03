@@ -1,20 +1,28 @@
 package templateengine
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/robrotheram/gogallery/backend/embeds"
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/css"
+	"github.com/tdewolff/minify/v2/html"
+	"github.com/tdewolff/minify/v2/js"
+	"github.com/tdewolff/minify/v2/svg"
 )
 
 const HomeTemplate = "index"
 const AlbumTemplate = "albums"
 const CollectionTemplate = "collections"
 const PhotoTemplate = "photo"
+const PaginationTemplate = "pagination"
 
 func (te *TemplateEngine) LoadFromEmbed() error {
 
@@ -74,13 +82,31 @@ func (te *TemplateEngine) LoadFromPath(basePath string) error {
 
 type TemplateEngine struct {
 	Cache *TemplateCache
+	m     *minify.M
 }
 
-var Templates = &TemplateEngine{}
+var Templates = NewTemplateEngine()
+
+func NewTemplateEngine() *TemplateEngine {
+	m := minify.New()
+	m.AddFunc("text/css", css.Minify)
+	m.AddFunc("text/html", html.Minify)
+	m.AddFunc("image/svg+xml", svg.Minify)
+	m.AddFuncRegexp(regexp.MustCompile("^(application|text)/(x-)?(java|ecma)script$"), js.Minify)
+	return &TemplateEngine{
+		m: m,
+	}
+}
 
 func (te *TemplateEngine) RenderPage(w io.Writer, pageName string, data Page) {
-	err := te.Cache.Get(pageName).Execute(w, data)
+	var tpl bytes.Buffer
+	err := te.Cache.Get(pageName).Execute(&tpl, data)
 	if err != nil {
 		fmt.Println(err)
 	}
+	b, err := te.m.Bytes("text/html", tpl.Bytes())
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Write(b)
 }

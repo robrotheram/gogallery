@@ -18,6 +18,7 @@ type Configuration struct {
 }
 
 type ServerConfiguration struct {
+	Host  string
 	Port  string
 	Debug bool
 }
@@ -67,6 +68,22 @@ func LoadConfig() *Configuration {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 	return Config
+}
+func (c *ServerConfiguration) GetAddr() string {
+	if len(c.Host) == 0 {
+		c.Host = "localhost"
+	}
+	c.Port = strings.Replace(c.Port, ":", "", 1)
+	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+}
+
+func (c *ServerConfiguration) GetLocalAddr() string {
+	host := c.Host
+	if len(host) == 0 || host == "0.0.0.0" {
+		host = "localhost"
+	}
+	c.Port = strings.Replace(c.Port, ":", "", 1)
+	return fmt.Sprintf("%s:%s", host, c.Port)
 }
 
 func (c *AboutConfiguration) Save() {

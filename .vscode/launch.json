@@ -6,7 +6,7 @@
             "request": "launch",
             "mode": "auto",
             "cwd": "${workspaceFolder}",
-            "program": "server",
+            "program": "main.go",
             "args": ["build"]
         }
     ]

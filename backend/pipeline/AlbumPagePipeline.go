@@ -17,7 +17,7 @@ func renderAlbumTemplate(db *datastore.DataStore) func(alb models.Album) error {
 		alb_path := filepath.Join(albumDir, slug.Make(alb.Id))
 		os.MkdirAll(alb_path, os.ModePerm)
 
-		page := templateengine.NewPage(nil)
+		page := templateengine.NewPage(nil, db.Pictures.GetLatestAlbum())
 		albums := db.Albums.GetAlbumStructure(page.Settings)
 		album := datastore.GetAlbumFromStructure(albums, alb.Id)
 

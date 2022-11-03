@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"log"
+	"os/exec"
+	"runtime"
+
 	"github.com/robrotheram/gogallery/backend/api"
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
@@ -24,6 +29,25 @@ var serveCMD = &cobra.Command{
 		if len(args) == 1 {
 			config.Server.Port = ":" + args[0]
 		}
+		openbrowser(fmt.Sprintf("http://%s", config.Server.GetLocalAddr()))
 		api.NewGoGalleryAPI(config, db).Serve()
 	},
+}
+
+func openbrowser(url string) {
+	var err error
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }

@@ -63,12 +63,12 @@ func NewSocailSEO(path string) SocailSEO {
 	}
 }
 
-func NewPage(r *http.Request) Page {
+func NewPage(r *http.Request, albumID string) Page {
 	page := Page{
-		Settings: config.Config.Gallery,
-		Author:   config.Config.About,
-		//LatestAlbum: datastore.GetLatestAlbumId(),
-		ImgSizes: ImageSizes,
+		Settings:    config.Config.Gallery,
+		Author:      config.Config.About,
+		LatestAlbum: albumID,
+		ImgSizes:    ImageSizes,
 	}
 	if r != nil {
 		page.SEO = NewSocailSEO(r.URL.EscapedPath())

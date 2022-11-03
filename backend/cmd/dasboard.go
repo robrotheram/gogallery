@@ -27,8 +27,8 @@ func LaunchDashboard() error {
 	config := config.LoadConfig()
 	db := datastore.Open(config.Gallery.Basepath)
 	defer db.Close()
-	config.Server.Port = "localhost:8800"
-	go api.NewGoGalleryAPI(config, db).Serve()
+	config.Server.Port = "8800"
+	go api.NewGoGalleryAPI(config, db).DashboardAPI()
 
 	return wails.Run(&options.App{
 		Title:            "gogallery",

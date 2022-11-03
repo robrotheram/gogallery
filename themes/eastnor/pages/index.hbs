@@ -1,7 +1,47 @@
 {{ define "main" }}
      <div class="container">
-          <div class="container">
+          <div class="container" id="gallery">
                {{template "gallery" . }}
           </div>
      </div>
+     <script>
+          const galleryContainer = document.getElementById("gallery");
+          const parser = new DOMParser();
+          var throttleTimer;
+          var currentPage = 1;
+          const throttle = (callback, time) => {
+               if (throttleTimer) return;
+               throttleTimer = true;
+               setTimeout(() => {
+                    callback();
+                    throttleTimer = false;
+               }, time);
+          };
+          const getPage = (index) => {
+               currentPage = index;
+               window.history.pushState(null, null, `/page/${index}`);
+               fetch(`/page/${index}/index.html`).then(function (response) {
+                    return response.text();
+               }).then(function (html) {
+                    dom = parser.parseFromString(html, "text/html");
+                    galleryContainer.append(dom.getElementsByClassName("galleryRow")[0]);
+               }).catch(function (err) {
+                    console.log(err)
+                    removeInfiniteScroll();
+               });
+          }
+          const handleInfiniteScroll = () => {
+               throttle(() => {
+                    const endOfPage =
+                         window.innerHeight + window.pageYOffset >= document.body.offsetHeight;
+                    if (endOfPage) {
+                         getPage(currentPage + 1);
+                    }
+               }, 500);
+          };
+          const removeInfiniteScroll = () => {
+               window.removeEventListener("scroll", handleInfiniteScroll);
+          };
+          window.addEventListener("scroll", handleInfiniteScroll);
+     </script>
 {{end}}

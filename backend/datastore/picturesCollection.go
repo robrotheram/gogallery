@@ -83,3 +83,16 @@ func (p *PictureCollection) GetFilteredPictures(admin bool) []models.Picture {
 	}
 	return models.SortByTime(filterPics)
 }
+
+func (p *PictureCollection) GetLatestAlbum() string {
+	pics := p.GetFilteredPictures(false)
+	latests := pics[0].Exif.DateTaken
+	album := pics[0].Album
+	for _, p := range pics {
+		if p.Exif.DateTaken.After(latests) {
+			latests = p.Exif.DateTaken
+			album = p.Album
+		}
+	}
+	return album
+}
