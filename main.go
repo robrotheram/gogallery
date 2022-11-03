@@ -10,7 +10,7 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
-//go:embed themes/eastnor/**
+//go:embed themes/eastnor
 var ThemeFS embed.FS
 
 func init() {
