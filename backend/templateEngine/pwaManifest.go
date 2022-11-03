@@ -54,7 +54,7 @@ const serviceWorker = `
 	const toCache = [
 	'/',
 	'/manifest.json',
-	'/service-worker',
+	'/service-worker.js',
 	'/assets/logos/logo192.png',
 	'/assets/logos/logo512.png',
 	];
