@@ -1,0 +1,8 @@
+.skeleton-card {
+    animation: fadeInAnimation ease-in-out 3s infinite;
+}
+
+@keyframes fadeInAnimation {
+    0%,100% { opacity: 0 }
+    50% { opacity: 1 }
+}

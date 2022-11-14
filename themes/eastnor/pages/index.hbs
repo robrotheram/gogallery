@@ -3,12 +3,18 @@
           <div class="container" id="gallery">
                {{template "gallery" . }}
           </div>
+          <div class="row g-3 galleryRow" id="loading" style="justify-content:center;">
+               <div class="col-sm-12 col-md-6 col-lg-3">
+                    <picture><a><img src="/assets/img/placeholder.png" class="img-fluid rounded skeleton-card" /></a></picture>
+               </div>
+          </div>
      </div>
      <script>
           const galleryContainer = document.getElementById("gallery");
+          const loadingyContainer = document.getElementById("loading");
           const parser = new DOMParser();
           var throttleTimer;
-          var currentPage = 1;
+          var currentPage = 0;
           const throttle = (callback, time) => {
                if (throttleTimer) return;
                throttleTimer = true;
@@ -20,6 +26,7 @@
           const getPage = (index) => {
                currentPage = index;
                window.history.pushState(null, null, `/page/${index}`);
+               loadingyContainer.style.display = 'flex';
                fetch(`/page/${index}/index.html`).then(function (response) {
                     return response.text();
                }).then(function (html) {
@@ -28,7 +35,8 @@
                }).catch(function (err) {
                     console.log(err)
                     removeInfiniteScroll();
-               });
+                    loadingyContainer.style.display = 'none';
+               })
           }
           const handleInfiniteScroll = () => {
                throttle(() => {
