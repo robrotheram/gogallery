@@ -1,6 +1,6 @@
-import 'antd/dist/antd.compact.min.css';
-import 'antd/dist/antd.dark.min.css';
-
+// import 'antd/dist/antd.compact.min.css';
+// import 'antd/dist/antd.dark.min.css';
+// import 'antd/dist/reset.css';
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 
@@ -15,6 +15,7 @@ import {
 
 import Main from './pages/Main';
 import Settings from './pages/Settings'
+import { Button, ConfigProvider, Layout, theme } from 'antd';
 
 const NoMatch = ({ location }) => (
   <Navigate to="/" />
@@ -31,12 +32,27 @@ const  AppComponent = () => {
       </BrowserRouter>
     )
 }
-
-
 const container = document.getElementById('app_root');
 const root = createRoot(container);
+const { Header, Footer, Sider, Content } = Layout;
 root.render(
-    <Provider store={store()}>
-    <AppComponent />
-  </Provider>
+  <ConfigProvider
+    theme={{
+      algorithm: [theme.darkAlgorithm],
+      components: { 
+        Layout:{
+          colorBgHeader: "rgb(20, 20, 20)",
+          colorBgTrigger: "rgb(20, 20, 20)"
+        },
+        Menu:{
+          colorItemBg: "rgb(20, 20, 20)"
+        }
+        
+      }
+    }}
+  >
+     <Provider store={store()}>
+     <AppComponent />
+   </Provider>
+  </ConfigProvider>
 );

@@ -76,7 +76,7 @@ func (api *GoGalleryAPI) DashboardAPI() {
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
-	log.Println("Starting server on port: http://" + api.config.Server.GetLocalAddr())
+	log.Println("Starting api server on port: http://" + api.config.Server.GetLocalAddr())
 	log.Fatal(http.ListenAndServe(api.config.Server.GetLocalAddr(), handlers.CORS(origins, headers, methods)(api.router)))
 }
 

@@ -10,7 +10,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 
-import { Layout, Menu, Radio, Tree } from 'antd';
+import { Layout, Menu, Pagination, Radio, Tree } from 'antd';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import { collectionActions, photoActions } from '../store/actions';
@@ -45,6 +45,10 @@ const Main = () => {
   const [filter, setFilter] = useState("")
   const [uploaded_filter, setUploadedFilter] = useState("")
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+
+
   useEffect(() => {
     dispatch(photoActions.getAll());
     dispatch(collectionActions.getAll());
@@ -67,6 +71,19 @@ const Main = () => {
     setCollapsed(collapsed)
   };
 
+  const paginate = (items, page = 1, perPage = 10) => {
+    const offset = perPage * (page - 1);
+    const totalPages = Math.ceil(items.length / perPage);
+    const paginatedItems = items.slice(offset, perPage * page);
+
+    return {
+      previousPage: page - 1 ? page - 1 : null,
+      nextPage: (totalPages > page) ? page + 1 : null,
+      total: items.length,
+      totalPages: totalPages,
+      items: paginatedItems
+    };
+  };
 
   const getStyle = (index) => {
     let elements = selectedElements.map(s => photos[s]);
@@ -84,7 +101,26 @@ const Main = () => {
   };
 
   const handleSizeChange = (e) => {
-    dispatch(galleryActions.changeImageSize(e.target.value))
+
+    console.log("PAGE", e.target.value);
+    switch (e.target.value) {
+      case "SM":
+        setPageSize(96);
+        dispatch(galleryActions.changeImageSize(2));
+        console.log("PAGE", e.target.value, 60);
+        break;
+      case "MD":
+        setPageSize(24);
+        dispatch(galleryActions.changeImageSize(4));
+        console.log("PAGE", e.target.value, 24);
+        break;
+      case "LG":
+        setPageSize(12);
+        dispatch(galleryActions.changeImageSize(6));
+        console.log("PAGE", e.target.value, 12);
+        break;
+    }
+
   }
 
   const onTreeSelect = (selectedKeys, info) => {
@@ -95,6 +131,7 @@ const Main = () => {
   };
 
   const filterPhotos = (item, datesList) => {
+    setPage(1);
     switch (item.key) {
       case "all":
         setFilter("")
@@ -156,12 +193,14 @@ const Main = () => {
     return dateA - dateB;
   }).reverse();
 
+
+  let results = paginate(filteredData, page, pageSize)
   return (
 
     <Layout style={{ minHeight: '100vh' }}>
       <Header search={filterPhotos} />
       <Layout>
-        <Sider collapsible collapsed={collapsed} onCollapse={onCollapse} width={200} style={{ overflowY: "auto" }}>
+        <Sider className="site-layout-background" collapsible collapsed={collapsed} onCollapse={onCollapse} width={200} style={{ overflowY: "auto" }}>
           <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={(item) => filterPhotos(item, datesList)}>
             <Menu.Item key="all"><PictureOutlined /><span>All Content</span></Menu.Item>
             <Menu.Item key="uploaded"><ClockCircleOutlined /><span>Last Uploaded</span></Menu.Item>
@@ -198,7 +237,7 @@ const Main = () => {
 
           <AddCollection />
           <UploadPhotos />
-          <Menu theme="dark" mode="inline" selectable={false}>
+          <Menu mode="inline" selectable={false}>
             <Menu.Item onClick={() => dispatch(galleryActions.showAdd())} key="add" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 50 }}><PlusOutlined /> <span>Add Collection</span></Menu.Item>
             <Menu.Item onClick={() => dispatch(galleryActions.showUpload())} key="upload" style={{ backgroundColor: "@popover-background", position: "absolute", bottom: 100 }}><UploadOutlined /> <span>Upload</span></Menu.Item>
           </Menu>
@@ -214,7 +253,7 @@ const Main = () => {
             onClick={clearSelection}
           >
             <Gallery
-              images={filteredData}
+              images={results.items}
               imageSize={imageSize}
               selectPhoto={selectPhoto}
               getStyle={getStyle}
@@ -222,14 +261,27 @@ const Main = () => {
           </Content>
 
 
-          <Footer style={{ backgroundColor: "#141414", height: "50px", border: "1px solid black", padding: 4, zIndex: 2, borderBottom: "0px", textAlign: "center" }}>
-            {selectedElements.length > 0 && <MoveModal selectedPhotos={selectedElements} />}
-            <span style={{ lineHeight: "32px" }}> {selectMessage}</span>
+          <Footer style={{
+            backgroundColor: "#141414",
+            height: "44px",
+            border: "1px solid black",
+            padding: "4px",
+            zIndex: 2,
+            borderBottom: "0px",
+            textAlign: "center",
+            display: "flex",
+            justifyContent: "space-between"
+          }}>
+            <span>{selectedElements.length > 0 && <MoveModal selectedPhotos={selectedElements} />}</span>
+            <span style={{ lineHeight: "32px" }}>
+              <Pagination total={results.total} pageSize={pageSize} showSizeChanger={false} onChange={(page, size) => {
+                setPage(page);
+              }} />
+            </span>
             <Radio.Group onChange={handleSizeChange} style={{ float: "right" }} defaultValue={imageSize}>
-              <Radio.Button value="1">tiny</Radio.Button>
-              <Radio.Button value="4">Small</Radio.Button>
-              <Radio.Button value="6">Medium</Radio.Button>
-              <Radio.Button value="8">Large</Radio.Button>
+              <Radio.Button value="SM">Small</Radio.Button>
+              <Radio.Button value="MD">Medium</Radio.Button>
+              <Radio.Button value="LG">Large</Radio.Button>
             </Radio.Group>
           </Footer>
         </Layout>

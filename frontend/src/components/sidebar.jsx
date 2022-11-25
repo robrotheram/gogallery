@@ -100,9 +100,7 @@ const SideBar = ({ photo }) => {
               <Input onBlur={editPhoto} />
             </Form.Item>
             <Form.Item label="Caption" name="caption">
-              <AutoComplete options={captionOptions}>
-                <Input onBlur={editPhoto} />
-              </AutoComplete>
+              <Input onBlur={editPhoto} />
             </Form.Item>
             <Form.Item label="Path" name="path">
               <Input onBlur={editPhoto} />

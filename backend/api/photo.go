@@ -52,6 +52,7 @@ func (api *GoGalleryAPI) UpdatePictureHandler(w http.ResponseWriter, r *http.Req
 		api.db.Albums.MovePictureToAlbum(&picture, picture.Album)
 	}
 	picture.Meta.DateModified = time.Now()
+	api.db.Pictures.Save(&picture)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 }

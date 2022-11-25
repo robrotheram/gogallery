@@ -14,6 +14,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(serveCMD)
+	rootCmd.AddCommand(devCMD)
 }
 
 var serveCMD = &cobra.Command{
@@ -31,6 +32,18 @@ var serveCMD = &cobra.Command{
 		}
 		openbrowser(fmt.Sprintf("http://%s", config.Server.GetLocalAddr()))
 		api.NewGoGalleryAPI(config, db).Serve()
+	},
+}
+
+var devCMD = &cobra.Command{
+	Use: "dev",
+	Run: func(cmd *cobra.Command, args []string) {
+		config := config.LoadConfig()
+		db := datastore.Open(config.Gallery.Basepath)
+		defer db.Close()
+		db.ScanPath(config.Gallery.Basepath)
+		config.Server.Port = "8800"
+		api.NewGoGalleryAPI(config, db).DashboardAPI()
 	},
 }
 
