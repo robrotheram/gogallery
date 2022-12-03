@@ -92,8 +92,8 @@ If you forget the admin password for any reason you can use the `gogallery --res
 
 ## Themes
 
-Version 3.0 has support for users themes. The theme engine chosen is a version of handlebars  using the  https://github.com/mailgun/raymond rendering engine. It mainly inspired by themes written for the very popular blogging engine Ghost.io
- 
+Version 5.x has support for users themes. The theme engine uses Go’s html/template and text/template libraries as the basis for the templating. This is similar to the one hugo uses https://gohugo.io/templates/introduction/ but with the varibles being different. 
+
 All Themes will need to have the following pages in order for the site to work:
  - 404.hbs  
  - albums.hbs 
