@@ -43,30 +43,38 @@
                               </th>
                               <td>{{.Picture.Exif.Camera}}</td>
                          </tr>
+                          {{if ne .Picture.Exif.FocalLength "0.00mm" }}
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/focal-length.svg" width="50px" alt="focal icon">
                               </th>
-                              <td>{{.Picture.Exif.FocalLength}} mm</td>
+                              <td>{{.Picture.Exif.FocalLength}}</td>
                          </tr>
+                         {{end}}
+                          {{if ne .Picture.Exif.FStop "0" }}
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/apature.svg" width="50px" alt="apature icon">
                               </th>
                               <td>f/{{.Picture.Exif.FStop}}</td>
                          </tr>
+                         {{end}}
+                         {{if .Picture.Exif.ShutterSpeed }}
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/timer.svg" width="50px" alt="timer icon">
                               </th>
                               <td>{{.Picture.Exif.ShutterSpeed}}</td>
                          </tr>
+                         {{end}}
+                         {{if ne .Picture.Exif.ISO "0"}}
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/iso.svg" width="50px" alt="iso icon">
                               </th>
                               <td>{{.Picture.Exif.ISO}}</td>
                          </tr>
+                         {{end}}
                          <tr>
                               <th scope="row">
                                    <img src="/assets/img/icons/albums.svg" width="50px" alt="album icon">

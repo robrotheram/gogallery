@@ -9,8 +9,8 @@ import (
 )
 
 type Exif struct {
-	FStop        float64   `json:"f_stop"`
-	FocalLength  float64   `json:"focal_length"`
+	FStop        string    `json:"f_stop"`
+	FocalLength  string    `json:"focal_length"`
 	ShutterSpeed string    `json:"shutter_speed"`
 	ISO          string    `json:"iso"`
 	Dimension    string    `json:"dimension"`

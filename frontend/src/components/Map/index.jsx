@@ -53,10 +53,10 @@ export const LocationModal = (props) =>{
         >
           
            <div style={{width:"100%", height:"400px"}}> <Map lat={lat} lng={lng} onLocation={onLocationChange}/></div>
-           <InputGroup compact style={{width:"100%", padding:"12px"}}>
+           <InputGroup compact style={{width:"100%", marginTop:"10px"}}>
                 <Input style={{ width: '35%' }} value={lat.toFixed(6)}/>
                 <Input style={{ width: '35%' }} value={lng.toFixed(6)}/>
-                <Button type="danger" style={{ width: '30%' }} onClick={() => onLocationChange({lat:0, lng:0})}>Clear Location</Button>
+                <Button type="primary" danger style={{ width: '30%' }} onClick={() => onLocationChange({lat:0, lng:0})}>Clear Location</Button>
             </InputGroup>
         </Modal>
         </div>

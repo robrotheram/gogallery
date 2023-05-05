@@ -80,7 +80,7 @@ const AlbumSettings = () => {
     setAlbumID(alb.id)
     setAlbumPic(alb.profile_image)
     setAlbumName(alb.name)
-    setGPS(alb.GPS)
+    setGPS(alb.gps)
    
   };
 

@@ -9,6 +9,7 @@ import (
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
 	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/embeds"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
@@ -94,5 +95,10 @@ func build() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	templateengine.Dir(filepath.Join(config.Config.Gallery.Theme, "assets"), filepath.Join(root, "assets"))
+	if config.Config.Gallery.Theme == "default" {
+		embeds.CopyThemeAssets(filepath.Join(root, "assets"))
+	} else {
+		templateengine.Dir(filepath.Join(config.Config.Gallery.Theme, "assets"), filepath.Join(root, "assets"))
+	}
+
 }

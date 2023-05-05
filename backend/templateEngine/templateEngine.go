@@ -28,21 +28,21 @@ func (te *TemplateEngine) LoadFromEmbed() error {
 
 	te.Cache = newTeamplateCache()
 
-	base, err := template.ParseFS(embeds.ThemeFS, "eastnor/default.hbs")
+	base, err := template.ParseFS(embeds.ThemeFS, "themes/eastnor/default.hbs")
 	if err != nil {
 		return err
 	}
 	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]int { return ImageSizes }})
-	base, _ = base.ParseFS(embeds.ThemeFS, "eastnor/partials/*.hbs")
+	base, _ = base.ParseFS(embeds.ThemeFS, "themes/eastnor/partials/*.hbs")
 
-	items, err := embeds.ThemeFS.ReadDir("eastnor/pages")
+	items, err := embeds.ThemeFS.ReadDir("themes/eastnor/pages")
 	if err != nil {
 		return err
 	}
 	for _, item := range items {
 		name := strings.TrimSuffix(item.Name(), filepath.Ext(item.Name()))
 		pageTemplate := template.Must(base.Clone())
-		pageTemplate = template.Must(pageTemplate.ParseFS(embeds.ThemeFS, "eastnor/pages/"+item.Name()))
+		pageTemplate = template.Must(pageTemplate.ParseFS(embeds.ThemeFS, "themes/eastnor/pages/"+item.Name()))
 		te.Cache.Add(name, pageTemplate)
 	}
 	return nil

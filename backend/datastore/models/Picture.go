@@ -35,44 +35,24 @@ func (u *Picture) CreateExif() error {
 	defer f.Close()
 	u.Exif = Exif{}
 
-	m, err := imagemeta.Parse(f)
-	if err != nil {
-		return err
-	}
-	exif, err := m.Exif()
+	meta, err := imagemeta.Decode(f)
 	if err != nil {
 		return err
 	}
 
-	if a, err := exif.Aperture(); err == nil {
-		u.Exif.FStop = float64(a)
-	}
-	if a, err := exif.FocalLength(); err == nil {
-		u.Exif.FocalLength = float64(a)
-	}
-	if a, err := exif.ShutterSpeed(); err == nil {
-		u.Exif.ShutterSpeed = fmt.Sprintf("%d/%d", a[0], a[1])
-	}
-	if a, err := exif.ISOSpeed(); err == nil {
-		u.Exif.ISO = fmt.Sprint(a)
-	}
-	if a := exif.CameraModel(); a != "" {
-		u.Exif.Camera = a
-	}
-	if a, err := exif.LensModel(); err == nil {
-		u.Exif.LensModel = a
-	}
-	if a, err := exif.DateTime(nil); err == nil {
-		u.Exif.DateTaken = a
+	u.Exif.FStop = meta.FNumber.String()
+	u.Exif.FocalLength = meta.FocalLength.String()
+	u.Exif.ShutterSpeed = meta.ExposureTime.String()
+	u.Exif.ISO = fmt.Sprintf("%d", meta.ISOSpeed)
+	u.Exif.Dimension = fmt.Sprintf("%d/%d", meta.ImageWidth, meta.ImageHeight)
+	u.Exif.Camera = meta.CameraMake.String()
+	u.Exif.LensModel = meta.LensModel
+	u.Exif.DateTaken = meta.CreateDate()
+	u.Exif.GPS = GPS{
+		Lat: meta.GPS.Latitude(),
+		Lng: meta.GPS.Latitude(),
 	}
 
-	lat, long, err := exif.GPSCoords()
-	if err != nil {
-		u.Exif.GPS = GPS{
-			Lat: lat,
-			Lng: long,
-		}
-	}
 	return nil
 }
 

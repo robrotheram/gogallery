@@ -36,3 +36,7 @@ docker-publish:
 
 install:
 	cp build/bin/gogallery /home/robertfletcher/.local/bin/gogallery
+
+update: 
+	go get -u
+	go mod tidy

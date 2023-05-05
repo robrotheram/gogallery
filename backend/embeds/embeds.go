@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var DashboardFS embed.FS
@@ -17,6 +18,22 @@ func CopyTheme(templatePath string) {
 	os.MkdirAll(templatePath, os.ModePerm)
 	fs.WalkDir(ThemeFS, ".", func(path string, d fs.DirEntry, err error) error {
 		newPath := filepath.Join(templatePath, path)
+		if d.IsDir() {
+			os.MkdirAll(newPath, os.ModePerm)
+		} else {
+			file, _ := ThemeFS.ReadFile(path)
+			os.WriteFile(newPath, file, os.ModePerm)
+		}
+		return nil
+	})
+
+}
+
+func CopyThemeAssets(templatePath string) {
+	os.MkdirAll(templatePath, os.ModePerm)
+	root := "themes/eastnor/assets"
+	fs.WalkDir(ThemeFS, root, func(path string, d fs.DirEntry, err error) error {
+		newPath := filepath.Join(templatePath, strings.Replace(path, root, "", -1))
 		if d.IsDir() {
 			os.MkdirAll(newPath, os.ModePerm)
 		} else {

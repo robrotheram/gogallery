@@ -201,7 +201,7 @@ const Main = () => {
       <Header search={filterPhotos} />
       <Layout>
         <Sider className="site-layout-background" collapsible collapsed={collapsed} onCollapse={onCollapse} width={200} style={{ overflowY: "auto" }}>
-          <Menu theme="dark" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={(item) => filterPhotos(item, datesList)}>
+          <Menu theme="light" mode="inline" selectable={true} defaultSelectedKeys={["all"]} onSelect={(item) => filterPhotos(item, datesList)}>
             <Menu.Item key="all"><PictureOutlined /><span>All Content</span></Menu.Item>
             <Menu.Item key="uploaded"><ClockCircleOutlined /><span>Last Uploaded</span></Menu.Item>
             <SubMenu

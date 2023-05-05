@@ -22,7 +22,10 @@ func (p *PictureCollection) GetAll() []models.Picture {
 	defer p.Unlock()
 
 	var pics []models.Picture
-	p.DB.All(&pics)
+	err := p.DB.All(&pics)
+	if err != nil {
+		return []models.Picture{}
+	}
 	return pics
 }
 

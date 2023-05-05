@@ -1,15 +1,13 @@
-database:
-  baseurl: "/tmp/gallery/"
-
-server:
-  port: ":8800"
+deploy:
+    authtoken: netify-auth-token
+    siteid: netify site-id
 
 gallery:
   name: "Gallery"
   imagesPerPage: 50
   basepath: "/run/user/1000/gvfs/dav:host=cloud.exceptionerror.io,ssl=true,user=robrotheram,prefix=%2Fremote.php%2Fwebdav/Photos"
   url:      "https://your.url.here"
-  theme:    "default"
+  theme:    "default" #default uses embeded theme. change to path to use a differnt theme
   #Limit that when thumbnail que reaches it the gallery will throw a warning to allow it to catch up an generate the thumbnails.
   QueThreshold: 50 
 
@@ -26,8 +24,3 @@ about:
   website: "https://example.com"
   description: "Hello there, here is my gallery containing a number of photos from a number of years"
   footer: "Photos ©photographer"
-
-admin:
-  enable: false
-  username: admin
-  password: <<GENERATED PASSWORD>>

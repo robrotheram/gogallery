@@ -36,13 +36,7 @@ func (a *AlumnCollectioins) GetAll() []models.Album {
 
 func (a *AlumnCollectioins) FindByID(id string) models.Album {
 	var alb models.Album
-	a.FindByFeild("id", id, alb)
-	return alb
-}
-
-func (a *AlumnCollectioins) FindOneFeild(id string) models.Album {
-	var alb models.Album
-	a.FindByFeild("id", id, alb)
+	a.DB.One("Id", id, &alb)
 	return alb
 }
 

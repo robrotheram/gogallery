@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet'
+import { useRef } from 'react';
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
 const  LocationMarker = ({onLocation, center}) => {
   const [position, setPosition] = useState(center)
@@ -18,6 +19,17 @@ const  LocationMarker = ({onLocation, center}) => {
   )
 }
 
+const ComponentResize = () => {
+  const map = useMap()
+
+  setTimeout(() => {
+    console.log("MAP CALLED")
+      map.invalidateSize()
+  }, 0)
+
+  return null
+}
+
 const MapView = (props) => {
   let center = [props.lat, props.lng]
   if (props.lng === 0 && props.lat === 0) {
@@ -25,6 +37,7 @@ const MapView = (props) => {
   }
   return (
     <MapContainer style={{height:"100%", width:"100%"}} center={center} zoom={13} scrollWheelZoom={true}>
+      <ComponentResize/>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

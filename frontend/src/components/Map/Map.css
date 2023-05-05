@@ -18,4 +18,13 @@
 
 .map-model > * >.ant-modal-body {
   padding: 0px;
+  margin: 6px;
+}
+.map-model > * > .ant-modal-header {
+  padding: 0px;
+  margin-bottom: 10px;
+  
+}
+.map-model > * > .ant-modal-close {
+  padding: 2px;
 }
