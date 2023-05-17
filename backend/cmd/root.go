@@ -62,6 +62,7 @@ func initConfig() {
 		}
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".gogallery")
+		viper.SetConfigType("yaml")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

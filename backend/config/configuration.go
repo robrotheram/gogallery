@@ -61,7 +61,8 @@ func LoadConfig() *Configuration {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("error reading config file, %s", err)
+		log.Printf("config not found creating default")
+		fmt.Println(viper.SafeWriteConfig())
 	}
 	err := viper.Unmarshal(&Config)
 	if err != nil {
