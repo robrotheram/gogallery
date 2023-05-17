@@ -35,7 +35,7 @@ docker-publish:
 		docker push robrotheram/gogallery:latest
 
 install:
-	cp build/bin/gogallery /home/robertfletcher/.local/bin/gogallery
+	cp build/bin/gogallery /home/${HOME}/.local/bin/gogallery
 
 update: 
 	go get -u
