@@ -67,8 +67,7 @@ func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	pic := api.db.Pictures.FindByID(id)
-	w.Write(pipeline.ProcessImage(pic))
-	//http.ServeFile(w, r, pic.Path)
+	pipeline.ProcessImage(pic, w)
 }
 
 func (api *GoGalleryAPI) DashboardAPI() {

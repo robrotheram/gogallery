@@ -3,6 +3,7 @@
 *.prof
 *.tar.gz
 *.tgz
+*.7z
 vendor
 cache
 config.yml

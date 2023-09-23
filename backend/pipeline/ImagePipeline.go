@@ -1,18 +1,29 @@
 package pipeline
 
 import (
+	"io"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 
-	"github.com/h2non/bimg"
+	"github.com/disintegration/imaging"
 	"github.com/robrotheram/gogallery/backend/datastore/models"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func ProcessImage(pic models.Picture) []byte {
-	buffer, _ := bimg.Read(pic.Path)
-	newImage, _ := bimg.NewImage(buffer).Resize(templateengine.ImageSizes["xsmall"], 0)
-	return newImage
+func ProcessImage(pic models.Picture, w io.Writer) {
+	srcImage, err := imaging.Open(pic.Path)
+	if err != nil {
+		log.Fatalf("failed to open image: %v", err)
+	}
+
+	size := templateengine.ImageSizes["xsmall"]
+	newImage := imaging.Resize(srcImage, size, size, imaging.Lanczos)
+	fileFormat, formatErr := imaging.FormatFromFilename(pic.Path)
+	if formatErr != nil {
+		log.Fatalf("failed to detect image format: %v", err)
+	}
+	imaging.Encode(w, newImage, fileFormat)
 }
 
 func ImageGenV2(pic models.Picture) error {
@@ -36,15 +47,18 @@ func ImageGenV2(pic models.Picture) error {
 		return nil
 	}
 
-	buffer, err := bimg.Read(pic.Path)
-	if err != nil {
-		return err
-	}
-
 	for key, size := range toRender {
 		cachePath := filepath.Join(destPath, key+".webp")
-		newImage, _ := bimg.NewImage(buffer).Resize(size, 0)
-		bimg.Write(cachePath, newImage)
+		oldImage, err := imaging.Open(pic.Path)
+		if err != nil {
+			return err
+		}
+
+		newImage := imaging.Resize(oldImage, size, size, imaging.Lanczos)
+		err = imaging.Save(newImage, cachePath)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
