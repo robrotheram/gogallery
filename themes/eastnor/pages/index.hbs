@@ -25,10 +25,13 @@
           };
           const getPage = (index) => {
                currentPage = index;
-               window.history.pushState(null, null, `/page/${index}`);
+               //window.history.pushState(null, null, `/page/${index}`);
                loadingyContainer.style.display = 'flex';
                fetch(`/page/${index}/index.html`).then(function (response) {
-                    return response.text();
+                    if(response.ok){
+                         return response.text();
+                    }
+                    throw new Error(response.status + " Failed Fetch page ");
                }).then(function (html) {
                     dom = parser.parseFromString(html, "text/html");
                     galleryContainer.append(dom.getElementsByClassName("galleryRow")[0]);
