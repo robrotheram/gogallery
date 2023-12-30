@@ -6,7 +6,7 @@ networks:
 
 services:
   server:
-    image: robrotheram/gogallery:latest
+    image: ghcr.io/robrotheram/gogallery:master
     restart: always
     networks:
       - gogallery
@@ -14,7 +14,7 @@ services:
       - "./config.yml:/app/config.yml"
       - "/path/to/gallery:/app/pictures"
     ports:
-       - "8085:8085"
+       - 8085:80
     environment:
       GLLRY_GALLERY_BASEPATH: "/app/pictures"
 
