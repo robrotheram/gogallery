@@ -3,15 +3,20 @@ package pipeline
 import (
 	"runtime"
 	"sync"
+
+	"github.com/robrotheram/gogallery/backend/monitor"
 )
 
 type BatchProcessing[T any] struct {
+	items     []T
+	stat      *monitor.ProgressStats
 	work      func(T) error
 	chunkSize int
 }
 
-func chunkSlice[T any](slice []T, chunkSize int) [][]T {
+func chunkSlice[T any](slice []T, nchunks int) [][]T {
 	var chunks [][]T
+	chunkSize := (len(slice) / nchunks)
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
 		if end > len(slice) {
@@ -22,28 +27,37 @@ func chunkSlice[T any](slice []T, chunkSize int) [][]T {
 	return chunks
 }
 
-func (batch *BatchProcessing[T]) Run(items []T, stat *ProgressStats) {
-	stat.Start()
+func (batch *BatchProcessing[T]) Run() {
+	batch.stat.Start()
 	var wg sync.WaitGroup
-	for _, chunk := range chunkSlice(items, batch.chunkSize) {
+	chunks := chunkSlice(batch.items, batch.chunkSize)
+	for _, chunk := range chunks {
 		wg.Add(1)
-		go batch.processing(chunk, stat, &wg)
+		go batch.processing(chunk, &wg)
 	}
 	wg.Wait()
-	stat.End()
+	batch.stat.End()
 }
 
-func (poc *BatchProcessing[T]) processing(batch []T, stat *ProgressStats, wg *sync.WaitGroup) {
+func (poc *BatchProcessing[T]) processing(batch []T, wg *sync.WaitGroup) {
 	for _, pic := range batch {
 		poc.work(pic)
-		stat.Update()
+		poc.stat.Update()
 	}
 	wg.Done()
 }
 
-func NewBatchProcessing[T any](processing func(T) error) *BatchProcessing[T] {
-	proc := BatchProcessing[T]{}
-	proc.work = processing
-	proc.chunkSize = runtime.NumCPU()
-	return &proc
+func NewBatchProcessing[T any](processing func(T) error, items []T, stat *monitor.ProgressStats) *BatchProcessing[T] {
+	stat.Total = len(items)
+	//save 1 core for the system
+	chunsize := runtime.NumCPU() - 1
+	if chunsize < 1 {
+		chunsize = 1
+	}
+	return &BatchProcessing[T]{
+		work:      processing,
+		chunkSize: chunsize,
+		items:     items,
+		stat:      stat,
+	}
 }

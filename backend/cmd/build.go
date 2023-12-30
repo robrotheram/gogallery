@@ -3,8 +3,10 @@ package cmd
 import (
 	"log"
 
+	"github.com/gosuri/uiprogress"
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
+	"github.com/robrotheram/gogallery/backend/monitor"
 	"github.com/robrotheram/gogallery/backend/pipeline"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +15,7 @@ func init() {
 	rootCmd.AddCommand(buildCMD)
 }
 
+var cmdMonitor = monitor.NewCMDMonitor()
 var buildCMD = &cobra.Command{
 	Use:   "build",
 	Short: "Build static site",
@@ -20,16 +23,15 @@ var buildCMD = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config := config.LoadConfig()
 		config.Validate()
-
-		// templateengine.TemplateBuilder()
-
 		db := datastore.Open(config.Gallery.Basepath)
 		defer db.Close()
 		db.ScanPath(config.Gallery.Basepath)
 		log.Println("Building Site at: " + config.Gallery.Destpath)
-		monitor := pipeline.NewMonitor()
-		render := pipeline.NewRenderPipeline(&config.Gallery, db, monitor)
+		uiprogress.Start()
+		render := pipeline.NewRenderPipeline(&config.Gallery, db, cmdMonitor)
+		cmdMonitor.StartUpdater()
 		render.BuildSite()
+		cmdMonitor.StopUpdater()
 		log.Println("Building Complete")
 		return nil
 	},

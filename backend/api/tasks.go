@@ -20,7 +20,12 @@ type backup struct {
 }
 
 func (api *GoGalleryAPI) purgeTaskHandler(w http.ResponseWriter, r *http.Request) {
-	pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).DeleteSite()
+	stat := api.monitor.NewTask("Delete Site", 0)
+	go func() {
+		stat.Start()
+		pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).DeleteSite()
+		stat.End()
+	}()
 	fmt.Fprintf(w, "Deleted Site")
 }
 
@@ -30,9 +35,13 @@ func (api *GoGalleryAPI) getTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *GoGalleryAPI) rescanTaskHandler(w http.ResponseWriter, r *http.Request) {
+	stat := api.monitor.NewTask("Rescan", 0)
 	go func() {
+		stat.Start()
 		api.db.ScanPath(api.config.Gallery.Basepath)
+		stat.End()
 	}()
+	fmt.Fprintf(w, "rescan task started")
 }
 
 func (api *GoGalleryAPI) buildTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +50,7 @@ func (api *GoGalleryAPI) buildTaskHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (api *GoGalleryAPI) deployTaskHandler(w http.ResponseWriter, r *http.Request) {
-	go deploy.DeploySite(*api.config, api.monitor.NewTask("netify deploy"))
+	go deploy.DeploySite(*api.config, api.monitor.NewTask("netify deploy", 0))
 	fmt.Fprintf(w, "Deploy task started")
 }
 
@@ -49,11 +58,11 @@ func (api *GoGalleryAPI) uploadTaskHandler(w http.ResponseWriter, r *http.Reques
 	bk := backup{}
 	r.ParseMultipartForm(32 << 20)
 	file, _, err := r.FormFile("file")
-	defer file.Close()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer file.Close()
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
 		fmt.Println(err)

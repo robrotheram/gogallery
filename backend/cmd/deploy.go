@@ -5,7 +5,7 @@ import (
 
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/deploy"
-	"github.com/robrotheram/gogallery/backend/pipeline"
+	"github.com/robrotheram/gogallery/backend/monitor"
 	"github.com/spf13/cobra"
 )
 
@@ -19,9 +19,9 @@ var deployCMD = &cobra.Command{
 	Long:  "Deploy static site",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.LoadConfig()
-		monitor := pipeline.NewMonitor()
+		monitor := monitor.NewMonitor()
 		config.Validate()
 		fmt.Println("Deploying Site")
-		deploy.DeploySite(*config, monitor.NewTask("deploy"))
+		deploy.DeploySite(*config, monitor.NewTask("deploy", 0))
 	},
 }

@@ -11,11 +11,11 @@ import (
 	porcelain "github.com/netlify/open-api/v2/go/porcelain"
 	ooapicontext "github.com/netlify/open-api/v2/go/porcelain/context"
 	"github.com/robrotheram/gogallery/backend/config"
-	"github.com/robrotheram/gogallery/backend/pipeline"
+	"github.com/robrotheram/gogallery/backend/monitor"
 	"github.com/sirupsen/logrus"
 )
 
-func DeploySite(c config.Configuration, stats *pipeline.ProgressStats) {
+func DeploySite(c config.Configuration, stats *monitor.ProgressStats) {
 	stats.Start()
 	logger := logrus.New()
 	logger.SetLevel(logrus.FatalLevel)
@@ -50,10 +50,10 @@ func DeploySite(c config.Configuration, stats *pipeline.ProgressStats) {
 }
 
 type DeployObserver struct {
-	stats *pipeline.ProgressStats
+	stats *monitor.ProgressStats
 }
 
-func NewDeployObserver(stats *pipeline.ProgressStats) *DeployObserver {
+func NewDeployObserver(stats *monitor.ProgressStats) *DeployObserver {
 	return &DeployObserver{
 		stats: stats,
 	}

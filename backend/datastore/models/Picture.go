@@ -2,11 +2,17 @@ package models
 
 import (
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"sort"
 	"time"
 
 	"github.com/evanoberholster/imagemeta"
+	// Blind import for image.Decode
+	_ "golang.org/x/image/webp"
 )
 
 type Picture struct {
@@ -61,4 +67,17 @@ func SortByTime(p []Picture) []Picture {
 		return p[i].Exif.DateTaken.Sub(p[j].Exif.DateTaken) > 0
 	})
 	return p
+}
+
+func (p *Picture) Load() (image.Image, error) {
+	f, err := os.Open(p.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, fmt.Errorf("image %s, decode failed: %v", p.Path, err)
+	}
+	return img, nil
 }

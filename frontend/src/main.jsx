@@ -42,10 +42,12 @@ root.render(
       components: { 
         Layout:{
           colorBgHeader: "rgb(20, 20, 20)",
-          colorBgTrigger: "rgb(20, 20, 20)"
+          colorBgTrigger: "rgb(20, 20, 20)",
+          siderBg: "rgb(20, 20, 20)",
         },
         Menu:{
-          colorItemBg: "rgb(20, 20, 20)"
+          colorItemBg: "rgb(20, 20, 20)",
+          darkItemBg: "rgb(20, 20, 20)",
         }
         
       }

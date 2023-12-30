@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 
@@ -26,7 +27,13 @@ var serveCMD = &cobra.Command{
 		config := config.LoadConfig()
 		db := datastore.Open(config.Gallery.Basepath)
 		defer db.Close()
-		db.ScanPath(config.Gallery.Basepath)
+
+		_, err := os.Stat(config.Gallery.Destpath)
+		if os.IsNotExist(err) {
+			log.Fatalf("Sorry it does not look like the site has been built, there is nothing at: \"%s\". Please check the config ", config.Gallery.Destpath)
+			return
+		}
+
 		if len(args) == 1 {
 			config.Server.Port = ":" + args[0]
 		}

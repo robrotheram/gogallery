@@ -9,18 +9,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
+	"github.com/robrotheram/gogallery/backend/monitor"
 	"github.com/robrotheram/gogallery/backend/pipeline"
+	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
 type GoGalleryAPI struct {
 	db      *datastore.DataStore
 	config  *config.Configuration
 	router  *mux.Router
-	monitor *pipeline.TasksMonitor
+	monitor *monitor.TasksMonitor
 }
 
 func NewGoGalleryAPI(config *config.Configuration, db *datastore.DataStore) *GoGalleryAPI {
-	api := &GoGalleryAPI{config: config, db: db, monitor: pipeline.NewMonitor()}
+	api := &GoGalleryAPI{config: config, db: db, monitor: monitor.NewMonitor()}
 	api.router = mux.NewRouter()
 	api.setupDashboardRoutes()
 	return api
@@ -67,8 +69,11 @@ func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	pic := api.db.Pictures.FindByID(id)
-	w.Write(pipeline.ProcessImage(pic))
-	//http.ServeFile(w, r, pic.Path)
+	src, err := pic.Load()
+	if err != nil {
+		return
+	}
+	pipeline.ProcessImage(src, templateengine.ImageSizes["xsmall"], w)
 }
 
 func (api *GoGalleryAPI) DashboardAPI() {

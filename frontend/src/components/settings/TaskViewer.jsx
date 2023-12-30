@@ -48,7 +48,6 @@ export const TaskViewer = () => {
 
     const getTasks = () => {
         axios.get(config.baseUrl+"/tasks").then((resp)=>{
-            console.log("Task data", resp.data)
             setData(resp.data)
         }).catch((err)=>{
             notify("warning", "Error from server: "+err)
@@ -59,21 +58,22 @@ export const TaskViewer = () => {
     useEffect(() => {
         let interval = setInterval(() => {
             getTasks()
-        }, 500);
+        }, 1000);
         return () => {
             clearInterval(interval);
         };
     }, []);
 
     const sortTasks = (tasks) => {
+        tasks = tasks.filter(a => a.state!=="inactive")
         return tasks.sort((a,b) => {return  new Date(Date.parse(b.start)) - new Date(Date.parse(a.start));});
     }
 
     return (
         <Table dataSource={sortTasks(data)} pagination={false}>
             <Column title="Task Name" dataIndex="name" key="taskname" />
-            <Column title="Status" dataIndex="done" key="complete" render={(done) => {
-                return  done ? <><Badge status="success"/> Complete </> : <><Badge status="processing"/> In progress </>
+            <Column title="Status" dataIndex="state" key="complete" render={(state) => {
+                return  state==="complete" ? <><Badge status="success"/> Complete </> : <><Badge status="processing"/> In progress </>
             }}/>
             <Column title="Started At" dataIndex="start" key="started" render={(timeStr) => { 
                 let date = new Date(Date.parse(timeStr));
@@ -84,6 +84,7 @@ export const TaskViewer = () => {
                 return formatDuration(timeStr/1000000);
                 }
             } />
+            
            
         </Table>
     )

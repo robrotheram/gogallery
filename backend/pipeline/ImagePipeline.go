@@ -1,18 +1,32 @@
 package pipeline
 
 import (
+	"image"
+	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/h2non/bimg"
+	"github.com/bep/gowebp/libwebp"
+	"github.com/bep/gowebp/libwebp/webpoptions"
+	"github.com/disintegration/imaging"
 	"github.com/robrotheram/gogallery/backend/datastore/models"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func ProcessImage(pic models.Picture) []byte {
-	buffer, _ := bimg.Read(pic.Path)
-	newImage, _ := bimg.NewImage(buffer).Resize(templateengine.ImageSizes["xsmall"], 0)
-	return newImage
+func resize(base image.Image, width int, height int) image.Image {
+	if width == 0 && height == 0 {
+		return imaging.Resize(base, int(float64(base.Bounds().Dx())), 0, imaging.Lanczos)
+	}
+	return imaging.Resize(base, width, height, imaging.Lanczos)
+}
+
+func ProcessImage(src image.Image, size int, w io.Writer) {
+	resized := resize(src, size, 0)
+	libwebp.Encode(w, resized, webpoptions.EncodingOptions{
+		Quality:        100,
+		EncodingPreset: webpoptions.EncodingPresetDefault,
+		UseSharpYuv:    true,
+	})
 }
 
 func ImageGenV2(pic models.Picture) error {
@@ -36,16 +50,19 @@ func ImageGenV2(pic models.Picture) error {
 		return nil
 	}
 
-	buffer, err := bimg.Read(pic.Path)
+	src, err := pic.Load()
 	if err != nil {
 		return err
 	}
 
 	for key, size := range toRender {
 		cachePath := filepath.Join(destPath, key+".webp")
-		newImage, _ := bimg.NewImage(buffer).Resize(size, 0)
-		bimg.Write(cachePath, newImage)
+		fo, err := os.Create(cachePath)
+		if err != nil {
+			continue
+		}
+		defer fo.Close()
+		ProcessImage(src, size, fo)
 	}
-
 	return nil
 }

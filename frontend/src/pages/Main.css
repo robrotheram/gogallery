@@ -27,7 +27,7 @@ html, body {
 }
 
 .App-header {
-  background-color: #282c34;
+
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -64,7 +64,7 @@ html, body {
 }
 
 .App-header {
-  background-color: #282c34;
+  /* background-color: #282c34; */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -238,3 +238,4 @@ html, body {
 ::-webkit-scrollbar-thumb { height: 0px; background-color: #666; border-radius: 0px;}
 ::-webkit-scrollbar-corner { background-color: #646464;}
 ::-webkit-resizer { background-color: #666;}
+

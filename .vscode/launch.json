@@ -7,7 +7,7 @@
             "mode": "auto",
             "cwd": "${workspaceFolder}",
             "program": "main.go",
-            "args": ["deploy"]
+            "args": ["build"]
         }
     ]
 }

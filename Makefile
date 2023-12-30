@@ -27,6 +27,9 @@ package:
 # Cross compilation
 build-linux:
 		wails build
+build-windows:
+		CC=x86_64-w64-mingw32-gccGOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ wails build -skipbindings
+
 docker:
 		docker build . -t robrotheram/gogallery:$(CIRCLE_BRANCH)
 		docker build . -t robrotheram/gogallery:latest
