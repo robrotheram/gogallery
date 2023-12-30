@@ -20,7 +20,8 @@ dep:
 test:
 	cd server && $(GOTEST) -v ./...
 
-build: build-linux
+build: 
+	wails build
 
 package:
 	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
