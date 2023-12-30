@@ -2,8 +2,13 @@ package api
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -12,6 +17,7 @@ import (
 	"github.com/robrotheram/gogallery/backend/monitor"
 	"github.com/robrotheram/gogallery/backend/pipeline"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
+	"golang.org/x/net/html"
 )
 
 type GoGalleryAPI struct {
@@ -81,6 +87,10 @@ func (api *GoGalleryAPI) DashboardAPI() {
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
+	api.router.PathPrefix("/preview-build").Handler(&home{
+		base: api.config.Gallery.Destpath,
+	})
+
 	log.Println("Starting api server on port: http://" + api.config.Server.GetLocalAddr())
 	log.Fatal(http.ListenAndServe(api.config.Server.GetLocalAddr(), handlers.CORS(origins, headers, methods)(api.router)))
 }
@@ -90,4 +100,100 @@ func (api *GoGalleryAPI) Serve() {
 	http.Handle("/", fs)
 	log.Println("Starting server on port: http://" + api.config.Server.GetAddr())
 	log.Fatal(http.ListenAndServe(api.config.Server.GetAddr(), nil))
+}
+
+type home struct {
+	base string
+}
+
+func getAttribute(n *html.Node, attributeName string) string {
+	for _, attr := range n.Attr {
+		if attr.Key == attributeName {
+			return attr.Val
+		}
+	}
+	return ""
+}
+
+func updateLinks(n *html.Node) {
+	if n.Type == html.ElementNode {
+		if n.Data == "a" || n.Data == "img" || (n.Data == "link" && getAttribute(n, "rel") == "stylesheet") {
+			updateHrefAttribute(n, "href")
+			updateHrefAttribute(n, "src")
+		}
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		updateLinks(c)
+	}
+}
+
+func updateHrefAttribute(n *html.Node, attributeName string) {
+	if hrefAttr := findAttribute(n, attributeName); hrefAttr != nil {
+		href := hrefAttr.Val
+		if href != "" && !strings.HasPrefix(href, "http") {
+			// Update the href attribute value by adding the "/dev/" prefix
+			hrefAttr.Val = "/preview-build" + href
+		}
+	}
+}
+
+func findAttribute(n *html.Node, attributeName string) *html.Attribute {
+	for i := range n.Attr {
+		if n.Attr[i].Key == attributeName {
+			return &n.Attr[i]
+		}
+	}
+	return nil
+}
+
+func GetFileContentType(ouput *os.File) (string, error) {
+	buf := make([]byte, 512)
+	_, err := ouput.Read(buf)
+	if err != nil {
+		return "", err
+	}
+	contentType := http.DetectContentType(buf)
+	if contentType == "text/plain; charset=utf-8" && filepath.Ext(ouput.Name()) == ".svg" {
+		contentType = "image/svg+xml; charset=utf-8"
+	} else if contentType == "text/plain; charset=utf-8" && filepath.Ext(ouput.Name()) == ".css" {
+		contentType = "text/css; charset=utf-8"
+	}
+	ouput.Seek(0, 0)
+	return contentType, nil
+}
+
+func IsHtml(constentType string) bool {
+	return strings.Contains(constentType, "text/html")
+}
+
+func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	data := strings.Replace(r.URL.Path, "/preview-build", "", -1)
+
+	data = path.Join(h.base, data)
+	fileInfo, err := os.Stat(data)
+	if err != nil {
+		return
+	}
+	if fileInfo.IsDir() {
+		data = path.Join(data, "index.html")
+	}
+	fmt.Println(data)
+	file, err := os.Open(data)
+	if err != nil {
+		return
+	}
+	contentType, _ := GetFileContentType(file)
+	if IsHtml(contentType) {
+		doc, err := html.Parse(file)
+		if err != nil {
+			fmt.Println(err)
+		}
+		updateLinks(doc)
+		html.Render(w, doc)
+	} else {
+		w.Header().Set("Content-Type", contentType)
+		io.Copy(w, file)
+	}
+
 }

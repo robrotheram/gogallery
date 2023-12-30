@@ -16,6 +16,7 @@ import {
 import Main from './pages/Main';
 import Settings from './pages/Settings'
 import { Button, ConfigProvider, Layout, theme } from 'antd';
+import Preview from './pages/Preview';
 
 const NoMatch = ({ location }) => (
   <Navigate to="/" />
@@ -27,6 +28,7 @@ const  AppComponent = () => {
           <Routes>
             <Route path="/" element={(<Main/>)} />
             <Route path="/settings" element={(<Settings/>)} />
+            <Route path="/preview" element={(<Preview/>)} />
             <Route element={NoMatch} />
           </Routes>
       </BrowserRouter>

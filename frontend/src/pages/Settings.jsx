@@ -66,7 +66,7 @@ const Settings = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Header />
       <Layout>
-        <Content style={{ padding: '50px' }}>
+        <Content style={{ padding: '50px', height: '100px', overflow:"auto"}}>
           <Row gutter={16}>
             <Col span={8}>
               <Card>

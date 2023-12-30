@@ -48,7 +48,7 @@ var devCMD = &cobra.Command{
 		config := config.LoadConfig()
 		db := datastore.Open(config.Gallery.Basepath)
 		defer db.Close()
-		db.ScanPath(config.Gallery.Basepath)
+		// db.ScanPath(config.Gallery.Basepath)
 		config.Server.Port = "8800"
 		api.NewGoGalleryAPI(config, db).DashboardAPI()
 	},

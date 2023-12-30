@@ -130,13 +130,13 @@ const SideBar = ({ photo }) => {
             </Form.Item>
           </Panel>
           <Panel header="History" key="3">
-            <Form.Item label="Captured">
+            <Form.Item label="Captured" style={{marginBottom:"10px"}}>
               {data.exif ? formatDate(data.exif.date_taken) : ""}
             </Form.Item>
-            <Form.Item label="Uploaded">
+            <Form.Item label="Uploaded" style={{marginBottom:"10px"}}>
               {data.meta ? formatDate(data.meta.date_added) : ""}
             </Form.Item>
-            <Form.Item label="Modified">
+            <Form.Item label="Modified" style={{marginBottom:"10px"}}>
               {data.meta ? formatDate(data.meta.date_modified) : ""}
             </Form.Item>
           </Panel>
