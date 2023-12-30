@@ -49,7 +49,7 @@ func (te *TemplateEngine) LoadFromEmbed() error {
 }
 
 func (te *TemplateEngine) Load(basePath string) error {
-	if basePath == "default" {
+	if basePath == "default" || basePath == "" {
 		return te.LoadFromEmbed()
 	}
 	return te.LoadFromPath(basePath)

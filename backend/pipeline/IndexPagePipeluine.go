@@ -93,12 +93,10 @@ func build() {
 	err := templateengine.Templates.Load(config.Config.Gallery.Theme)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
 	if config.Config.Gallery.Theme == "default" {
 		embeds.CopyThemeAssets(filepath.Join(root, "assets"))
 	} else {
 		templateengine.Dir(filepath.Join(config.Config.Gallery.Theme, "assets"), filepath.Join(root, "assets"))
 	}
-
 }

@@ -62,7 +62,7 @@ func LoadConfig() *Configuration {
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("config not found creating default")
-		fmt.Println(viper.SafeWriteConfig())
+		DefaultConfig()
 	}
 	err := viper.Unmarshal(&Config)
 	if err != nil {
@@ -156,4 +156,15 @@ func (c *Configuration) Validate() {
 	if !c.FileExists(c.Gallery.Theme) && c.Gallery.Theme != "default" {
 		log.Panic("path to theme does not exist")
 	}
+}
+
+func DefaultConfig() {
+	Config = &Configuration{
+		Server: ServerConfiguration{},
+		About:  AboutConfiguration{},
+		Gallery: GalleryConfiguration{
+			Theme: "default",
+		},
+	}
+	Config.Save()
 }
