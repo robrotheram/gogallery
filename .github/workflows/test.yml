@@ -2,9 +2,8 @@ name: Wails build
 
 on:
   push:
-    tags:
-    # Match any new tag
-      - '*'
+    branches:    
+      - '**'  
 
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
