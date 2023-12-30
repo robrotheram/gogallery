@@ -16,13 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - name: 'gogallery-linux'
+          - name: 'gogallery'
             platform:  'linux/amd64'
             os: 'ubuntu-latest'
-          - name: 'gogallery-win'
+          - name: 'gogallery'
             platform:  'windows/amd64'
             os: 'windows-latest'
-          - name: 'gogallery-macos'
+          - name: 'gogallery'
             platform:  'darwin/universal'
             os: 'macos-latest'
 
