@@ -2,8 +2,6 @@
 .gitignore
 .travis.yml
 Dockerfile
-go.*
-*.go
 LICENSE
 README.md
 .idea

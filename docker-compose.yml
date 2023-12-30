@@ -16,7 +16,6 @@ services:
     ports:
        - "8085:8085"
     environment:
-      GLLRY_SERVER_PORT: ":8085"
       GLLRY_GALLERY_BASEPATH: "/app/pictures"
 
 

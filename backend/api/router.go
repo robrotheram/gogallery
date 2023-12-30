@@ -90,6 +90,8 @@ func (api *GoGalleryAPI) DashboardAPI() {
 	api.router.PathPrefix("/preview-build").Handler(&home{
 		base: api.config.Gallery.Destpath,
 	})
+	spa := SPAHandler{StaticPath: "frontend/dist", IndexPath: "index.html"}
+	api.router.PathPrefix("/").Handler(spa)
 
 	log.Println("Starting api server on port: http://" + api.config.Server.GetLocalAddr())
 	log.Fatal(http.ListenAndServe(api.config.Server.GetLocalAddr(), handlers.CORS(origins, headers, methods)(api.router)))
