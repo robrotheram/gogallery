@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/robrotheram/gogallery/backend/config"
 )
@@ -19,7 +19,7 @@ func (api *GoGalleryAPI) statsHandler(w http.ResponseWriter, r *http.Request) {
 	stats := Stats{0, 0, 0}
 	stats.Photos = len(api.db.Pictures.GetAll())
 	stats.Albums = len(api.db.Albums.GetAll())
-	files, _ := ioutil.ReadDir(config.Config.Gallery.Basepath + "/rubish")
+	files, _ := os.ReadDir(config.Config.Gallery.Basepath + "/rubish")
 	stats.Rubish = len(files)
 	json.NewEncoder(w).Encode(stats)
 }

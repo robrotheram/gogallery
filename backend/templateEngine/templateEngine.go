@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -67,7 +67,7 @@ func (te *TemplateEngine) LoadFromPath(basePath string) error {
 	if err != nil {
 		return err
 	}
-	items, err := ioutil.ReadDir(filepath.Join(basePath, pagePath))
+	items, err := os.ReadDir(filepath.Join(basePath, pagePath))
 	if err != nil {
 		return err
 	}
