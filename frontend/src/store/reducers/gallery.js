@@ -2,7 +2,7 @@
 const initialState = {
     addCollectionModalVisable: false,
     uploadModalVisable: false,
-    imageSize: "4"
+    imageSize: "small"
 };
 
 export function GalleryReducer(state = initialState, action) {

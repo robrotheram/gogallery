@@ -79,11 +79,9 @@ const SideBar = ({ photo }) => {
     return date.toLocaleString();
   }
 
-  
-
   return (
-    <Sider width={data.name ? 350 : 0} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
-      <img src={config.imageUrl + data.id + "?size=tiny&token=" + localStorage.getItem('token')} width="100%" alt="thumbnail" />
+    <Sider width={data.name ? 500 : 0} style={{ overflow: "auto", height: "calc(100vh - 64px)" }}>
+      <img src={config.imageUrl + data.id + "?size=small"} width="100%" alt="thumbnail" />
       <Form
         form={form}
         layout="horizontal"

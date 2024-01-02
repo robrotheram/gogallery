@@ -46,7 +46,7 @@ const Main = () => {
   const [uploaded_filter, setUploadedFilter] = useState("")
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(24);
+  const [pageSize, setPageSize] = useState(36);
 
 
   useEffect(() => {
@@ -101,26 +101,24 @@ const Main = () => {
   };
 
   const handleSizeChange = (e) => {
-
-    console.log("PAGE", e.target.value);
     switch (e.target.value) {
-      case "SM":
-        setPageSize(96);
-        dispatch(galleryActions.changeImageSize(2));
-        console.log("PAGE", e.target.value, 60);
+      case "xsmall":
+        setPageSize(120);
         break;
-      case "MD":
-        setPageSize(24);
-        dispatch(galleryActions.changeImageSize(4));
-        console.log("PAGE", e.target.value, 24);
+      case "small":
+        setPageSize(36);
         break;
-      case "LG":
-        setPageSize(12);
-        dispatch(galleryActions.changeImageSize(6));
-        console.log("PAGE", e.target.value, 12);
+      case "medium":
+        setPageSize(16);
+        break;
+      case "large":
+        setPageSize(4);
+        break;
+      case "xlarge":
+        setPageSize(1);
         break;
     }
-
+    dispatch(galleryActions.changeImageSize(e.target.value))
   }
 
   const onTreeSelect = (selectedKeys, info) => {
@@ -273,15 +271,16 @@ const Main = () => {
             justifyContent: "space-between"
           }}>
             <span>{selectedElements.length > 0 && <MoveModal selectedPhotos={selectedElements} />}</span>
-            <span style={{ lineHeight: "32px" }}>
+            <span style={{ lineHeight: "32px", flexGrow:"1"  }}>
               <Pagination total={results.total} pageSize={pageSize} showSizeChanger={false} onChange={(page, size) => {
                 setPage(page);
               }} />
             </span>
             <Radio.Group onChange={handleSizeChange} style={{ float: "right" }} defaultValue={imageSize}>
-              <Radio.Button value="SM">Small</Radio.Button>
-              <Radio.Button value="MD">Medium</Radio.Button>
-              <Radio.Button value="LG">Large</Radio.Button>
+              <Radio.Button value="xsmall">Tiny</Radio.Button>
+              <Radio.Button value="small">Small</Radio.Button>
+              <Radio.Button value="medium">Medium</Radio.Button>
+              <Radio.Button value="large">Large</Radio.Button>
             </Radio.Group>
           </Footer>
         </Layout>

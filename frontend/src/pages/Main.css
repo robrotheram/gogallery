@@ -98,10 +98,14 @@ html, body {
 .brand {
   float: left;
   font-size: 24px;
-  padding: 0px 44px;
   color: white;
   border-right: 1px solid  #282828;
+  border-color: rgba(253, 253, 253, 0.12);
+  width: 200px;
+  text-align: center;
 }
+
+
 .brand:hover {
   color: rgba(255, 255, 255, 0.65);
 }

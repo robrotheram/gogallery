@@ -71,15 +71,29 @@ func (api *GoGalleryAPI) setupDashboardRoutes() {
 }
 
 func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Cache-Control", "max-age=604800") // 7 days
+	size := r.URL.Query().Get("size")
 	vars := mux.Vars(r)
 	id := vars["id"]
+	if len(size) == 0 {
+		size = vars["size"]
+	}
 	pic := api.db.Pictures.FindByID(id)
+	//Is image in cache
+	if file, err := api.db.ImageCache.Get(pic.Id, size); err == nil {
+		io.Copy(w, file)
+		return
+	}
 	src, err := pic.Load()
 	if err != nil {
 		return
 	}
-	pipeline.ProcessImage(src, templateengine.ImageSizes["xsmall"], w)
+	cache, _ := api.db.ImageCache.Writer(pic.Id, size)
+	writer := io.MultiWriter(w, cache)
+	if size, ok := templateengine.ImageSizes[size]; ok {
+		pipeline.ProcessImage(src, size, writer)
+		return
+	}
+	pipeline.ProcessImage(src, templateengine.ImageSizes["xsmall"], writer)
 }
 
 func (api *GoGalleryAPI) DashboardAPI() {
@@ -171,7 +185,6 @@ func IsHtml(constentType string) bool {
 
 func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := strings.Replace(r.URL.Path, "/preview-build", "", -1)
-
 	data = path.Join(h.base, data)
 	fileInfo, err := os.Stat(data)
 	if err != nil {
@@ -180,7 +193,6 @@ func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if fileInfo.IsDir() {
 		data = path.Join(data, "index.html")
 	}
-	fmt.Println(data)
 	file, err := os.Open(data)
 	if err != nil {
 		return
@@ -197,5 +209,4 @@ func (h *home) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		io.Copy(w, file)
 	}
-
 }

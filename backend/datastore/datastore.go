@@ -23,9 +23,10 @@ type CRUD interface {
 }
 
 type DataStore struct {
-	db       *storm.DB
-	Pictures *PictureCollection
-	Albums   *AlumnCollectioins
+	db         *storm.DB
+	Pictures   *PictureCollection
+	Albums     *AlumnCollectioins
+	ImageCache *ImageCache
 }
 
 func Open(dbPath string) *DataStore {
@@ -36,9 +37,10 @@ func Open(dbPath string) *DataStore {
 		log.Fatalf("Unable to open db at: %s \n Error: %v", path, err)
 	}
 	return &DataStore{
-		db:       db,
-		Pictures: &PictureCollection{DB: db},
-		Albums:   &AlumnCollectioins{DB: db},
+		db:         db,
+		Pictures:   &PictureCollection{DB: db},
+		Albums:     &AlumnCollectioins{DB: db},
+		ImageCache: NewImageCache(),
 	}
 }
 

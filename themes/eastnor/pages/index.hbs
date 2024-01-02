@@ -34,7 +34,11 @@
                     throw new Error(response.status + " Failed Fetch page ");
                }).then(function (html) {
                     dom = parser.parseFromString(html, "text/html");
-                    galleryContainer.append(dom.getElementsByClassName("galleryRow")[0]);
+                    let elm = dom.getElementsByClassName("galleryRow")[0]
+                    if (elm === undefined) {
+                        throw new Error("element not found")
+                    }
+                    galleryContainer.append(elm);
                }).catch(function (err) {
                     console.log(err)
                     removeInfiniteScroll();
