@@ -1,6 +1,6 @@
 {{ define "main" }}
 <div id="lightgallery" class="photoWrapper">
-     <a data-fslightbox href="/img/{{.Picture.Id}}/original{{.Picture.Ext}}"> 
+     <a data-fslightbox href="{{ .Picture.OrginalImgPath }}"> 
           <img 
                style=" width: 100%; height: calc(100% - 0px); object-fit: contain; object-position: center center;"
                src="/img/{{.Picture.Id}}/xlarge.webp" 
@@ -12,7 +12,7 @@
                
                class="img-fluid rounded lazy" 
                alt="{{if .Picture.Caption }}{{ .Picture.Caption }}{{else}}{{ .Picture.Name }}{{end}}"
-               data-src="/img/{{.Picture.Id}}/original{{.Picture.Ext}}"  />
+               data-src="{{ .Picture.OrginalImgPath }}"  />
      </a>
 </div>
 

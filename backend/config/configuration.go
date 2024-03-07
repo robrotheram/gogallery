@@ -31,6 +31,7 @@ type GalleryConfiguration struct {
 	Theme            string
 	AlbumBlacklist   []string
 	PictureBlacklist []string
+	UseOriginal      bool
 }
 
 type AboutConfiguration struct {
@@ -100,11 +101,17 @@ func (c *GalleryConfiguration) Save() {
 	viper.WriteConfig()
 	Config.Gallery = *c
 }
-
+func (c *DeployConfig) Save() {
+	log.Println("Saving Deployment Config")
+	viper.Set("deploy", c)
+	viper.WriteConfig()
+	Config.Deploy = *c
+}
 func (c *Configuration) Save() {
 	viper.Set("about", c.About)
 	viper.Set("gallery", c.Gallery)
 	viper.Set("server", c.Server)
+	viper.Set("deploy", c.Deploy)
 	viper.WriteConfig()
 }
 

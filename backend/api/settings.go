@@ -42,6 +42,11 @@ func (api *GoGalleryAPI) getGallerySettings(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(api.config.Gallery)
 }
 
+func (api *GoGalleryAPI) getDeploymentSettings(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(api.config.Deploy)
+}
+
 func (api *GoGalleryAPI) getPublicGallerySettings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	config := map[string]string{
@@ -57,4 +62,13 @@ func (api *GoGalleryAPI) setGallerySettings(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(api.config.Gallery)
+}
+
+func (api *GoGalleryAPI) setDeploymentSettings(w http.ResponseWriter, r *http.Request) {
+	var deploy = config.DeployConfig{}
+	_ = json.NewDecoder(r.Body).Decode(&deploy)
+	deploy.Save()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(api.config.Deploy)
 }

@@ -41,7 +41,7 @@ func Dir(src string, dst string) error {
 				fmt.Println(err)
 			}
 		} else {
-			if err = File(srcfp, dstfp); err != nil {
+			if err = Copy(srcfp, dstfp); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -49,7 +49,7 @@ func Dir(src string, dst string) error {
 	return nil
 }
 
-func File(src, dst string) error {
+func Copy(src, dst string) error {
 	var err error
 	var srcfd *os.File
 	var dstfd *os.File

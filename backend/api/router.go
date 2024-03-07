@@ -59,6 +59,8 @@ func (api *GoGalleryAPI) setupDashboardRoutes() {
 	api.router.HandleFunc("/api/admin/settings/gallery", api.setGallerySettings).Methods("POST")
 	api.router.HandleFunc("/api/admin/settings/profile", api.getProfileInfo).Methods("GET")
 	api.router.HandleFunc("/api/admin/settings/profile", api.setProfileInfo).Methods("POST")
+	api.router.HandleFunc("/api/admin/settings/deploy", api.getDeploymentSettings).Methods("GET")
+	api.router.HandleFunc("/api/admin/settings/deploy", api.setDeploymentSettings).Methods("POST")
 
 	api.router.HandleFunc("/api/admin/tasks", api.getTasks).Methods("GET")
 	api.router.HandleFunc("/api/admin/tasks/purge", api.purgeTaskHandler).Methods("GET")

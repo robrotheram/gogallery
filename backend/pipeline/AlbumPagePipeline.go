@@ -25,7 +25,7 @@ func renderAlbumTemplate(db *datastore.DataStore) func(alb models.Album) error {
 		w := bufio.NewWriter(f)
 		page.Album = album
 		page.Images = db.Pictures.GetByAlbumID(alb.Id)
-		page.Picture = db.Pictures.FindByID(alb.ProfileID)
+		page.Picture = templateengine.NewPagePicture(db.Pictures.FindByID(alb.ProfileID))
 		page.SEO.Description = fmt.Sprintf("Album: %s", alb.Name)
 		templateengine.Templates.RenderPage(w, templateengine.CollectionTemplate, page)
 		f.Close()

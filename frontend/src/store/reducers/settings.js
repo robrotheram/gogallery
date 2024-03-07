@@ -3,6 +3,7 @@ const initialState = {
   stats: {},
   profile:{},
   gallery:{},
+  deploy:{},
   isUpdating: false
 };
 
@@ -31,6 +32,12 @@ export function SettingsReducer(state = initialState, action) {
         isUpdating: false,
         gallery: action.gallery
       };
+      case 'DEPLOY_UPDATED':
+        return {
+          ...state,
+          isUpdating: false,
+          deploy: action.deploy
+        };
     default:
       return state
   }

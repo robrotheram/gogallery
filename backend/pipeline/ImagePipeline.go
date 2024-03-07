@@ -9,6 +9,7 @@ import (
 	"github.com/bep/gowebp/libwebp"
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/imaging"
+	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore/models"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
@@ -41,9 +42,11 @@ func ImageGenV2(pic models.Picture) error {
 		}
 	}
 
-	orginalPath := filepath.Join(destPath, "original"+pic.Ext)
-	if !templateengine.FileExists(orginalPath) {
-		templateengine.File(pic.Path, orginalPath)
+	if config.Config.Gallery.UseOriginal {
+		orginalPath := filepath.Join(destPath, "original"+pic.Ext)
+		if !templateengine.FileExists(orginalPath) {
+			templateengine.Copy(pic.Path, orginalPath)
+		}
 	}
 
 	if len(toRender) == 0 {

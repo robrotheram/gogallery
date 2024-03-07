@@ -15,7 +15,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DeploySite(c config.Configuration, stats *monitor.ProgressStats) {
+func DeploySite(c config.Configuration, stats *monitor.ProgressStats) error {
+	if len(c.Deploy.SiteId) == 0 || len(c.Deploy.AuthToken) == 0 {
+		return fmt.Errorf("no deployment config found")
+	}
 	stats.Start()
 	logger := logrus.New()
 	logger.SetLevel(logrus.FatalLevel)
@@ -38,7 +41,7 @@ func DeploySite(c config.Configuration, stats *monitor.ProgressStats) {
 	})
 
 	if err != nil {
-		logger.Fatalf("failed to deploy site: %s", err)
+		return fmt.Errorf("failed to deploy site: %s", err)
 	}
 	// Print the site URL
 	if resp.DeploySslURL != "" {
@@ -47,6 +50,7 @@ func DeploySite(c config.Configuration, stats *monitor.ProgressStats) {
 		fmt.Println("Site avalible: " + resp.DeployURL)
 	}
 	stats.End()
+	return nil
 }
 
 type DeployObserver struct {

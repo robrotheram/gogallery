@@ -6,7 +6,8 @@ export const settingsActions = {
     stats,
     all,
     setProfile,
-    setGallery
+    setGallery,
+    setDeploy
 };
 
 function all(){
@@ -14,6 +15,7 @@ function all(){
         dispatch(stats())
         dispatch(gallery())
         dispatch(profile())
+        dispatch(deploy())
     }
 }
 function stats(){
@@ -43,7 +45,15 @@ function gallery(){
         })
     };
 }
-
+function deploy(){
+    return dispatch => {
+        axios.get(config.baseUrl+"/settings/deploy",getOptions()).then((response)=>{
+           dispatch(deployUpdated(response.data))
+        }).catch((err)=>{
+            notify("warning", "Error from server: "+err)
+        })
+    };
+}
 
 function setProfile(profile){
     return dispatch => {
@@ -66,6 +76,16 @@ function setGallery(gallery){
     };
 }
 
+function setDeploy(deploy){
+    return dispatch => {
+        axios.post(config.baseUrl+"/settings/deploy", deploy, getOptions()).then((response)=>{
+           dispatch(deployUpdated(response.data))
+           notify("success", "Deploy edited successfully")
+        }).catch((err)=>{
+            notify("warning", "Error from server: "+err)
+        })
+    };
+}
 
 
 function statsUpdated(stats){
@@ -84,6 +104,12 @@ function galleryUpdated(gallery){
     return{
         type: "GALLERY_UPDATED",
         gallery: gallery
+    }
+}
+function deployUpdated(deploy){
+    return{
+        type: "DEPLOY_UPDATED",
+        deploy: deploy
     }
 }
 

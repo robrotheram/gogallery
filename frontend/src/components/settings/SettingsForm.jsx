@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form }  from 'antd';
+import { Form, Switch }  from 'antd';
 import { Input, Select, InputNumber, Divider, Button } from 'antd';
 import EditableTagGroup from './EditableTagGroup';
 
@@ -69,6 +69,8 @@ const SettingsForm = () => {
         <Form.Item label="Theme Path" name='Theme'><Input />
         </Form.Item>
         <Form.Item label="Image Folder" name='Basepath'><Input />
+        </Form.Item>
+        <Form.Item label="Use Orginal Image" name='UseOriginal'><Switch />
         </Form.Item>
         <Form.Item label="Image Blacklist" name='PictureBlacklist'><EditableTagGroup  />
         </Form.Item>

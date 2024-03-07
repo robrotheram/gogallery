@@ -18,7 +18,7 @@ func RenderPhoto(w io.Writer, pic models.Picture, images []models.Picture, page 
 			}
 		}
 	}
-	page.Picture = pic
+	page.Picture = NewPagePicture(pic)
 	page.SEO.SetNameFromPhoto(pic)
 	Templates.RenderPage(w, PhotoTemplate, page)
 }

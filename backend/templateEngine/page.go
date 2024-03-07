@@ -8,6 +8,11 @@ import (
 	"github.com/robrotheram/gogallery/backend/datastore/models"
 )
 
+type PagePicture struct {
+	models.Picture
+	OrginalImgPath string
+}
+
 type Page struct {
 	Settings      config.GalleryConfiguration
 	SEO           SocailSEO
@@ -16,7 +21,7 @@ type Page struct {
 	Albums        models.AlbumStrcure
 	Album         models.Album
 	LatestAlbum   string
-	Picture       models.Picture
+	Picture       PagePicture
 	NextImagePath string
 	PreImagePath  string
 	Body          string
@@ -75,4 +80,15 @@ func NewPage(r *http.Request, albumID string) Page {
 		page.PagePath = r.URL.EscapedPath()
 	}
 	return page
+}
+
+func NewPagePicture(pic models.Picture) PagePicture {
+	originalPath := fmt.Sprintf("/img/%s/xlarge.webp", pic.Id)
+	if config.Config.Gallery.UseOriginal {
+		originalPath = fmt.Sprintf("/img/%s/original%s", pic.Id, pic.Ext)
+	}
+	return PagePicture{
+		Picture:        pic,
+		OrginalImgPath: originalPath,
+	}
 }

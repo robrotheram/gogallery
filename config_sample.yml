@@ -5,12 +5,13 @@ deploy:
 gallery:
   name: "Gallery"
   imagesPerPage: 50
-  basepath: "/run/user/1000/gvfs/dav:host=cloud.exceptionerror.io,ssl=true,user=robrotheram,prefix=%2Fremote.php%2Fwebdav/Photos"
+  basepath: "Photos"
   url:      "https://your.url.here"
   theme:    "default" #default uses embeded theme. change to path to use a differnt theme
-  #Limit that when thumbnail que reaches it the gallery will throw a warning to allow it to catch up an generate the thumbnails.
-  QueThreshold: 50 
-
+  albumblacklist: [] # List if folder names to exclude from indexing
+  pictureblacklist: [] # List of individule images to exclude 
+  useoriginal: false # Include the orginal image in the publish site. 
+  
 about:
   enable: false
   photographer: "Joe Blogs"

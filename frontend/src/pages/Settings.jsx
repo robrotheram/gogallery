@@ -8,7 +8,7 @@ import {
   ProfileOutlined,
   SettingOutlined,
   RocketOutlined,
-  UserOutlined,
+  CloudUploadOutlined,
 } from '@ant-design/icons';
 
 import { Layout, Statistic, Card, Row, Col } from 'antd';
@@ -20,6 +20,7 @@ import SettingsForm from '../components/settings/SettingsForm'
 import Maintenance from '../components/settings/maintenance'
 import AlbumSettings from '../components/settings/AlbumSettings'
 import { settingsActions } from '../store/actions/settings';
+import DeploymentForm from '../components/settings/DeploymentForm';
 
 const { Content } = Layout;
 const tabListNoTitle = [
@@ -36,6 +37,10 @@ const tabListNoTitle = [
     tab: <span><FolderOpenOutlined style={{ "marginRight": "5px" }} />Album Settings</span>,
   },
   {
+    key: 'deployment',
+    tab: <span><CloudUploadOutlined  style={{ "marginRight": "5px" }} />Deployment Settings</span>,
+  },
+  {
     key: 'maintenance',
     tab: <span><RocketOutlined style={{ "marginRight": "5px" }} /> Tasks </span>,
   },
@@ -45,6 +50,7 @@ const contentListNoTitle = {
   profile: <ProfileForm />,
   settings: <SettingsForm />,
   album: <AlbumSettings />,
+  deployment: <DeploymentForm />,
   maintenance: <Maintenance />
 };
 
