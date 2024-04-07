@@ -100,7 +100,7 @@ func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
 
 func (api *GoGalleryAPI) DashboardAPI() {
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	api.router.PathPrefix("/preview-build").Handler(&home{

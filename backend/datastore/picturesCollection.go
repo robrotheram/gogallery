@@ -46,11 +46,7 @@ func (p *PictureCollection) FindManyFeild(key string, val string) []models.Pictu
 func (p *PictureCollection) Delete(picture models.Picture) error {
 	p.Lock()
 	defer p.Unlock()
-
-	err := os.Remove(picture.Path)
-	if err != nil {
-		return err
-	}
+	os.Remove(picture.Path)
 	p.DB.DeleteStruct(&picture)
 	return nil
 }
