@@ -27,6 +27,7 @@ type GalleryConfiguration struct {
 	Name             string
 	Basepath         string
 	Destpath         string
+	ImagesPerPage    int
 	Url              string
 	Theme            string
 	AlbumBlacklist   []string

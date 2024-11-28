@@ -31,12 +31,12 @@ func LaunchDashboard() error {
 	go api.NewGoGalleryAPI(config, db).DashboardAPI()
 
 	return wails.Run(&options.App{
-		Title:            "gogallery",
-		Width:            1024,
-		Height:           768,
-		MinWidth:         1200,
-		Assets:           &embeds.DashboardFS,
-		Frameless:        false,
+		Title:    "gogallery",
+		Width:    1024,
+		Height:   768,
+		MinWidth: 800,
+		Assets:   &embeds.DashboardFS,
+		// EnableDefaultContextMenu: true,
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 	})
 }

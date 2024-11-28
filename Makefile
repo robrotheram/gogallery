@@ -20,14 +20,11 @@ dep:
 test:
 	cd server && $(GOTEST) -v ./...
 
-build: 
-	wails build
-
 package:
 	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
 # Cross compilation
 build-linux:
-		wails build
+		wails build -tags webkit2_41
 build-windows:
 		CC=x86_64-w64-mingw32-gccGOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ wails build -skipbindings
 

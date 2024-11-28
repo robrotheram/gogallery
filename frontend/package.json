@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "antd": "^5.0.1",
+    "antd": "^5.22.1",
     "axios": "^1.6.3",
     "leaflet": "^1.9.1",
     "mapbox-gl": "^2.10.0",

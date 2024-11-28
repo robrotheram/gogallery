@@ -70,6 +70,8 @@ const SettingsForm = () => {
         </Form.Item>
         <Form.Item label="Image Folder" name='Basepath'><Input />
         </Form.Item>
+        <Form.Item label="Images per page" name='ImagesPerPage'><Input type='number' />
+        </Form.Item>
         <Form.Item label="Use Orginal Image" name='UseOriginal'><Switch />
         </Form.Item>
         <Form.Item label="Image Blacklist" name='PictureBlacklist'><EditableTagGroup  />

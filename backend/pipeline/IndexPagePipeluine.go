@@ -14,10 +14,14 @@ import (
 )
 
 func renderIndex(db *datastore.DataStore, config *config.GalleryConfiguration) {
+	imagesPerPage := 16 //defautl
+	if config.ImagesPerPage > 0 {
+		imagesPerPage = config.ImagesPerPage
+	}
 	latestAlbumID := db.Pictures.GetLatestAlbum()
 	indexPage := templateengine.NewPage(nil, latestAlbumID)
 	images := db.Pictures.GetFilteredPictures(false)
-	pages := paginateImages(images, 16)
+	pages := paginateImages(images, imagesPerPage)
 	albums := datastore.Sort(db.Albums.GetAlbumStructure(indexPage.Settings))
 
 	indexPage.Images = pages[0]
