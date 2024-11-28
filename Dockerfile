@@ -4,7 +4,7 @@ WORKDIR /frontend
 ADD /frontend .
 RUN npm i; npm run build; 
 
-FROM golang:1.21.4 as GO_BUILDER
+FROM golang:1.23.1 as GO_BUILDER
 ARG VER
 WORKDIR /server
 ADD go.mod .
