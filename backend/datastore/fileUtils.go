@@ -12,8 +12,6 @@ import (
 )
 
 var validExtension = []string{"jpg", "png", "gif"}
-var IsScanning bool
-var gConfig = config.Config.Gallery
 
 type FileInfo struct {
 	Name    string      `json:"name"`
@@ -24,7 +22,7 @@ type FileInfo struct {
 }
 
 // Helper function to create a local FileInfo struct from os.FileInfo interface.
-func fileInfoFromInterface(v os.FileInfo) FileInfo {
+func FileInfoFromInterface(v os.FileInfo) FileInfo {
 	return FileInfo{v.Name(), v.Size(), v.Mode(), v.ModTime(), v.IsDir()}
 }
 
@@ -36,7 +34,7 @@ type Node struct {
 	Parent   *Node    `json:"-"`
 }
 
-func checkEXT(path string) bool {
+func CheckEXT(path string) bool {
 	chk := false
 	for _, ext := range validExtension {
 		if strings.ToLower(filepath.Ext(path)) == "."+ext {
@@ -65,7 +63,7 @@ func RemoveContents(dir string) error {
 	return nil
 }
 
-func contains(s []string, e string) bool {
+func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true

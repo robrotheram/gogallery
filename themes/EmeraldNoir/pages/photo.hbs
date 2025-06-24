@@ -1,0 +1,362 @@
+{{ define "main" }}
+<main class="container  px-4 mx-auto py-8">
+     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div class="lg:col-span-3">
+               <div id="photo-image"
+                    class="relative rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black group border border-gray-800">
+                    <img src="/img/{{.Picture.Id}}/xlarge.webp" class="object-contain w-full h-full" />
+
+                    <!-- Fullscreen button overlay -->
+                    <div
+                         class="absolute top-4 right-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button type="button" onclick="toggleFullscreen()"
+                              class="bg-black/60 hover:bg-black/80 text-emerald-300 hover:text-emerald-200 backdrop-blur-sm border border-emerald-500/30 px-2 py-1 rounded"
+                              title="Fullscreen">
+                              <!-- Maximize2 icon SVG -->
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8-16h3a2 2 0 0 1 2 2v3m0 8v3a2 2 0 0 1-2 2h-3"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                              </svg>
+                         </button>
+                    </div>
+
+                    <!-- Navigation arrows -->
+                    {{if .PreImagePath }}
+                    <a href="{{.PreImagePath}}"
+                         class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-emerald-300 hover:text-emerald-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-emerald-500/30"
+                         title="Previous">
+                         <!-- ChevronLeft SVG -->
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
+                                   stroke-linejoin="round" />
+                         </svg>
+                         </button>
+                         {{end}}
+
+                         {{if .NextImagePath }}
+                         <a href="/photo/{{ .NextImagePath }}"
+                              class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-emerald-300 hover:text-emerald-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-emerald-500/30"
+                              title="Next">
+                              <!-- ChevronRight SVG -->
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                              </svg>
+                         </a>
+                         {{end}}
+               </div>
+
+               <div class="lg:col-span-2 mt-6">
+                    <div class="max-w-4xl">
+                         <h1 class="text-3xl md:text-4xl font-light text-white mb-4 leading-tight">
+                              {{.Picture.Name}}
+                         </h1>
+                         <p class="text-lg text-emerald-200 leading-relaxed font-light">
+                              {{.Picture.Caption}}
+                         </p>
+                    </div>
+               </div>
+          </div>
+
+          <!-- Prominent Technical Information -->
+          <div class="lg:col-span-1 space-y-6">
+               <!-- Camera Equipment -->
+               <div
+                    class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
+                    <div class="p-6">
+                         <div class="flex items-center gap-3 mb-5">
+                              <!-- Camera icon SVG -->
+                              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor"
+                                   viewBox="0 0 24 24">
+                                   <circle cx="12" cy="13" r="4" />
+                                   <path
+                                        d="M2 7h2l2-3h8l2 3h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+                              </svg>
+                              <h2 class="text-lg font-semibold text-white">Equipment</h2>
+                         </div>
+                         <div class="space-y-4">
+                              {{if and .Picture.Camera .Picture.LensModel}}
+                              <div>
+                                   <div class="text-emerald-100 font-medium text-base">{{.Picture.Camera}}</div>
+                                   <div class="text-emerald-100 text-sm mt-1">{{.Picture.LensModel}}</div>
+
+                              </div>
+                              {{end}}
+                         </div>
+                    </div>
+               </div>
+
+               <!-- Camera Settings -->
+               <div
+                    class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
+                    <div class="p-6">
+                         <div class="flex items-center gap-3 mb-5">
+                              <!-- Aperture icon SVG -->
+                              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor"
+                                   viewBox="0 0 24 24">
+                                   <circle cx="12" cy="12" r="10" />
+                                   <path
+                                        d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16l-5.74-9.94M14.31 16H2.83" />
+                              </svg>
+                              <h2 class="text-lg font-semibold text-white">Settings</h2>
+                         </div>
+
+                         <div class="grid grid-cols-2 gap-4">
+                              {{if .Picture.FStop}}
+                              <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                                   <div class="text-xl font-bold text-emerald-100 mb-1">f/{{.Picture.FStop}}</div>
+                                   <div class="text-sm text-emerald-300 uppercase tracking-wide">Aperture</div>
+                              </div>
+                              {{end}}
+                              {{if .Picture.ShutterSpeed}}
+                              <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                                   <div class="text-xl font-bold text-emerald-100 mb-1">{{.Picture.ShutterSpeed}}
+                                   </div>
+                                   <div class="text-sm text-emerald-300 uppercase tracking-wide">Shutter</div>
+                              </div>
+                              {{end}}
+                              {{if .Picture.FocalLength}}
+                              <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                                   <div class="text-xl font-bold text-emerald-100 mb-1">{{.Picture.FocalLength}}
+                                   </div>
+                                   <div class="text-sm text-emerald-300 uppercase tracking-wide">Focal Length</div>
+                              </div>
+                              {{end}}
+                              {{if .Picture.ISO}}
+                              <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                                   <div class="text-xl font-bold text-emerald-100 mb-1">{{.Picture.ISO}}</div>
+                                   <div class="text-sm text-emerald-300 uppercase tracking-wide">ISO</div>
+                              </div>
+                              {{end}}
+                         </div>
+                    </div>
+               </div>
+
+               <!-- Location & Conditions -->
+               <div
+                    class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
+                    <div class="p-6">
+
+                         <div class="space-y-4">
+                              {{if .Picture.DateTaken}}
+                              <div class="flex items-start gap-3">
+                                   <svg class="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                   </svg>
+                                   <div>
+                                        <div class="text-emerald-100 font-medium">
+                                             {{.Picture.DateTaken.Format "02 Jan 2006"}}
+                                        </div>
+                                   </div>
+                              </div>
+                              {{end}}
+
+                              <div class="flex gap-3 text-emerald-400 items-center">
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images-icon lucide-images"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+                                   <div>
+                                        <div class="text-emerald-100 font-medium">
+                                               <a href="/album/{{.Picture.Album}}">{{.Picture.AlbumName}}</a>
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
+               <div class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
+                    <div class="p-6">
+                         <h3 class="text-base font-semibold text-white mb-4">Technical Details</h3>
+                         <div class="space-y-3 text-sm">
+                              {{if .Picture.ColorSpace}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Color Space</span>
+                                   <span class="text-emerald-100 font-medium">{{.Picture.ColorSpace}}</span>
+                              </div>
+                              {{end}}
+                              {{if .Picture.MeteringMode}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Metering Mode</span>
+                                   <span class="text-emerald-100 font-medium">{{.Picture.MeteringMode}}</span>
+                              </div>
+                              {{end}}
+                              {{if .Picture.Software}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Software</span>
+                                   <span class="text-emerald-100 font-medium">{{.Picture.Software}}</span>
+                              </div>
+                              {{end}}
+                              {{with .Picture.Saturation}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Saturation</span>
+                                   <span class="text-emerald-100 font-medium">{{.}}</span>
+                              </div>
+                              {{end}}
+                              {{with .Picture.Contrast}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Contrast</span>
+                                   <span class="text-emerald-100 font-medium">{{.}}</span>
+                              </div>
+                              {{end}}
+                              {{with .Picture.Sharpness}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Sharpness</span>
+                                   <span class="text-emerald-100 font-medium">{{.}}</span>
+                              </div>
+                              {{end}}
+                              {{if .Picture.Temperature}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Temperature</span>
+                                   <span class="text-emerald-100 font-medium">{{.Picture.Temperature}}</span>
+                              </div>
+                              {{end}}
+                              {{with .Picture.WhiteBalance}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">White Balance Mode</span>
+                                   <span class="text-emerald-100 font-medium">{{.}}</span>
+                              </div>
+                              {{end}}
+                              {{with .Picture.Cropped}}
+                              <div class="flex justify-between">
+                                   <span class="text-emerald-300">Cropped</span>
+                                   <span class="text-emerald-100 font-medium">{{.}}</span>
+                              </div>
+                              {{end}}
+
+                         </div>
+                    </div>
+               </div>
+          </div>
+     </div>
+</main>
+<style>
+     .fullscreen {
+          cursor: pointer;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 100;
+          padding: 2rem;
+     }
+</style>
+<script>
+
+     const img = document.getElementById('photo-image');
+     function setFullscreen() {
+          if (!img) return;
+          img.classList.add('fullscreen');
+          sessionStorage.setItem('photoFullscreen', '1');
+     }
+     function removeFullscreen() {
+          if (!img) return;
+          img.classList.remove('fullscreen');
+          sessionStorage.removeItem('photoFullscreen');
+     }
+
+
+     function toggleFullscreen() {
+          const isFullscreen = img.classList.contains('fullscreen');
+          console.log('Toggling fullscreen state', isFullscreen);
+          if (isFullscreen) {
+               removeFullscreen();
+          } else {
+               setFullscreen();
+          }
+     }
+
+     // Track fullscreen state in sessionStorage
+     (function () {
+          if (!img) return;
+          window.addEventListener('DOMContentLoaded', function () {
+               const sessionFullscreen = sessionStorage.getItem('photoFullscreen') === "1";
+               console.log('Checking fullscreen state on load', sessionFullscreen);
+               if (sessionFullscreen) {
+                    setFullscreen();
+               }
+          });
+     })();
+
+
+     let PreImagePath = "{{.PreImagePath}}"
+     let NextImagePath = "{{.NextImagePath}}"
+
+     PreImagePath = PreImagePath ? PreImagePath : "{{.Picture.Id}}"
+     NextImagePath = NextImagePath ? NextImagePath : "{{.Picture.Id}}"
+
+
+     document.addEventListener('keydown', (e) => {
+          switch (e.code) {
+               case "ArrowLeft": window.location = "/photo/" + PreImagePath; break
+               case "ArrowRight": window.location = "/photo/" + NextImagePath; break
+               case "Escape": removeFullscreen(); break
+               default: return;
+          }
+     });
+
+     // Initialize Hammer.js for swipe gestures
+     let startX = 0;
+     let startY = 0;
+     let isSwiping = false;
+
+     document.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) { // Only one finger — start swipe
+               startX = e.touches[0].clientX;
+               startY = e.touches[0].clientY;
+               isSwiping = true;
+          } else {
+               isSwiping = false; // Ignore multi-touch (pinch/zoom)
+          }
+     });
+
+     document.addEventListener('touchmove', (e) => {
+          if (e.touches.length > 1) {
+               isSwiping = false; // Cancel swipe if multiple fingers
+          }
+     });
+
+     document.addEventListener('touchend', (e) => {
+          if (!isSwiping) return;
+
+          const endX = e.changedTouches[0].clientX;
+          const endY = e.changedTouches[0].clientY;
+          const diffX = endX - startX;
+          const diffY = endY - startY;
+
+          // Check if it's a horizontal swipe and not just a tap or vertical scroll
+          if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+               if (diffX > 0) {
+                    window.location = "/photo/" + PreImagePath;
+               } else {
+                    window.location = "/photo/" + NextImagePath;
+               }
+          }
+
+          isSwiping = false;
+     });
+
+     // Hide body until image is loaded to prevent flash
+     document.body.style.visibility = 'hidden';
+     window.addEventListener('DOMContentLoaded', function () {
+          const imgEl = document.querySelector('#photo-image img, #photo-image');
+          if (imgEl && imgEl.tagName === 'IMG') {
+               imgEl.addEventListener('load', function () {
+                    document.body.style.visibility = '';
+               });
+               // If cached, show immediately
+               if (imgEl.complete) {
+                    document.body.style.visibility = '';
+               }
+          } else {
+               // fallback: show anyway
+               document.body.style.visibility = '';
+          }
+     });
+
+
+</script>
+{{end}}

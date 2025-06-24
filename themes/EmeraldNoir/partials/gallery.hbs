@@ -1,0 +1,31 @@
+{{ define "gallery" }}
+<div class="columns lg:columns-3 gap-8 space-y-8">
+    {{range $img := .Images}}
+    <a class="group block " href="/photo/{{$img.Id}}" title="{{$img.Name}}">
+        <div
+            class="relative rounded-xl overflow-hidden shadow-lg hover:shadow-emerald-500/10 transition-all duration-500 bg-gradient-to-br from-gray-900 to-black border border-gray-800 hover:border-emerald-500/30">
+            <div>
+                <picture>
+                    {{range $key, $val := ImgSizes}}
+                    <source media="(min-width: {{$val.MinWidth}}px)" srcset="/img/{{$img.Id}}/{{$key}}.webp" type="image/webp">
+                    {{end}}
+                    <source srcset="/img/{{.Id}}/small.webp" type="image/webp">
+                    <img src="/img/{{.Id}}/xsmall.webp" 
+                        alt="{{$img.Name}}" 
+                        loading="lazy"
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" style="aspect-ratio: {{$img.AspectRatio}};"
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    >
+                </picture>
+
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-emerald-900/10 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300">
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                </div>
+            </div>
+        </div>
+    </a>
+    {{end}}
+</div>
+{{end}}

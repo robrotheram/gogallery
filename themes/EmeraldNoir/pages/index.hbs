@@ -1,0 +1,62 @@
+{{ define "main" }}
+<section class="container px-4 mx-auto py-8">
+    <a class="group block" href="/album/{{.FeaturedAlbum.Id}}" aria-label="Featured Album">
+        <div class="relative aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl">
+            <picture>
+                <source srcset="/img/{{.FeaturedAlbum.ProfileId}}/large.webp" type="image/webp">
+                <img src="/img/{{.FeaturedAlbum.ProfileId}}/xsmall.webp" alt="{{.FeaturedAlbum.Name}}"
+                    fetchpriority="high"
+                    loading="eager" 
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            </picture>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+                <div class="max-w-2xl">
+                    <h1
+                        class="text-3xl md:text-4xl font-light text-white mb-4 group-hover:text-emerald-100 transition-colors capitalize">
+                        {{.FeaturedAlbum.Name}}
+                    </h1>
+                    <div
+                        class="inline-flex items-center gap-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                        <span class="text-sm font-medium uppercase tracking-wider">View Details</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+</section>
+<section class="container px-4 mx-auto py-16">
+    <div class="text-center mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-8">
+            {{range .Albums}}
+            <div class="col-sm-12 col-md-6 col-lg-3">
+                {{template "albums" .}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+    <div class="text-center mt-12">
+        <a href="/albums"
+            class="inline-flex items-center gap-3 px-8 py-4 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-400/50 rounded-full text-emerald-400 hover:text-emerald-300 transition-all duration-300 backdrop-blur-sm">
+            {{template "albumIcon" }}
+            <span class="font-medium">View All Collections</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
+    </div>
+</section>
+
+<section class="container px-4 mx-auto py-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-light text-white mb-4">Latest Photos</h2>
+        <div class="w-16 h-px bg-emerald-400 mx-auto mb-6"></div>
+    </div>
+    {{template "gallery" . }}
+</section>
+
+{{end}}

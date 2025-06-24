@@ -1,25 +1,30 @@
 package pipeline
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/gosimple/slug"
 	"github.com/robrotheram/gogallery/backend/datastore"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func renderPhotoTemplate(db *datastore.DataStore) func(alb models.Picture) error {
-	return func(pic models.Picture) error {
-		pic_path := filepath.Join(photoDir, slug.Make(pic.Id))
-		os.MkdirAll(pic_path, os.ModePerm)
-		f, err := os.Create(filepath.Join(pic_path, "index.html"))
+func (r *RenderPipeline) BuildPhoto(pic datastore.Picture, w io.Writer) {
+
+	album, _ := r.Pictures.FindByField("Album", pic.Album)
+	templateengine.RenderPhoto(w, pic, album, templateengine.NewPage(nil))
+}
+
+func (r *RenderPipeline) renderPhotoTemplate() func(alb datastore.Picture) error {
+	return func(pic datastore.Picture) error {
+		picPath := filepath.Join(photoDir, slug.Make(pic.Id))
+		os.MkdirAll(picPath, os.ModePerm)
+		f, err := os.Create(filepath.Join(picPath, "index.html"))
 		if err != nil {
 			return err
 		}
-		latestAlbumId := db.Pictures.GetLatestAlbum()
-		templateengine.RenderPhoto(f, pic, db.Pictures.GetByAlbumID(pic.Album), templateengine.NewPage(nil, latestAlbumId))
+		r.BuildPhoto(pic, f)
 		f.Close()
 		return nil
 	}

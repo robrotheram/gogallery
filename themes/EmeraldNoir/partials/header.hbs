@@ -1,0 +1,52 @@
+{{ define "header" }}
+
+<header class="relative bg-gradient-to-b from-emerald-900 to-black overflow-hidden">
+    
+    <div class="absolute inset-0 bg-cover bg-center opacity-20">
+    {{if .Album.Name}}
+        <img src="/img/{{.Album.ProfileId}}/large.webp" alt="{{.Album.Name}} Background" class="w-full h-full object-cover">
+    {{else if .Author.BackgroundPhoto}}
+        <img src="{{.Author.BackgroundPhoto}}" alt="{{.Settings.Name}} Background" class="w-full h-full object-cover">
+    {{end}}
+    </div>
+
+    <div class="absolute inset-0">
+        <div class="absolute top-20 left-1/4 w-32 h-32 border border-emerald-500/20 rotate-45"></div>
+        <div class="absolute bottom-20 right-1/3 w-24 h-24 border border-emerald-400/15 rotate-12"></div>
+        <div class="absolute top-1/2 right-1/4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl"></div>
+    </div>
+
+    <div
+        class="relative z-10 max-w-6xl mx-auto px-6 py-24 text-center flex flex-col items-center justify-center space-y-8">
+        {{if .Album.Name}}
+        <h1 class="text-5xl md:text-7xl font-light text-white tracking-wide capitalize">{{.Album.Name}}</h1>
+
+        {{else}}
+        <a href="/">
+            <h1 class="text-5xl md:text-7xl font-light text-white tracking-wide">{{.Settings.Name}}</h1>
+        </a>
+        <p class="text-xl text-emerald-100 font-light max-w-3xl mx-auto leading-relaxed mb-8">
+            {{.Author.Description}}
+        </p>
+        {{end}}
+
+        <div class="flex items-center justify-center gap-4">
+            <div class="w-12 h-px bg-emerald-400"></div>
+            <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+            <div class="w-12 h-px bg-emerald-400"></div>
+        </div>
+
+        {{if .Album.Name}}
+        <a href="/" class="flex flex-row text-white border border-emerald-400 hover:bg-white/10 p-4 gap-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-arrow-left-icon lucide-arrow-left">
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+            </svg>
+            Back to Home
+        </a>
+        {{end}}
+    </div>
+</header>
+{{end}}

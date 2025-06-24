@@ -8,56 +8,48 @@ import (
 )
 
 type BatchProcessing[T any] struct {
-	items     []T
-	stat      *monitor.ProgressStats
-	work      func(T) error
-	chunkSize int
-}
-
-func chunkSlice[T any](slice []T, nchunks int) [][]T {
-	var chunks [][]T
-	chunkSize := (len(slice) / nchunks)
-	for i := 0; i < len(slice); i += chunkSize {
-		end := i + chunkSize
-		if end > len(slice) {
-			end = len(slice)
-		}
-		chunks = append(chunks, slice[i:end])
-	}
-	return chunks
+	items   []T
+	stat    *monitor.ProgressStats
+	work    func(T) error
+	workers int
 }
 
 func (batch *BatchProcessing[T]) Run() {
 	batch.stat.Start()
 	var wg sync.WaitGroup
-	chunks := chunkSlice(batch.items, batch.chunkSize)
-	for _, chunk := range chunks {
+	itemCh := make(chan T)
+
+	// Start workers
+	for i := 0; i < batch.workers; i++ {
 		wg.Add(1)
-		go batch.processing(chunk, &wg)
+		go func() {
+			defer wg.Done()
+			for item := range itemCh {
+				batch.work(item)
+				batch.stat.Update()
+			}
+		}()
 	}
+
+	// Feed items to workers
+	for _, item := range batch.items {
+		itemCh <- item
+	}
+	close(itemCh)
 	wg.Wait()
 	batch.stat.End()
 }
 
-func (poc *BatchProcessing[T]) processing(batch []T, wg *sync.WaitGroup) {
-	for _, pic := range batch {
-		poc.work(pic)
-		poc.stat.Update()
-	}
-	wg.Done()
-}
-
 func NewBatchProcessing[T any](processing func(T) error, items []T, stat *monitor.ProgressStats) *BatchProcessing[T] {
 	stat.Total = len(items)
-	//save 1 core for the system
-	chunsize := runtime.NumCPU() - 1
-	if chunsize < 1 {
-		chunsize = 1
+	workers := runtime.NumCPU() - 1
+	if workers < 1 {
+		workers = 1
 	}
 	return &BatchProcessing[T]{
-		work:      processing,
-		chunkSize: chunsize,
-		items:     items,
-		stat:      stat,
+		work:    processing,
+		workers: workers,
+		items:   items,
+		stat:    stat,
 	}
 }

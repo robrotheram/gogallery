@@ -1,0 +1,78 @@
+{{define "social"}}
+
+<footer class="border-t border-gray-800 bg-gradient-to-r from-black via-gray-900 to-black">
+    <div class="max-w-6xl mx-auto px-6 py-16">
+
+        <div class="text-center mb-12">
+            <h1 class="text-2xl font-light text-white mb-6">Connect & Follow</h1>
+            <div class="flex items-center justify-center gap-6 mb-8">
+
+                {{if .Author.Instagram}}
+                <a href="https://instagram.com/{{.Author.Instagram}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 min-w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                            duration-300 group-hover:scale-110">
+                        {{template "instagram" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Instagram</div>
+                    </div>
+                </a>
+                {{end}}
+                {{if .Author.Twitter}}
+                <a href="https://twitter.com/{{.Author.Twitter}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 min-w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                            duration-300 group-hover:scale-110">
+                        {{template "twitter" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Twitter</div>
+                    </div>
+                </a>
+                {{end}}
+                {{if .Author.Github}}
+                <a href="https://github.com/{{.Author.Github}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 min-w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                            duration-300 group-hover:scale-110">
+                        {{template "github" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Github</div>
+                    </div>
+                </a>
+                {{end}}
+
+                {{if .Author.Website}}
+                <a href="{{.Author.Website}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 min-w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                            duration-300 group-hover:scale-110">
+                       {{template "website" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Website</div>
+                    </div>
+                </a>
+                {{end}}
+            </div>
+        </div>
+
+
+        <div class="flex items-center justify-center gap-4 mb-8">
+            <div class="w-16 h-px bg-emerald-500/50"></div>
+            <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <div class="w-16 h-px bg-emerald-500/50"></div>
+        </div>
+        <div class="text-center">
+            <p class="text-gray-400 text-sm mb-2">{{.Author.Description}}</p>
+            <p class="text-gray-500 text-xs">© 2025 {{.Settings.Name}}. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{{end}}

@@ -32,7 +32,7 @@ func (te *TemplateEngine) LoadFromEmbed() error {
 	if err != nil {
 		return err
 	}
-	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]int { return ImageSizes }})
+	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
 	base, _ = base.ParseFS(embeds.ThemeFS, "themes/eastnor/partials/*.hbs")
 
 	items, err := embeds.ThemeFS.ReadDir("themes/eastnor/pages")
@@ -62,7 +62,7 @@ func (te *TemplateEngine) LoadFromPath(basePath string) error {
 	if err != nil {
 		return err
 	}
-	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]int { return ImageSizes }})
+	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
 	base, err = base.ParseGlob(filepath.Join(basePath, "partials/*.hbs"))
 	if err != nil {
 		return err

@@ -1,6 +1,9 @@
 package monitor
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type ProssesState string
 
@@ -20,6 +23,7 @@ type ProgressStats struct {
 	Total     int           `json:"total"`
 	Proceesed int           `json:"processed"`
 	State     ProssesState  `json:"state"`
+	mu        sync.Mutex    `json:"-"`
 }
 
 func NewProgressStats(name string, total int) *ProgressStats {
@@ -36,9 +40,16 @@ func (p *ProgressStats) Start() {
 	p.State = RUNNING
 }
 
-func (p *ProgressStats) Update() {
-	p.Proceesed = p.Proceesed + 1
-	p.Duration = time.Since(p.StartTime)
+func (s *ProgressStats) Update() {
+	s.mu.Lock()
+	s.Proceesed++
+	s.mu.Unlock()
+}
+
+func (s *ProgressStats) GetProcessed() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Proceesed
 }
 
 func (p *ProgressStats) End() {

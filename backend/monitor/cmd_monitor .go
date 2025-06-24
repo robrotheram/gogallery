@@ -37,15 +37,15 @@ func (t *CmdMonitor) NewTask(name string, total int) *ProgressStats {
 	return stat
 }
 
-func (t *CmdMonitor) GetTasks() []ProgressStats {
+func (t *CmdMonitor) GetTasks() []*ProgressStats {
 	keys := make([]string, 0, len(t.Tasks))
-	values := make([]ProgressStats, 0, len(t.Tasks))
+	values := make([]*ProgressStats, 0, len(t.Tasks))
 	for k := range t.Tasks {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		values = append(values, *t.Tasks[k])
+		values = append(values, t.Tasks[k])
 	}
 	return values
 }
@@ -69,6 +69,6 @@ func (t *CmdMonitor) StopUpdater() {
 }
 func (t *CmdMonitor) UpdateProgress() {
 	for name, stat := range t.Tasks {
-		t.Bars[name].Set(stat.Proceesed)
+		t.Bars[name].Set(stat.GetProcessed())
 	}
 }

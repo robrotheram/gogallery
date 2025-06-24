@@ -24,7 +24,7 @@ package:
 	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
 # Cross compilation
 build-linux:
-		wails build -tags webkit2_41
+		~/go/bin/wails build -tags webkit2_41
 build-windows:
 		CC=x86_64-w64-mingw32-gccGOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ wails build -skipbindings
 
@@ -36,7 +36,7 @@ docker-publish:
 		docker push robrotheram/gogallery:latest
 
 install:
-	cp build/bin/gogallery /home/${HOME}/.local/bin/gogallery
+	cp build/bin/gogallery ~/.local/bin/gogallery
 
 update: 
 	go get -u

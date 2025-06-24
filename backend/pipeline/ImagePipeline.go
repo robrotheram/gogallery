@@ -10,27 +10,29 @@ import (
 	"github.com/bep/gowebp/libwebp/webpoptions"
 	"github.com/disintegration/imaging"
 	"github.com/robrotheram/gogallery/backend/config"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/datastore"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func resize(base image.Image, width int, height int) image.Image {
-	if width == 0 && height == 0 {
-		return imaging.Resize(base, int(float64(base.Bounds().Dx())), 0, imaging.Lanczos)
-	}
-	return imaging.Resize(base, width, height, imaging.Lanczos)
-}
-
 func ProcessImage(src image.Image, size int, w io.Writer) {
-	resized := resize(src, size, 0)
+	// Use a faster filter for small images, Lanczos for larger ones
+	var filter imaging.ResampleFilter
+	switch {
+	case size <= 350:
+		filter = imaging.Linear // fast, good for thumbnails
+	case size <= 640:
+		filter = imaging.CatmullRom // good quality, faster than Lanczos
+	default:
+		filter = imaging.Lanczos // best for large images
+	}
+	resized := imaging.Resize(src, size, 0, filter)
 	libwebp.Encode(w, resized, webpoptions.EncodingOptions{
-		Quality:        100,
-		EncodingPreset: webpoptions.EncodingPresetDefault,
-		UseSharpYuv:    true,
+		Quality:        85,
+		EncodingPreset: webpoptions.EncodingPresetPhoto,
+		UseSharpYuv:    true, // better color and performance
 	})
 }
-
-func ImageGenV2(pic models.Picture) error {
+func ImageGenV2(pic datastore.Picture) error {
 	destPath := filepath.Join(imgDir, pic.Id)
 	os.MkdirAll(destPath, os.ModePerm)
 
@@ -38,7 +40,7 @@ func ImageGenV2(pic models.Picture) error {
 	for key, size := range templateengine.ImageSizes {
 		cachePath := filepath.Join(destPath, key+".webp")
 		if !templateengine.FileExists(cachePath) {
-			toRender[key] = size
+			toRender[key] = size.ImgWidth
 		}
 	}
 

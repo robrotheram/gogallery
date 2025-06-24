@@ -1,0 +1,11 @@
+{{ define "main" }}
+<div class="container  px-4  mx-auto py-16">
+     <div class="grid grid-cols-1 md:grid-cols-2  gap-8">
+          {{range .Albums}}
+          <div class="col-sm-12 col-md-6 col-lg-3">
+               {{template "albums" .}}
+          </div>
+          {{end}}
+     </div>
+</div>
+{{end}}

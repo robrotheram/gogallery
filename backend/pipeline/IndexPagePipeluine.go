@@ -3,43 +3,79 @@ package pipeline
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
 	"github.com/robrotheram/gogallery/backend/embeds"
 	templateengine "github.com/robrotheram/gogallery/backend/templateEngine"
 )
 
-func renderIndex(db *datastore.DataStore, config *config.GalleryConfiguration) {
-	imagesPerPage := 16 //defautl
-	if config.ImagesPerPage > 0 {
-		imagesPerPage = config.ImagesPerPage
-	}
-	latestAlbumID := db.Pictures.GetLatestAlbum()
-	indexPage := templateengine.NewPage(nil, latestAlbumID)
-	images := db.Pictures.GetFilteredPictures(false)
-	pages := paginateImages(images, imagesPerPage)
-	albums := datastore.Sort(db.Albums.GetAlbumStructure(indexPage.Settings))
+func (r *RenderPipeline) BuildIndex(w io.Writer) {
+	imagesPerPage := 24
+	latestAlbumID := r.GetLatestAlbum()
 
-	indexPage.Images = pages[0]
-	indexPage.Albums = albums
-	if len(images) > 0 {
-		indexPage.SEO.SetImage(images[0])
+	if r.config.ImagesPerPage == 0 {
+		alb, _ := r.Pictures.FindByField("Album", latestAlbumID)
+		imagesPerPage = len(alb) - 2 // reserve 2 images for the featured image and the picture of the day
 	}
+
+	indexPage := templateengine.NewPage(nil)
+	images := r.Pictures.GetFilteredPictures(false)
+
+	featuredImage := images[0]
+	images = images[1:]
+
+	pages := paginateImages(images, imagesPerPage)
+	indexPage.Images = pages[0]
+
+	albums := r.Albums.GetAlbumStructure(indexPage.Settings)
+
+	firstThreeAlbums := make(datastore.AlbumStrcure, 3)
+	count := 0
+	for _, album := range albums {
+		if count >= 3 {
+			break
+		}
+		if album.Id != latestAlbumID {
+			firstThreeAlbums[album.Id] = album.ToAlbumNode()
+			count++
+		}
+	}
+	indexPage.Albums = firstThreeAlbums
+
+	if len(images) > 0 {
+		indexPage.SEO.SetImage(featuredImage)
+		indexPage.Picture = templateengine.PagePicture{
+			Picture: featuredImage,
+		}
+	}
+	featuedAlbum, _ := r.Albums.FindById(latestAlbumID)
+	indexPage.FeaturedAlbum = featuedAlbum.ToAlbumNode()
+
+	templateengine.Templates.RenderPage(w, templateengine.HomeTemplate, indexPage)
+}
+
+func (r *RenderPipeline) BuildAlbums(w io.Writer) {
+	page := templateengine.NewPage(nil)
+	page.Albums = r.Albums.GetAlbumStructure(page.Settings)
+	templateengine.Templates.RenderPage(w, templateengine.AlbumTemplate, page)
+}
+
+func (r *RenderPipeline) renderIndex() {
 
 	f, _ := os.Create(filepath.Join(root, "index.html"))
 	w := bufio.NewWriter(f)
-	templateengine.Templates.RenderPage(w, templateengine.HomeTemplate, indexPage)
-	renderPages(pages, latestAlbumID, albums)
+	r.BuildIndex(w)
+	// renderPages(pages, latestAlbumID, albums)
 	w.Flush()
 	f.Close()
 
 	f, _ = os.Create(filepath.Join(root, "manifest.json"))
 	w = bufio.NewWriter(f)
-	templateengine.ManifestWriter(w, config)
+	templateengine.ManifestWriter(w, r.config)
 	w.Flush()
 	f.Close()
 
@@ -50,8 +86,8 @@ func renderIndex(db *datastore.DataStore, config *config.GalleryConfiguration) {
 	f.Close()
 }
 
-func paginateImages(slice []models.Picture, chunkSize int) [][]models.Picture {
-	var chunks [][]models.Picture
+func paginateImages(slice []datastore.Picture, chunkSize int) [][]datastore.Picture {
+	var chunks [][]datastore.Picture
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
 		if end > len(slice) {
@@ -62,13 +98,13 @@ func paginateImages(slice []models.Picture, chunkSize int) [][]models.Picture {
 	return chunks
 }
 
-func renderPages(pages [][]models.Picture, albumID string, albums models.AlbumStrcure) {
+func (r *RenderPipeline) renderPages(pages [][]datastore.Picture, albumID string, albums datastore.AlbumStrcure) {
 	pagesPath := filepath.Join(root, "page")
 	os.MkdirAll(pagesPath, os.ModePerm)
 	for page, pageImages := range pages {
 		pagePath := filepath.Join(pagesPath, fmt.Sprint(page))
 		os.MkdirAll(pagePath, os.ModePerm)
-		page := templateengine.NewPage(nil, albumID)
+		page := templateengine.NewPage(nil)
 		page.Images = pageImages
 		page.Albums = albums
 		if len(pageImages) > 0 {
@@ -82,13 +118,11 @@ func renderPages(pages [][]models.Picture, albumID string, albums models.AlbumSt
 	}
 }
 
-func renderAlbums(db *datastore.DataStore) {
+func (r *RenderPipeline) renderAlbums() {
 	os.MkdirAll(albumsDir, os.ModePerm)
 	f, _ := os.Create(filepath.Join(albumsDir, "index.html"))
 	w := bufio.NewWriter(f)
-	page := templateengine.NewPage(nil, db.Pictures.GetLatestAlbum())
-	page.Albums = datastore.Sort(db.Albums.GetAlbumStructure(page.Settings))
-	templateengine.Templates.RenderPage(w, templateengine.AlbumTemplate, page)
+	r.BuildAlbums(w)
 	w.Flush()
 	f.Close()
 }

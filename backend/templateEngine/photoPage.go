@@ -3,11 +3,10 @@ package templateengine
 import (
 	"io"
 
-	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/datastore"
 )
 
-func RenderPhoto(w io.Writer, pic models.Picture, images []models.Picture, page Page) {
-	images = models.SortByTime(images)
+func RenderPhoto(w io.Writer, pic datastore.Picture, images []datastore.Picture, page Page) {
 	for i, p := range images {
 		if p.Id == pic.Id {
 			if i-1 >= 0 {

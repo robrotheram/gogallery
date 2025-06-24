@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "build": "npx @tailwindcss/cli -i themes/EmeraldNoir/input.css -o themes/EmeraldNoir/assets/css/style.css",
+    "watch": "npx @tailwindcss/cli -i themes/EmeraldNoir/input.css -o themes/EmeraldNoir/assets/css/style.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.10"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.10"
+  }
+}

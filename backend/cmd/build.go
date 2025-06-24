@@ -23,8 +23,10 @@ var buildCMD = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config := config.LoadConfig()
 		config.Validate()
-		db := datastore.Open(config.Gallery.Basepath)
-		defer db.Close()
+		db, err := datastore.Open(config.Gallery.Basepath)
+		if err != nil {
+			log.Fatalf("Failed to open database: %v", err)
+		}
 		db.ScanPath(config.Gallery.Basepath)
 		log.Println("Building Site at: " + config.Gallery.Destpath)
 		uiprogress.Start()

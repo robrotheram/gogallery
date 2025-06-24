@@ -8,14 +8,14 @@ import (
 	"net/http"
 
 	"github.com/robrotheram/gogallery/backend/config"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/datastore"
 	"github.com/robrotheram/gogallery/backend/deploy"
 	"github.com/robrotheram/gogallery/backend/pipeline"
 )
 
 type backup struct {
-	Albums   []models.Album       `json:"albums"`
-	Pictures []models.Picture     `json:"pictures"`
+	Albums   []datastore.Album    `json:"albums"`
+	Pictures []datastore.Picture  `json:"pictures"`
 	Config   config.Configuration `json:"config"`
 }
 
@@ -23,7 +23,7 @@ func (api *GoGalleryAPI) purgeTaskHandler(w http.ResponseWriter, r *http.Request
 	stat := api.monitor.NewTask("Delete Site", 0)
 	go func() {
 		stat.Start()
-		pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).DeleteSite()
+		pipeline.NewRenderPipeline(&api.config.Gallery, api.DataStore, api.monitor).DeleteSite()
 		stat.End()
 	}()
 	fmt.Fprintf(w, "Deleted Site")
@@ -38,14 +38,14 @@ func (api *GoGalleryAPI) rescanTaskHandler(w http.ResponseWriter, r *http.Reques
 	stat := api.monitor.NewTask("Rescan", 0)
 	go func() {
 		stat.Start()
-		api.db.ScanPath(api.config.Gallery.Basepath)
+		api.ScanPath(api.config.Gallery.Basepath)
 		stat.End()
 	}()
 	fmt.Fprintf(w, "rescan task started")
 }
 
 func (api *GoGalleryAPI) buildTaskHandler(w http.ResponseWriter, r *http.Request) {
-	go pipeline.NewRenderPipeline(&api.config.Gallery, api.db, api.monitor).BuildSite()
+	go pipeline.NewRenderPipeline(&api.config.Gallery, api.DataStore, api.monitor).BuildSite()
 	fmt.Fprintf(w, "Build task started")
 }
 
@@ -70,10 +70,10 @@ func (api *GoGalleryAPI) uploadTaskHandler(w http.ResponseWriter, r *http.Reques
 	}
 	json.Unmarshal(buf.Bytes(), &bk)
 	for _, p := range bk.Pictures {
-		api.db.Pictures.Save(&p)
+		api.Pictures.Save(p)
 	}
 	for _, a := range bk.Albums {
-		api.db.Albums.Save(&a)
+		api.Albums.Save(a)
 	}
 	bk.Config.About.Save()
 	bk.Config.Gallery.Save()
@@ -81,8 +81,8 @@ func (api *GoGalleryAPI) uploadTaskHandler(w http.ResponseWriter, r *http.Reques
 
 func (api *GoGalleryAPI) backupTaskHandler(w http.ResponseWriter, r *http.Request) {
 	bk := backup{}
-	bk.Albums = api.db.Albums.GetAll()
-	bk.Pictures = api.db.Pictures.GetAll()
+	bk.Albums, _ = api.Albums.GetAll()
+	bk.Pictures, _ = api.Pictures.GetAll()
 	bk.Config = *api.config
 
 	w.Header().Set("Content-Disposition", "attachment; filename=Gallery-Backup.json")

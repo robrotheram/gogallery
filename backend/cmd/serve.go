@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"runtime"
 
@@ -25,20 +24,16 @@ var serveCMD = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		config := config.LoadConfig()
-		db := datastore.Open(config.Gallery.Basepath)
-		defer db.Close()
-
-		_, err := os.Stat(config.Gallery.Destpath)
-		if os.IsNotExist(err) {
-			log.Fatalf("Sorry it does not look like the site has been built, there is nothing at: \"%s\". Please check the config ", config.Gallery.Destpath)
-			return
+		db, err := datastore.Open(config.Gallery.Basepath)
+		if err != nil {
+			log.Fatalf("Failed to open database: %v", err)
 		}
-
+		db.ScanPath(config.Gallery.Basepath)
 		if len(args) == 1 {
 			config.Server.Port = ":" + args[0]
 		}
-		openbrowser(fmt.Sprintf("http://%s", config.Server.GetLocalAddr()))
-		api.NewGoGalleryAPI(config, db).Serve()
+		// openbrowser(fmt.Sprintf("http://%s", config.Server.GetLocalAddr()))
+		api.NewGoGalleryAPI(config, db).ServePreviewSite()
 	},
 }
 
@@ -46,9 +41,11 @@ var devCMD = &cobra.Command{
 	Use: "dev",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := config.LoadConfig()
-		db := datastore.Open(config.Gallery.Basepath)
-		defer db.Close()
-		// db.ScanPath(config.Gallery.Basepath)
+		db, err := datastore.Open(config.Gallery.Basepath)
+		if err != nil {
+			log.Fatalf("Failed to open database: %v", err)
+		}
+		db.ScanPath(config.Gallery.Basepath)
 		config.Server.Port = "8800"
 		api.NewGoGalleryAPI(config, db).DashboardAPI()
 	},

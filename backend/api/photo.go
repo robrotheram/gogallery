@@ -9,30 +9,27 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/datastore"
 )
-
-// r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(getPhotoHandler)).Methods("GET")
-// r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(editPhotoHandler)).Methods("POST")
-// r.Handle("/api/admin/photo/{id}", auth.AuthMiddleware(deletePhotoHandler)).Methods("DELETE")
 
 func (api *GoGalleryAPI) GetPicturesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(models.SortByTime(api.db.Pictures.GetAll()))
+	pics, _ := api.Pictures.GetAll()
+	json.NewEncoder(w).Encode(pics)
 }
 
 func (api *GoGalleryAPI) GetPictureHandler(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	picture := api.db.Pictures.FindByID(photoID)
+	picture, _ := api.Pictures.FindById(photoID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 }
 
 func (api *GoGalleryAPI) UpdatePictureHandler(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	oldPicture := api.db.Pictures.FindByID(photoID)
+	oldPicture, _ := api.Pictures.FindById(photoID)
 
-	var picture models.Picture
+	var picture datastore.Picture
 	err := json.NewDecoder(r.Body).Decode(&picture)
 	if err != nil {
 		NewAPIError(err).HandleError(w)
@@ -49,18 +46,18 @@ func (api *GoGalleryAPI) UpdatePictureHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	if oldPicture.Album != picture.Album {
-		api.db.Albums.MovePictureToAlbum(&picture, picture.Album)
+		api.Albums.MovePictureToAlbum(picture, picture.Album)
 	}
-	picture.Meta.DateModified = time.Now()
-	api.db.Pictures.Save(&picture)
+	picture.DateModified = time.Now()
+	api.Pictures.Update(photoID, picture)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 }
 
 func (api *GoGalleryAPI) DeletePictureHandler(w http.ResponseWriter, r *http.Request) {
 	photoID := mux.Vars(r)["id"]
-	picture := api.db.Pictures.FindByID(photoID)
-	api.db.Pictures.Delete(picture)
+	picture, _ := api.Pictures.FindById(photoID)
+	api.Pictures.Delete(picture)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(picture)
 }

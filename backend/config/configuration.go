@@ -47,6 +47,7 @@ type AboutConfiguration struct {
 	BackgroundPhoto string
 	Blog            string
 	Website         string
+	Github          string
 }
 
 type DeployConfig struct {

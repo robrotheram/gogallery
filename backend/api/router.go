@@ -21,14 +21,18 @@ import (
 )
 
 type GoGalleryAPI struct {
-	db      *datastore.DataStore
+	*datastore.DataStore
 	config  *config.Configuration
 	router  *mux.Router
 	monitor *monitor.TasksMonitor
 }
 
 func NewGoGalleryAPI(config *config.Configuration, db *datastore.DataStore) *GoGalleryAPI {
-	api := &GoGalleryAPI{config: config, db: db, monitor: monitor.NewMonitor()}
+	api := &GoGalleryAPI{
+		config:    config,
+		monitor:   monitor.NewMonitor(),
+		DataStore: db,
+	}
 	api.router = mux.NewRouter()
 	api.setupDashboardRoutes()
 	return api
@@ -79,23 +83,23 @@ func (api *GoGalleryAPI) ImgHandler(w http.ResponseWriter, r *http.Request) {
 	if len(size) == 0 {
 		size = vars["size"]
 	}
-	pic := api.db.Pictures.FindByID(id)
+	pic, _ := api.Pictures.FindById(id)
 	//Is image in cache
-	if file, err := api.db.ImageCache.Get(pic.Id, size); err == nil {
+	if file, err := api.ImageCache.Get(pic.Id, size); err == nil {
 		io.Copy(w, file)
 		return
 	}
+
 	src, err := pic.Load()
 	if err != nil {
 		return
 	}
-	cache, _ := api.db.ImageCache.Writer(pic.Id, size)
+	cache, _ := api.ImageCache.Writer(pic.Id, size)
 	writer := io.MultiWriter(w, cache)
 	if size, ok := templateengine.ImageSizes[size]; ok {
-		pipeline.ProcessImage(src, size, writer)
+		pipeline.ProcessImage(src, size.ImgWidth, writer)
 		return
 	}
-	pipeline.ProcessImage(src, templateengine.ImageSizes["xsmall"], writer)
 }
 
 func (api *GoGalleryAPI) DashboardAPI() {

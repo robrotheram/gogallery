@@ -17,8 +17,12 @@ type Stats struct {
 func (api *GoGalleryAPI) statsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	stats := Stats{0, 0, 0}
-	stats.Photos = len(api.db.Pictures.GetAll())
-	stats.Albums = len(api.db.Albums.GetAll())
+
+	photos, _ := api.Pictures.GetAll()
+	albums, _ := api.Albums.GetAll()
+
+	stats.Photos = len(photos)
+	stats.Albums = len(albums)
 	files, _ := os.ReadDir(config.Config.Gallery.Basepath + "/rubish")
 	stats.Rubish = len(files)
 	json.NewEncoder(w).Encode(stats)

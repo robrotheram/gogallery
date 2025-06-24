@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/robrotheram/gogallery/backend/config"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
+	"github.com/robrotheram/gogallery/backend/datastore"
 )
 
 type PagePicture struct {
-	models.Picture
+	datastore.Picture
 	OrginalImgPath string
 }
 
@@ -17,16 +17,16 @@ type Page struct {
 	Settings      config.GalleryConfiguration
 	SEO           SocailSEO
 	Author        config.AboutConfiguration
-	Images        []models.Picture
-	Albums        models.AlbumStrcure
-	Album         models.Album
-	LatestAlbum   string
+	Images        []datastore.Picture
+	Albums        datastore.AlbumStrcure
+	Album         datastore.AlbumNode
+	FeaturedAlbum datastore.AlbumNode
 	Picture       PagePicture
 	NextImagePath string
 	PreImagePath  string
 	Body          string
 	PagePath      string
-	ImgSizes      map[string]int
+	ImgSizes      map[string]ImgSize
 }
 
 type SocailSEO struct {
@@ -37,22 +37,27 @@ type SocailSEO struct {
 	ImageWidth  int
 	ImageHeight int
 }
-
-var ImageSizes = map[string]int{
-	"xsmall": 350,
-	"small":  640,
-	"medium": 1024,
-	"large":  1600,
-	"xlarge": 1920,
+type ImgSize struct {
+	MinWidth int // Minimum screen width in pixels for this image source
+	ImgWidth int // Recommended image width to generate for this breakpoint
 }
 
-func (s *SocailSEO) SetImage(picture models.Picture) {
-	s.ImageUrl = fmt.Sprintf("%s/img/%s", config.Config.Gallery.Url, picture.Id)
+var ImageSizes = map[string]ImgSize{
+	"xsmall":  {MinWidth: 0, ImgWidth: 360},     // Phones (default)
+	"small":   {MinWidth: 480, ImgWidth: 640},   // Small tablets / landscape phones
+	"medium":  {MinWidth: 768, ImgWidth: 960},   // Tablets
+	"large":   {MinWidth: 1024, ImgWidth: 1280}, // Laptops / small desktops
+	"xlarge":  {MinWidth: 1440, ImgWidth: 1600}, // Desktops / large screens
+	"2xlarge": {MinWidth: 1920, ImgWidth: 1920}, // Retina / ultra-wide
+}
+
+func (s *SocailSEO) SetImage(picture datastore.Picture) {
+	s.ImageUrl = fmt.Sprintf("%s/img/%s/xlarge.webp", config.Config.Gallery.Url, picture.Id)
 	s.ImageWidth = 1024
 	s.ImageHeight = 683
 }
 
-func (s *SocailSEO) SetNameFromPhoto(picture models.Picture) {
+func (s *SocailSEO) SetNameFromPhoto(picture datastore.Picture) {
 	s.Title = picture.Name
 	if picture.Caption != "" {
 		s.Description = picture.Caption
@@ -68,12 +73,11 @@ func NewSocailSEO(path string) SocailSEO {
 	}
 }
 
-func NewPage(r *http.Request, albumID string) Page {
+func NewPage(r *http.Request) Page {
 	page := Page{
-		Settings:    config.Config.Gallery,
-		Author:      config.Config.About,
-		LatestAlbum: albumID,
-		ImgSizes:    ImageSizes,
+		Settings: config.Config.Gallery,
+		Author:   config.Config.About,
+		ImgSizes: ImageSizes,
 	}
 	if r != nil {
 		page.SEO = NewSocailSEO(r.URL.EscapedPath())
@@ -82,7 +86,7 @@ func NewPage(r *http.Request, albumID string) Page {
 	return page
 }
 
-func NewPagePicture(pic models.Picture) PagePicture {
+func NewPagePicture(pic datastore.Picture) PagePicture {
 	originalPath := fmt.Sprintf("/img/%s/xlarge.webp", pic.Id)
 	if config.Config.Gallery.UseOriginal {
 		originalPath = fmt.Sprintf("/img/%s/original%s", pic.Id, pic.Ext)

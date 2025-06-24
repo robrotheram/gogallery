@@ -12,7 +12,6 @@ import (
 
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
 )
 
 type UploadCollection struct {
@@ -24,36 +23,37 @@ func (api *GoGalleryAPI) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	var uploadCollection UploadCollection
 	_ = json.NewDecoder(r.Body).Decode(&uploadCollection)
 
-	album := api.db.Albums.FindByID(uploadCollection.Album)
+	album, _ := api.Albums.FindById(uploadCollection.Album)
 	for _, photo := range uploadCollection.Photos {
-		albumPath := fmt.Sprintf("%s/%s", album.ParenetPath, album.Name)
+		albumPath := fmt.Sprintf("%s/%s", album.ParentPath, album.Name)
 		newPath := fmt.Sprintf("%s/%s", albumPath, photo)
 		oldPath := fmt.Sprintf("./temp/%s", config.GetMD5Hash(photo))
 		err := datastore.MoveFile(oldPath, newPath)
 		if err == nil {
 			picName := strings.TrimSuffix(photo, filepath.Ext(photo))
-			p := models.Picture{
-				Id:       config.GetMD5Hash(newPath),
-				Name:     picName,
-				Path:     newPath,
-				Album:    album.Id,
-				Ext:      filepath.Ext(newPath),
-				Exif:     models.Exif{},
+			p := datastore.Picture{
+				Id:    config.GetMD5Hash(newPath),
+				Name:  picName,
+				Path:  newPath,
+				Album: album.Id,
+				Ext:   filepath.Ext(newPath),
+
 				RootPath: api.config.Gallery.Basepath,
-				Meta: models.PictureMeta{
-					PostedToIG:   false,
-					Visibility:   "PUBLIC",
-					DateAdded:    time.Now(),
-					DateModified: time.Now()}}
-			p.CreateExif()
-			api.db.Pictures.Save(&p)
+
+				PostedToIG:   false,
+				Visibility:   "PUBLIC",
+				DateAdded:    time.Now(),
+				DateModified: time.Now(),
+			}
+			datastore.CreateExif(&p)
+			api.Pictures.Save(p)
 		}
 	}
 }
 
 func (api *GoGalleryAPI) uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
-	//photoID := mux.Vars(r)["id"]
+	//photoId := mux.Vars(r)["Id"]
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.

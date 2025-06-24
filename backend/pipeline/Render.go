@@ -6,7 +6,6 @@ import (
 
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
-	"github.com/robrotheram/gogallery/backend/datastore/models"
 	"github.com/robrotheram/gogallery/backend/monitor"
 )
 
@@ -17,12 +16,12 @@ var albumsDir string
 var albumDir string
 
 type RenderPipeline struct {
-	AlbumRender *BatchProcessing[models.Album]
-	PageRender  *BatchProcessing[models.Picture]
-	ImageRender *BatchProcessing[models.Picture]
+	AlbumRender *BatchProcessing[datastore.Album]
+	PageRender  *BatchProcessing[datastore.Picture]
+	ImageRender *BatchProcessing[datastore.Picture]
 	monitor     monitor.Monitor
-	db          *datastore.DataStore
 	config      *config.GalleryConfiguration
+	*datastore.DataStore
 }
 
 func NewRenderPipeline(config *config.GalleryConfiguration, db *datastore.DataStore, monitor monitor.Monitor) *RenderPipeline {
@@ -32,16 +31,10 @@ func NewRenderPipeline(config *config.GalleryConfiguration, db *datastore.DataSt
 	albumsDir = filepath.Join(root, "albums")
 	albumDir = filepath.Join(root, "album")
 
-	albums := db.Albums.GetAll()
-	images := db.Pictures.GetAll()
-
 	render := RenderPipeline{
-		db:          db,
-		AlbumRender: NewBatchProcessing(renderAlbumTemplate(db), albums, monitor.NewTask("rendering albums", len(albums))),
-		PageRender:  NewBatchProcessing(renderPhotoTemplate(db), images, monitor.NewTask("rendering pages", len(images))),
-		ImageRender: NewBatchProcessing(ImageGenV2, images, monitor.NewTask("optomizing images", len(images))),
-		monitor:     monitor,
-		config:      config,
+		DataStore: db,
+		monitor:   monitor,
+		config:    config,
 	}
 	return &render
 }
@@ -58,12 +51,19 @@ func (r *RenderPipeline) DeleteSite() {
 }
 
 func (r *RenderPipeline) BuildSite() {
-	db := r.db
 	r.CreateDir()
 	build()
-	renderIndex(db, r.config)
-	renderAlbums(db)
-	r.AlbumRender.Run()
-	r.PageRender.Run()
-	r.ImageRender.Run()
+	r.renderIndex()
+	r.renderAlbums()
+
+	albums, _ := r.Albums.GetAll()
+	images, _ := r.Pictures.GetAll()
+
+	AlbumRender := NewBatchProcessing(r.renderAlbumTemplate(), albums, r.monitor.NewTask("rendering albums", len(albums)))
+	PageRender := NewBatchProcessing(r.renderPhotoTemplate(), images, r.monitor.NewTask("rendering pages", len(images)))
+	ImageRender := NewBatchProcessing(ImageGenV2, images, r.monitor.NewTask("optomizing images", len(images)))
+
+	AlbumRender.Run()
+	PageRender.Run()
+	ImageRender.Run()
 }

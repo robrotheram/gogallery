@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/robrotheram/gogallery/backend/api"
 	"github.com/robrotheram/gogallery/backend/config"
 	"github.com/robrotheram/gogallery/backend/datastore"
@@ -25,8 +27,10 @@ var dashboadCMD = &cobra.Command{
 
 func LaunchDashboard() error {
 	config := config.LoadConfig()
-	db := datastore.Open(config.Gallery.Basepath)
-	defer db.Close()
+	db, err := datastore.Open(config.Gallery.Basepath)
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
 	config.Server.Port = "8800"
 	go api.NewGoGalleryAPI(config, db).DashboardAPI()
 
