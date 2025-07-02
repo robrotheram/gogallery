@@ -3,8 +3,8 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
-BINARY_NAME=../gogallery
-BINARY_UNIX=$(BINARY_NAME)_unix
+FYNE=fyne
+BINARY_NAME=gogallery
 
 ifndef CIRCLE_BRANCH
 override CIRCLE_BRANCH = latest
@@ -14,19 +14,39 @@ endif
 
 all: clean test build
 
-dep:
-	go install github.com/wailsapp/wails/v2/cmd/wails@latest
+deps:
+	go install fyne.io/fyne/v2/cmd/fyne@latest
+
+build:
+	CGO_ENABLED=1 $(FYNE) package -os linux .
 
 test:
-	cd server && $(GOTEST) -v ./...
+	$(GOTEST) -v ./...
+
+clean:
+	$(GOCLEAN)
+	rm -f $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME).app
 
 package:
-	tar -czvf gogallery-linux-amd64.tgz gogallery config_sample.yml ui
+	tar -czvf gogallery-linux-amd64.tgz $(BINARY_NAME) config_sample.yml themes
+
 # Cross compilation
 build-linux:
-		~/go/bin/wails build -tags webkit2_41
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(FYNE) package -os linux -name $(BINARY_NAME) .
+
+build-linux-arm64:
+	CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc $(FYNE) package -os linux -name $(BINARY_NAME)-arm64 .
+
 build-windows:
-		CC=x86_64-w64-mingw32-gccGOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ wails build -skipbindings
+	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc $(FYNE) package -os windows -name $(BINARY_NAME).exe .
+
+build-darwin:
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 $(FYNE) package -os darwin -name $(BINARY_NAME).app .
+
+build-darwin-arm64:
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 $(FYNE) package -os darwin -name $(BINARY_NAME)-arm64.app .
+
+build-all: build-linux build-linux-arm64 build-windows build-darwin build-darwin-arm64
 
 docker:
 		docker build . -t robrotheram/gogallery:$(CIRCLE_BRANCH)
@@ -36,8 +56,26 @@ docker-publish:
 		docker push robrotheram/gogallery:latest
 
 install:
-	cp build/bin/gogallery ~/.local/bin/gogallery
+	cp $(BINARY_NAME) ~/.local/bin/$(BINARY_NAME)
+
+run:
+	CGO_ENABLED=1 $(GOCMD) run .
+
+dev:
+	$(GOCMD) run . --config config_sample.yml
 
 update: 
 	go get -u
 	go mod tidy
+
+# Development helpers
+fmt:
+	$(GOCMD) fmt ./...
+
+vet:
+	$(GOCMD) vet ./...
+
+lint:
+	golangci-lint run
+
+.PHONY: all deps build test clean package build-linux build-linux-arm64 build-windows build-darwin build-darwin-arm64 build-all docker docker-publish install run dev update fmt vet lint

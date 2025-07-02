@@ -24,10 +24,6 @@ jobs:
             goos: 'linux'
             goarch: 'amd64'
           - name: 'gogallery'
-            os: 'ubuntu-latest'
-            goos: 'linux'
-            goarch: 'arm64'
-          - name: 'gogallery'
             os: 'windows-latest'
             goos: 'windows'
             goarch: 'amd64'
@@ -57,12 +53,7 @@ jobs:
         if: matrix.build.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc pkg-config libgl1-mesa-dev xorg-dev
-          # For cross-compilation to ARM64
-          if [ "${{ matrix.build.goarch }}" = "arm64" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-            export CC=aarch64-linux-gnu-gcc
-          fi
+          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev
 
       - name: Install Fyne dependencies (macOS)
         if: matrix.build.os == 'macos-latest'
@@ -70,13 +61,13 @@ jobs:
           # macOS has the necessary frameworks built-in
 
       - name: Install Fyne CLI
-        run: go install fyne.io/fyne/v2/cmd/fyne@latest
+        run: go install fyne.io/tools/cmd/fyne@latest
 
       - name: Build Fyne app
         env:
           GOOS: ${{ matrix.build.goos }}
           GOARCH: ${{ matrix.build.goarch }}
-          CC: ${{ matrix.build.goarch == 'arm64' && matrix.build.goos == 'linux' && 'aarch64-linux-gnu-gcc' || '' }}
+        shell: bash
         run: |
           go mod download
           
@@ -102,33 +93,34 @@ jobs:
           name: ${{ matrix.build.name }}-${{ matrix.build.goos }}-${{ matrix.build.goarch }}
           path: |
             ${{ matrix.build.name }}*
-  build-and-push-image:
+
+  build-arm64:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      - name: Build ARM64 Linux in Docker
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            golang:1.21 \
+            bash -c "
+              apt-get update && \
+              apt-get install -y gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev && \
+              go install fyne.io/tools/cmd/fyne@latest && \
+              go mod download && \
+              CGO_ENABLED=1 fyne package -os linux -name gogallery-arm64 .
+            "
+
+      - name: Upload ARM64 artifacts
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          name: gogallery-linux-arm64
+          path: gogallery-arm64
