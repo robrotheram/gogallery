@@ -1,4 +1,4 @@
-name: Wails build
+name: Fyne build
 
 on:
   push:
@@ -10,6 +10,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CGO_ENABLED: 1
 
 jobs:
   build:
@@ -19,30 +20,88 @@ jobs:
       matrix:
         build:
           - name: 'gogallery'
-            platform:  'linux/amd64'
             os: 'ubuntu-latest'
+            goos: 'linux'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'windows/amd64'
+            os: 'ubuntu-latest'
+            goos: 'linux'
+            goarch: 'arm64'
+          - name: 'gogallery'
             os: 'windows-latest'
+            goos: 'windows'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'darwin/universal'
             os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'amd64'
+          - name: 'gogallery'
+            os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'arm64'
 
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
-        id: build
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          build-name: ${{ matrix.build.name }}
-          build-platform: ${{ matrix.build.platform }}
-          package: false
           go-version: '1.21'
+          check-latest: true
+
+      - name: Install Fyne dependencies (Ubuntu)
+        if: matrix.build.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc pkg-config libgl1-mesa-dev xorg-dev
+          # For cross-compilation to ARM64
+          if [ "${{ matrix.build.goarch }}" = "arm64" ]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+            export CC=aarch64-linux-gnu-gcc
+          fi
+
+      - name: Install Fyne dependencies (macOS)
+        if: matrix.build.os == 'macos-latest'
+        run: |
+          # macOS has the necessary frameworks built-in
+
+      - name: Install Fyne CLI
+        run: go install fyne.io/fyne/v2/cmd/fyne@latest
+
+      - name: Build Fyne app
+        env:
+          GOOS: ${{ matrix.build.goos }}
+          GOARCH: ${{ matrix.build.goarch }}
+          CC: ${{ matrix.build.goarch == 'arm64' && matrix.build.goos == 'linux' && 'aarch64-linux-gnu-gcc' || '' }}
+        run: |
+          go mod download
+          
+          # Set output name based on OS
+          if [ "${{ matrix.build.goos }}" = "windows" ]; then
+            OUTPUT_NAME="${{ matrix.build.name }}.exe"
+          else
+            OUTPUT_NAME="${{ matrix.build.name }}"
+          fi
+          
+          # Build with fyne package command
+          if [ "${{ matrix.build.goos }}" = "windows" ]; then
+            fyne package -os windows -name "$OUTPUT_NAME" .
+          elif [ "${{ matrix.build.goos }}" = "darwin" ]; then
+            fyne package -os darwin -name "${{ matrix.build.name }}.app" .
+          else
+            fyne package -os linux -name "$OUTPUT_NAME" .
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.name }}-${{ matrix.build.goos }}-${{ matrix.build.goarch }}
+          path: |
+            ${{ matrix.build.name }}*
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
@@ -51,7 +110,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
