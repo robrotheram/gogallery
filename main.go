@@ -1,21 +1,18 @@
+// Responsive grid layout for Fyne
+
 package main
 
 import (
 	"embed"
-
-	"github.com/robrotheram/gogallery/backend/cmd"
-	"github.com/robrotheram/gogallery/backend/embeds"
+	"testingFyne/cmd"
+	"testingFyne/pkg/embeds"
 )
 
-//go:embed frontend/dist
-var assets embed.FS
-
-//go:embed themes/eastnor
+//go:embed themes
 var ThemeFS embed.FS
 
 func init() {
 	embeds.ThemeFS = ThemeFS
-	embeds.DashboardFS = assets
 }
 
 func main() {

@@ -28,7 +28,9 @@ temp
 # production
 /build
 
-ui
+.env
+.sql
+
 # misc
 .DS_Store
 .env.local

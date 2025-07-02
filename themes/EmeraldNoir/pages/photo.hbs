@@ -3,8 +3,10 @@
      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div class="lg:col-span-3">
                <div id="photo-image"
-                    class="relative rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black group border border-gray-800">
+                    style="background: url('/img/{{.Picture.Id}}/xsmall.webp') center center / cover no-repeat; aspect-ratio: {{.Picture.AspectRatio}};  "
+                    class="   relative rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black group border border-gray-800">
                     <img src="/img/{{.Picture.Id}}/xlarge.webp" class="object-contain w-full h-full" />
+
 
                     <!-- Fullscreen button overlay -->
                     <div
@@ -47,11 +49,11 @@
                </div>
 
                <div class="lg:col-span-2 mt-6">
-                    <div class="max-w-4xl">
+                    <div class="w-full space-y-4">
                          <h1 class="text-3xl md:text-4xl font-light text-white mb-4 leading-tight">
                               {{.Picture.Name}}
                          </h1>
-                         <p class="text-lg text-emerald-200 leading-relaxed font-light">
+                         <p class="text-lg text-emerald-200 leading-relaxed font-light px-4">
                               {{.Picture.Caption}}
                          </p>
                     </div>
@@ -61,6 +63,7 @@
           <!-- Prominent Technical Information -->
           <div class="lg:col-span-1 space-y-6">
                <!-- Camera Equipment -->
+                {{if and .Picture.Camera .Picture.LensModel}}
                <div
                     class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
                     <div class="p-6">
@@ -75,16 +78,15 @@
                               <h2 class="text-lg font-semibold text-white">Equipment</h2>
                          </div>
                          <div class="space-y-4">
-                              {{if and .Picture.Camera .Picture.LensModel}}
                               <div>
                                    <div class="text-emerald-100 font-medium text-base">{{.Picture.Camera}}</div>
                                    <div class="text-emerald-100 text-sm mt-1">{{.Picture.LensModel}}</div>
 
                               </div>
-                              {{end}}
                          </div>
                     </div>
                </div>
+                {{end}}
 
                <!-- Camera Settings -->
                <div
@@ -156,10 +158,17 @@
                               {{end}}
 
                               <div class="flex gap-3 text-emerald-400 items-center">
-                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-images-icon lucide-images"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-images-icon lucide-images">
+                                        <path d="M18 22H4a2 2 0 0 1-2-2V6" />
+                                        <path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18" />
+                                        <circle cx="12" cy="8" r="2" />
+                                        <rect width="16" height="16" x="6" y="2" rx="2" />
+                                   </svg>
                                    <div>
                                         <div class="text-emerald-100 font-medium">
-                                               <a href="/album/{{.Picture.Album}}">{{.Picture.AlbumName}}</a>
+                                             <a href="/album/{{.Picture.Album}}">{{.Picture.AlbumName}}</a>
                                         </div>
                                    </div>
                               </div>
@@ -167,7 +176,8 @@
                     </div>
                </div>
 
-               <div class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
+               <div
+                    class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
                     <div class="p-6">
                          <h3 class="text-base font-semibold text-white mb-4">Technical Details</h3>
                          <div class="space-y-3 text-sm">
@@ -219,13 +229,6 @@
                                    <span class="text-emerald-100 font-medium">{{.}}</span>
                               </div>
                               {{end}}
-                              {{with .Picture.Cropped}}
-                              <div class="flex justify-between">
-                                   <span class="text-emerald-300">Cropped</span>
-                                   <span class="text-emerald-100 font-medium">{{.}}</span>
-                              </div>
-                              {{end}}
-
                          </div>
                     </div>
                </div>
@@ -234,14 +237,32 @@
 </main>
 <style>
      .fullscreen {
-          cursor: pointer;
-          position: absolute;
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 10000 !important;
+          background: #000 !important;
+          aspect-ratio: unset !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+     }
+
+     .fullscreen img {
+          position: absolute !important;
           top: 0;
           left: 0;
-          width: 100%;
+          width: 100vw !important;
+          height: 100vh !important;
+          object-fit: contain !important;
+          background: #000 !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+     }
+
+     .remove-scrolling {
           height: 100%;
-          z-index: 100;
-          padding: 2rem;
+          overflow: hidden;
      }
 </style>
 <script>
@@ -251,11 +272,13 @@
           if (!img) return;
           img.classList.add('fullscreen');
           sessionStorage.setItem('photoFullscreen', '1');
+          document.body.classList.add("remove-scrolling");
      }
      function removeFullscreen() {
           if (!img) return;
           img.classList.remove('fullscreen');
           sessionStorage.removeItem('photoFullscreen');
+          document.body.classList.remove("remove-scrolling");
      }
 
 
