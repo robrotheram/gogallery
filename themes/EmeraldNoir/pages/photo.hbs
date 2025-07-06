@@ -32,20 +32,19 @@
                               <path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
                                    stroke-linejoin="round" />
                          </svg>
-                         </button>
-                         {{end}}
+                    </a>
+                    {{end}}
 
-                         {{if .NextImagePath }}
-                         <a href="/photo/{{ .NextImagePath }}"
-                              class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-emerald-300 hover:text-emerald-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-emerald-500/30"
-                              title="Next">
-                              <!-- ChevronRight SVG -->
-                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                              </svg>
-                         </a>
-                         {{end}}
+                    {{if .NextImagePath }}
+                    <a href="/photo/{{ .NextImagePath }}"
+                         class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-emerald-300 hover:text-emerald-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-emerald-500/30"
+                         title="Next">
+                         <!-- ChevronRight SVG -->
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                         </svg>
+                    </a>
+                    {{end}}
                </div>
 
                <div class="lg:col-span-2 mt-6">
@@ -63,7 +62,7 @@
           <!-- Prominent Technical Information -->
           <div class="lg:col-span-1 space-y-6">
                <!-- Camera Equipment -->
-                {{if and .Picture.Camera .Picture.LensModel}}
+               {{if and .Picture.Camera .Picture.LensModel}}
                <div
                     class="bg-gradient-to-br from-gray-900 to-black border border-gray-700 shadow-xl hover:shadow-emerald-500/10 transition-shadow rounded-lg">
                     <div class="p-6">
@@ -86,7 +85,7 @@
                          </div>
                     </div>
                </div>
-                {{end}}
+               {{end}}
 
                <!-- Camera Settings -->
                <div

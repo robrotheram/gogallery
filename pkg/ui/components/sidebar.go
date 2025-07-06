@@ -34,8 +34,9 @@ func NewSidebar(db *datastore.DataStore, onClose func()) *Sidebar {
 	titleEntry := widget.NewEntry()
 	titleEntry.SetPlaceHolder("Enter image title")
 
-	captionEntry := widget.NewEntry()
+	captionEntry := widget.NewMultiLineEntry()
 	captionEntry.SetPlaceHolder("Enter image caption")
+	captionEntry.Wrapping = fyne.TextWrapWord
 
 	// Create a persistent image widget (bigger size)
 	img := canvas.NewImageFromImage(nil) // Start with nil image
@@ -86,19 +87,31 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 	s.exifCard = container.NewVBox()
 
 	//AI button
-	aiButton := widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
-		go ai.GenerateCaption(s.DataStore, s.selectedPic.Id)
-	})
+	var scrollContent *fyne.Container
+	if ai.IsAi() {
+		aiButton := widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
+			go ai.GenerateCaption(s.DataStore, s.selectedPic.Id)
+		})
+		scrollContent = container.NewVBox(
+			titleRow,
+			s.imageStack,
+			form,
+			aiButton,
+			widget.NewSeparator(),
+			NewTextEntry("EXIF Details", 20),
+			s.exifCard,
+		)
+	} else {
+		scrollContent = container.NewVBox(
+			titleRow,
+			s.imageStack,
+			form,
+			widget.NewSeparator(),
+			NewTextEntry("EXIF Details", 20),
+			s.exifCard,
+		)
+	}
 
-	scrollContent := container.NewVBox(
-		titleRow,
-		s.imageStack,
-		form, // Add the form directly to the scroll content
-		aiButton,
-		widget.NewSeparator(),
-		NewTextEntry("EXIF Details", 20),
-		s.exifCard,
-	)
 	// Add padding and border
 	// padded := container.NewPadded(scrollContent)
 	card := widget.NewCard("", "", scrollContent)
@@ -167,7 +180,7 @@ func (s *Sidebar) ShowImage(pic datastore.Picture) {
 	s.visible = true
 	s.loadImage(pic)
 	s.titleEntry.SetText(pic.Name)
-	s.captionEntry.SetText(pic.Caption)
+	s.captionEntry.Text = pic.Caption
 
 	// Build EXIF info section
 	exifLabels := []fyne.CanvasObject{

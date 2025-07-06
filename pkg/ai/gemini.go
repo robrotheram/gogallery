@@ -13,20 +13,18 @@ type GeminiClient struct {
 }
 
 func init() {
-	// Initialize the Gemini client
 	c, err := NewGeminiClient()
-	if err != nil {
-		log.Fatal("Failed to create Gemini client:", err)
+	if err == nil {
+		clients["gemini"] = c
+		log.Println("Gemini client initialized successfully")
 	}
-	clients["gemini"] = c
-	log.Println("Gemini client initialized successfully")
 }
 
 func NewGeminiClient() (*GeminiClient, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return &GeminiClient{Client: client}, nil
 }

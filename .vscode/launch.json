@@ -7,7 +7,7 @@
             "mode": "auto",
             "cwd": "${workspaceFolder}",
             "program": "main.go",
-            "args": ["serve", "--config", "/home/robert/Pictures/gallery/config.yml"]
+            "args": ["serve"]
         }
     ]
 }

@@ -13,6 +13,9 @@ func FileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+	if info.Size() == 0 {
+		return false
+	}
 	return !info.IsDir()
 }
 

@@ -25,6 +25,10 @@ type AIClient interface {
 
 var clients = map[string]AIClient{}
 
+func IsAi() bool {
+	return len(clients) > 0
+}
+
 func GenerateCaption(db *datastore.DataStore, id string) error {
 	stat := db.NewTask("Ai Caption for "+id, 1)
 	defer stat.Complete()
