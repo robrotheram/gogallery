@@ -1,4 +1,4 @@
-/*! tailwindcss v4.1.10 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.1.11 | MIT License | https://tailwindcss.com */
 @layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
@@ -21,9 +21,9 @@
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
+    --container-lg: 32rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
-    --container-4xl: 56rem;
     --container-6xl: 72rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
@@ -213,8 +213,14 @@
   .collapse {
     visibility: collapse;
   }
+  .visible {
+    visibility: visible;
+  }
   .absolute {
     position: absolute;
+  }
+  .fixed {
+    position: fixed;
   }
   .relative {
     position: relative;
@@ -351,12 +357,6 @@
   .hidden {
     display: none;
   }
-  .inline {
-    display: inline;
-  }
-  .inline-block {
-    display: inline-block;
-  }
   .inline-flex {
     display: inline-flex;
   }
@@ -423,6 +423,12 @@
   .w-32 {
     width: calc(var(--spacing) * 32);
   }
+  .w-\[120px\] {
+    width: 120px;
+  }
+  .w-fit {
+    width: fit-content;
+  }
   .w-full {
     width: 100%;
   }
@@ -432,14 +438,8 @@
   .max-w-3xl {
     max-width: var(--container-3xl);
   }
-  .max-w-4xl {
-    max-width: var(--container-4xl);
-  }
   .max-w-6xl {
     max-width: var(--container-6xl);
-  }
-  .min-w-\[120px\] {
-    min-width: 120px;
   }
   .flex-shrink-0 {
     flex-shrink: 0;
@@ -487,6 +487,9 @@
   .justify-center {
     justify-content: center;
   }
+  .justify-items-center {
+    justify-items: center;
+  }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
   }
@@ -495,9 +498,6 @@
   }
   .gap-4 {
     gap: calc(var(--spacing) * 4);
-  }
-  .gap-6 {
-    gap: calc(var(--spacing) * 6);
   }
   .gap-8 {
     gap: calc(var(--spacing) * 8);
@@ -898,10 +898,6 @@
   .shadow-xl {
     --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 8px 10px -6px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
-  .blur {
-    --tw-blur: blur(8px);
-    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
   }
   .blur-xl {
     --tw-blur: blur(var(--blur-xl));
