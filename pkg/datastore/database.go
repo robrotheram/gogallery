@@ -1,7 +1,7 @@
 package datastore
 
 import (
-	"testingFyne/pkg/monitor"
+	"gogallery/pkg/monitor"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

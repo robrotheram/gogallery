@@ -2,9 +2,9 @@ package datastore
 
 import (
 	"fmt"
+	"gogallery/pkg/config"
 	"os"
 	"path"
-	"testingFyne/pkg/config"
 )
 
 type ImageCache struct {

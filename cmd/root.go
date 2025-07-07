@@ -7,8 +7,8 @@ package cmd
 
 import (
 	"fmt"
+	"gogallery/pkg/ui"
 	"os"
-	"testingFyne/pkg/ui"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"

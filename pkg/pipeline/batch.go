@@ -1,9 +1,9 @@
 package pipeline
 
 import (
+	"gogallery/pkg/monitor"
 	"runtime"
 	"sync"
-	"testingFyne/pkg/monitor"
 )
 
 type BatchProcessing[T any] struct {

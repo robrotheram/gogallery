@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/monitor"
 	"log"
 	"os"
 	"runtime/pprof"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/monitor"
 	"time"
 
 	"github.com/spf13/cobra"

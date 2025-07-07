@@ -1,15 +1,15 @@
 package pages
 
 import (
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/deploy"
-	"testingFyne/pkg/monitor"
-	"testingFyne/pkg/pipeline"
-	"testingFyne/pkg/preview"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/deploy"
+	"gogallery/pkg/monitor"
+	"gogallery/pkg/pipeline"
+	"gogallery/pkg/preview"
 	"time"
 
-	uiMonitor "testingFyne/pkg/ui/monitors"
+	uiMonitor "gogallery/pkg/ui/monitors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"

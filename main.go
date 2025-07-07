@@ -4,8 +4,8 @@ package main
 
 import (
 	"embed"
-	"testingFyne/cmd"
-	"testingFyne/pkg/embeds"
+	"gogallery/cmd"
+	"gogallery/pkg/embeds"
 )
 
 //go:embed themes

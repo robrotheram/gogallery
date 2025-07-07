@@ -2,14 +2,14 @@ package ui
 
 import (
 	"fmt"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/pipeline"
-	"testingFyne/pkg/preview"
-	"testingFyne/pkg/ui/components"
-	"testingFyne/pkg/ui/pages"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/pipeline"
+	"gogallery/pkg/preview"
+	"gogallery/pkg/ui/components"
+	"gogallery/pkg/ui/pages"
 
-	uiMonitor "testingFyne/pkg/ui/monitors"
+	uiMonitor "gogallery/pkg/ui/monitors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"

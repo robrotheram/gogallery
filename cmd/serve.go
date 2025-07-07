@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/monitor"
+	"gogallery/pkg/preview"
 	"log"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/monitor"
-	"testingFyne/pkg/preview"
 
 	"github.com/spf13/cobra"
 )

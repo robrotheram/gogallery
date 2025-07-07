@@ -2,11 +2,11 @@ package pages
 
 import (
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/ui/components"
 	"sort"
 	"strconv"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/ui/components"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"

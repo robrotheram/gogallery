@@ -3,8 +3,8 @@ package deploy
 import (
 	"context"
 	"fmt"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/monitor"
+	"gogallery/pkg/config"
+	"gogallery/pkg/monitor"
 	"time"
 
 	oapiclient "github.com/go-openapi/runtime/client"

@@ -2,8 +2,8 @@ package templateengine
 
 import (
 	"encoding/json"
+	"gogallery/pkg/config"
 	"io"
-	"testingFyne/pkg/config"
 )
 
 type Manifest struct {

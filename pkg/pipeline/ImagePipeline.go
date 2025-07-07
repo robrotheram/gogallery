@@ -1,13 +1,13 @@
 package pipeline
 
 import (
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
 	"image"
 	"image/jpeg"
 	"io"
 	"os"
 	"path/filepath"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
 
 	"github.com/bep/gowebp/libwebp"
 	"github.com/bep/gowebp/libwebp/webpoptions"

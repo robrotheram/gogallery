@@ -2,13 +2,13 @@ package preview
 
 import (
 	"compress/gzip"
+	"gogallery/pkg/config"
+	"gogallery/pkg/embeds"
+	"gogallery/pkg/pipeline"
+	templateengine "gogallery/pkg/templateEngine"
 	"io"
 	"net/http"
 	"strings"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/embeds"
-	"testingFyne/pkg/pipeline"
-	templateengine "testingFyne/pkg/templateEngine"
 
 	"github.com/gorilla/mux"
 )

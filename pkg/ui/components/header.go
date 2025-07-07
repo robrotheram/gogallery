@@ -2,8 +2,8 @@ package components
 
 import (
 	"fmt"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/preview"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/preview"
 
 	"net/url"
 

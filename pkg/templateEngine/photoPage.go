@@ -1,8 +1,8 @@
 package templateengine
 
 import (
+	"gogallery/pkg/datastore"
 	"io"
-	"testingFyne/pkg/datastore"
 )
 
 func RenderPhoto(w io.Writer, pic datastore.Picture, images []datastore.Picture, page Page) {

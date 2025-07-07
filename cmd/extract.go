@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"testingFyne/pkg/embeds"
+	"gogallery/pkg/embeds"
 
 	"github.com/spf13/cobra"
 )

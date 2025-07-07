@@ -1,11 +1,11 @@
 package pipeline
 
 import (
+	"gogallery/pkg/datastore"
+	templateengine "gogallery/pkg/templateEngine"
 	"io"
 	"os"
 	"path/filepath"
-	"testingFyne/pkg/datastore"
-	templateengine "testingFyne/pkg/templateEngine"
 
 	"github.com/gosimple/slug"
 )

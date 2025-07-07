@@ -1,10 +1,10 @@
 package datastore
 
 import (
+	"gogallery/pkg/config"
 	"path"
 	"sort"
 	"strings"
-	"testingFyne/pkg/config"
 )
 
 type AlbumNode struct {

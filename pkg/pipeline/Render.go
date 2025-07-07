@@ -2,11 +2,11 @@ package pipeline
 
 import (
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	templateengine "gogallery/pkg/templateEngine"
 	"os"
 	"path/filepath"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	templateengine "testingFyne/pkg/templateEngine"
 )
 
 var root = ""

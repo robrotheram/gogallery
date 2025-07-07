@@ -3,6 +3,7 @@ package templateengine
 import (
 	"bytes"
 	"fmt"
+	"gogallery/pkg/embeds"
 	"html/template"
 	"io"
 	"io/fs"
@@ -11,7 +12,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"testingFyne/pkg/embeds"
 
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/css"

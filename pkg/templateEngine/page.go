@@ -2,9 +2,9 @@ package templateengine
 
 import (
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
 	"net/http"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
 )
 
 type PagePicture struct {

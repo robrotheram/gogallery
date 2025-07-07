@@ -1,10 +1,10 @@
 package uiMonitor
 
 import (
+	"gogallery/pkg/config"
+	"gogallery/pkg/monitor"
 	"sort"
 	"sync"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/monitor"
 
 	"fyne.io/fyne/v2"
 )

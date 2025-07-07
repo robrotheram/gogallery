@@ -3,6 +3,9 @@ package components
 import (
 	"bytes"
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/pipeline"
 	"image"
 	"image/color"
 	"image/draw"
@@ -11,9 +14,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/pipeline"
 	"time"
 
 	"fyne.io/fyne/v2"

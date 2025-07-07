@@ -1,13 +1,13 @@
 package datastore
 
 import (
+	"gogallery/pkg/config"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
-	"testingFyne/pkg/config"
 	"time"
 
 	"gorm.io/gorm"

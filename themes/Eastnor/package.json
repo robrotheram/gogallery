@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "build": "echo 'No build script defined for this theme.'",
+    "clean": "rm -rf ./node_modules && rm -rf ./package-lock.json"
+  }
+}

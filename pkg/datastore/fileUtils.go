@@ -2,11 +2,11 @@ package datastore
 
 import (
 	"fmt"
+	"gogallery/pkg/config"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"testingFyne/pkg/config"
 	"time"
 )
 

@@ -3,11 +3,11 @@ package preview
 import (
 	"context"
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
 	"net"
 	"net/http"
 	"sync"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
 
 	"github.com/gorilla/mux"
 )

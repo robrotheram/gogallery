@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/deploy"
-	"testingFyne/pkg/monitor"
+	"gogallery/pkg/config"
+	"gogallery/pkg/deploy"
+	"gogallery/pkg/monitor"
 
 	"github.com/spf13/cobra"
 )

@@ -3,13 +3,13 @@ package pipeline
 import (
 	"bufio"
 	"fmt"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/embeds"
+	templateengine "gogallery/pkg/templateEngine"
 	"io"
 	"os"
 	"path/filepath"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/embeds"
-	templateengine "testingFyne/pkg/templateEngine"
 )
 
 func (r *RenderPipeline) BuildIndex(w io.Writer) {

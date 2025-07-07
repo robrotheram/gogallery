@@ -2,8 +2,8 @@ package pipeline
 
 import (
 	"fmt"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
 )
 
 func (r *RenderPipeline) generateThumbnails() func(pic datastore.Picture) error {

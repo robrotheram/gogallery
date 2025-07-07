@@ -3,11 +3,11 @@ package components
 import (
 	"bytes"
 	"fmt"
+	"gogallery/pkg/ai"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
 	"io"
 	"log"
-	"testingFyne/pkg/ai"
-	"testingFyne/pkg/config"
-	"testingFyne/pkg/datastore"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"

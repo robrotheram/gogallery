@@ -2,8 +2,8 @@ package ai
 
 import (
 	"fmt"
+	"gogallery/pkg/datastore"
 	"os"
-	"testingFyne/pkg/datastore"
 )
 
 type ImageCaption struct {

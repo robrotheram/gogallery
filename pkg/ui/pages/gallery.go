@@ -1,9 +1,9 @@
 package pages
 
 import (
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/ui/components"
 	"log"
-	"testingFyne/pkg/datastore"
-	"testingFyne/pkg/ui/components"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
