@@ -30,19 +30,19 @@ func (te *TemplateEngine) LoadFromEmbed(theme string) error {
 
 	te.Cache = newTeamplateCache()
 	path := "themes/" + theme
-	base, err := template.ParseFS(embeds.ThemeFS, path+"/default.hbs")
+	base, err := template.ParseFS(embeds.ThemeFS, path+"/default.tmpl.html")
 	if err != nil {
 		return err
 	}
 	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
-	base, _ = base.ParseFS(embeds.ThemeFS, path+"/partials/*.hbs")
+	base, _ = base.ParseFS(embeds.ThemeFS, path+"/partials/*.html")
 
 	items, err := embeds.ThemeFS.ReadDir(path + "/pages")
 	if err != nil {
 		return err
 	}
 	for _, item := range items {
-		name := strings.TrimSuffix(item.Name(), filepath.Ext(item.Name()))
+		name := strings.TrimSuffix(item.Name(), ".tmpl.html")
 		pageTemplate := template.Must(base.Clone())
 		pageTemplate = template.Must(pageTemplate.ParseFS(embeds.ThemeFS, path+"/pages/"+item.Name()))
 		te.Cache.Add(name, pageTemplate)
@@ -79,12 +79,12 @@ func (te *TemplateEngine) Load(basePath string) error {
 func (te *TemplateEngine) LoadFromPath(basePath string) error {
 	te.Cache = newTeamplateCache()
 	pagePath := "pages"
-	base, err := template.ParseFiles(filepath.Join(basePath, "default.hbs"))
+	base, err := template.ParseFiles(filepath.Join(basePath, "default.tmpl.html"))
 	if err != nil {
 		return err
 	}
 	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
-	base, err = base.ParseGlob(filepath.Join(basePath, "partials/*.hbs"))
+	base, err = base.ParseGlob(filepath.Join(basePath, "partials/*.tmpl.html"))
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (te *TemplateEngine) LoadFromPath(basePath string) error {
 		return err
 	}
 	for _, item := range items {
-		name := strings.TrimSuffix(item.Name(), filepath.Ext(item.Name()))
+		name := strings.TrimSuffix(item.Name(), ".tmpl.html")
 		pageTemplate := template.Must(base.Clone())
 		pageTemplate = template.Must(pageTemplate.ParseGlob(filepath.Join(basePath, pagePath, item.Name())))
 		te.Cache.Add(name, pageTemplate)
