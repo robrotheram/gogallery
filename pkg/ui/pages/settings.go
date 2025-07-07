@@ -122,6 +122,9 @@ func aboutConfigForm() fyne.CanvasObject {
 	instagram := widget.NewEntry()
 	instagram.SetText(cfg.Instagram)
 	description := widget.NewEntry()
+	description.MultiLine = true
+	description.Wrapping = fyne.TextWrapWord
+	description.SetMinRowsVisible(5)
 	description.SetText(cfg.Description)
 	footer := widget.NewEntry()
 	footer.SetText(cfg.Footer)
@@ -184,7 +187,14 @@ func aboutConfigForm() fyne.CanvasObject {
 		},
 	}
 	title := components.NewTextEntry("Author Settings", 20)
-	return container.NewVBox(title, widget.NewSeparator(), form)
+	scrollForm := container.NewVScroll(container.NewPadded(form))
+	return container.NewBorder(
+		container.NewVBox(title, widget.NewSeparator()), // top
+		nil,        // bottom
+		nil,        // left
+		nil,        // right
+		scrollForm, // center (fills remaining space)
+	)
 }
 
 func deployConfigForm() fyne.CanvasObject {

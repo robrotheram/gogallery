@@ -8,7 +8,6 @@ import (
 	"strings"
 )
 
-var DashboardFS embed.FS
 var ThemeFS embed.FS
 
 func CopyTheme(templatePath string) {
