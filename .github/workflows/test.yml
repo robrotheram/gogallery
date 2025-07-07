@@ -52,8 +52,7 @@ jobs:
       - name: Install Fyne dependencies (Ubuntu)
         if: matrix.build.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev
+          make fyne-deps-ubuntu
 
       - name: Install Fyne dependencies (macOS)
         if: matrix.build.os == 'macos-latest'
@@ -61,7 +60,7 @@ jobs:
           # macOS has the necessary frameworks built-in
 
       - name: Install Fyne CLI
-        run: go install fyne.io/tools/cmd/fyne@latest
+        run: make fyne-cli
 
       - name: Build Fyne app
         env:
@@ -70,23 +69,7 @@ jobs:
           CGO_ENABLED: 1
         shell: bash
         run: |
-          go mod download
-          
-          # Set output name based on OS
-          if [ "${{ matrix.build.goos }}" = "windows" ]; then
-            OUTPUT_NAME="${{ matrix.build.name }}.exe"
-          else
-            OUTPUT_NAME="${{ matrix.build.name }}"
-          fi
-          
-          # Build with fyne package command
-          if [ "${{ matrix.build.goos }}" = "windows" ]; then
-            fyne package -os windows -name "$OUTPUT_NAME" .
-          elif [ "${{ matrix.build.goos }}" = "darwin" ]; then
-            fyne package -os darwin -name "${{ matrix.build.name }}.app" .
-          else
-            fyne package -os linux -name "$OUTPUT_NAME" .
-          fi
+          make fyne-build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
