@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"encoding/json"
+	"gogallery/pkg/config"
 	"log"
 
 	"google.golang.org/genai"
@@ -12,21 +13,19 @@ type GeminiClient struct {
 	*genai.Client
 }
 
-func init() {
-	c, err := NewGeminiClient()
-	if err == nil {
-		clients["gemini"] = c
-		log.Println("Gemini client initialized successfully")
-	}
-}
-
-func NewGeminiClient() (*GeminiClient, error) {
+func RegisterGeminiClient() (*GeminiClient, error) {
 	ctx := context.Background()
-	client, err := genai.NewClient(ctx, nil)
+	cc := &genai.ClientConfig{
+		APIKey: config.Config.UI.GeminiApiKey,
+	}
+	client, err := genai.NewClient(ctx, cc)
 	if err != nil {
+		log.Printf("Error creating Gemini client: %v", err)
 		return nil, err
 	}
-	return &GeminiClient{Client: client}, nil
+	gm := &GeminiClient{Client: client}
+	clients["gemini"] = gm
+	return gm, nil
 }
 
 func (g *GeminiClient) GenerateCaption(bytes []byte) (*ImageCaption, error) {

@@ -20,6 +20,7 @@ type UIConfiguration struct {
 	Notification  bool
 	Theme         string
 	ImagesPerPage int
+	GeminiApiKey  string
 }
 
 type GalleryConfiguration struct {

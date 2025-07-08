@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"gogallery/pkg/ai"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/pipeline"
@@ -17,10 +18,11 @@ import (
 )
 
 func App() error {
-	myApp := app.New()
-	myWindow := myApp.NewWindow("GoGallery")
-
 	cfg := config.LoadConfig()
+
+	myApp := app.New()
+	myApp.Settings().SetTheme(NewComfortableTheme(cfg.UI.Theme))
+	myWindow := myApp.NewWindow("GoGallery")
 
 	monitor := uiMonitor.NewUIMonitor()
 	db, err := datastore.Open("gogallery.sql.db", monitor)
@@ -28,6 +30,7 @@ func App() error {
 		fmt.Println("Error opening database:", err)
 		return err
 	}
+	ai.RegisterGeminiClient()
 	server := preview.NewServer(db)
 	// Start background task to scan path and generate thumbnails
 	go backgroundTask(db, cfg)
@@ -56,9 +59,9 @@ func App() error {
 		)
 		myWindow.SetContent(content)
 	}
-	navBar = (components.NewHeader("Gallery", db, server, setPage)).Layout()
+	navBar = (components.NewHeader(config.Config.Gallery.Name, db, server, setPage)).Layout()
 	setPage("Gallery")
-	myApp.Settings().SetTheme(NewComfortableTheme(cfg.UI.Theme))
+
 	myWindow.Resize(fyne.NewSize(1200, 800))
 	myWindow.ShowAndRun()
 	return nil

@@ -90,7 +90,17 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 	var scrollContent *fyne.Container
 	if ai.IsAi() {
 		aiButton := widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
-			go ai.GenerateCaption(s.DataStore, s.selectedPic.Id)
+			go func() {
+				cap, err := ai.GenerateCaption(s.DataStore, s.selectedPic.Id)
+				if err != nil {
+					return
+				}
+				fyne.Do(func() {
+					s.titleEntry.SetText(cap.Title)
+					s.captionEntry.SetText(cap.Caption)
+				})
+			}()
+
 		})
 		scrollContent = container.NewVBox(
 			titleRow,

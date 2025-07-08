@@ -70,3 +70,46 @@ Please make sure to update tests as appropriate.
 
 ## License
 [apache-2.0](https://choosealicense.com/licenses/apache-2.0)
+
+
+
+## Building GoGallery
+
+You can build GoGallery from source using Go. Make sure you have Go 1.20 or newer installed.
+
+### Standard Build (CLI and Web)
+
+You can use the provided Makefile for building:
+
+```bash
+make build         # Build the GoGallery CLI/web binary
+make build-themes  # Build all theme assets (npm install/build/clean in each theme)
+make clean         # Remove built binaries
+```
+This will produce the `gogallery` binary in your current directory.
+
+Or, to build manually:
+
+```bash
+go build -o gogallery main.go
+```
+
+### Building the Fyne Desktop App
+
+You can use the Makefile to build the Fyne desktop app and install dependencies:
+
+```bash
+make fyne-cli           # Install the Fyne CLI tool
+make fyne-deps-ubuntu   # Install Fyne dependencies (Ubuntu)
+make fyne-deps-fedora   # Install Fyne dependencies (Fedora/RedHat)
+make fyne-build         # Build the Fyne desktop app for your platform
+```
+
+- The `fyne-build` target will auto-detect your OS and build the appropriate package.
+- You can also run `make all` to install Fyne CLI and build the desktop app in one step.
+
+> For more details, see the [Fyne documentation](https://developer.fyne.io/started/packaging) and the GoGallery wiki.
+
+## Theme Development
+
+See the [Theme Development Guide](themes/DEVELOPER_README.md) for instructions on building and customizing GoGallery templates and themes.

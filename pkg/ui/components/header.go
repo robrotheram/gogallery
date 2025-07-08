@@ -22,6 +22,9 @@ type Header struct {
 }
 
 func NewHeader(title string, db *datastore.DataStore, server *preview.Server, onNavChange func(page string)) *Header {
+	if title == "" {
+		title = "GoGallery"
+	}
 	return &Header{
 		Title:       title,
 		onNavChange: onNavChange,

@@ -13,8 +13,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sync"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -265,11 +263,11 @@ func (g *ImageGrid) LoadImages() {
 					g.OnImageSelected(pic)
 				}
 			})
+			if idx < len(g.grid.Objects) {
+				g.grid.Objects[idx] = cell
+			}
 			fyne.Do(func() {
-				if idx < len(g.grid.Objects) {
-					g.grid.Objects[idx] = cell
-					g.grid.Refresh()
-				}
+				g.grid.Refresh()
 			})
 		}(i, idx, pic)
 	}
@@ -314,23 +312,8 @@ func (g *ImageGrid) Layout() fyne.CanvasObject {
 	)
 }
 
-// Only update the label and grid layout on refresh, not reload images
-// Debounced refresh: only the latest call will execute after a short delay
-var refreshDebounceTimer *time.Timer
-var refreshDebounceLock = &sync.Mutex{}
-
 func (g *ImageGrid) Refresh() {
-	refreshDebounceLock.Lock()
-	defer refreshDebounceLock.Unlock()
-	if refreshDebounceTimer != nil {
-		refreshDebounceTimer.Stop()
-	}
-	refreshDebounceTimer = time.AfterFunc(120*time.Millisecond, func() {
-		fyne.Do(func() {
-			log.Println("Refreshing gallery layout (debounced)")
-			g.pageLabel.Text = fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages)
-			g.pageLabel.Refresh()
-			g.LoadImages()
-		})
-	})
+	g.pageLabel.Text = fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages)
+	g.pageLabel.Refresh()
+	g.LoadImages()
 }

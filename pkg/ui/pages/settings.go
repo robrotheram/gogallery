@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"gogallery/pkg/ai"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/ui/components"
@@ -254,6 +255,9 @@ func uiConfigForm() fyne.CanvasObject {
 	} else {
 		previewPublic.SetChecked(cfg.Public)
 	}
+	ApiKeyEntry := widget.NewEntry()
+	ApiKeyEntry.SetPlaceHolder("Enter Gemini API Key")
+	ApiKeyEntry.SetText(cfg.GeminiApiKey)
 
 	// Setting the number of images per page
 	imagesPerPage := widget.NewEntry()
@@ -272,6 +276,7 @@ func uiConfigForm() fyne.CanvasObject {
 			{Text: "Notifications", Widget: notifications, HintText: "Enable or disable notifications"},
 			{Text: "Public Preview", Widget: previewPublic, HintText: "Enable or disable public preview"},
 			{Text: "Images Per Page", Widget: imagesPerPage, HintText: "Number of images to display per page"},
+			{Text: "Gemini API Key", Widget: ApiKeyEntry, HintText: "Enter your Gemini API key to enable AI features"},
 		},
 		OnCancel: func() {
 			notifications.SetChecked(cfg.Notification)
@@ -280,7 +285,11 @@ func uiConfigForm() fyne.CanvasObject {
 		OnSubmit: func() {
 			cfg.Notification = notifications.Checked
 			cfg.Public = previewPublic.Checked
+			cfg.GeminiApiKey = ApiKeyEntry.Text
 			config.Config.Save()
+			if ApiKeyEntry.Text != "" {
+				ai.RegisterGeminiClient()
+			}
 		},
 	}
 	title := components.NewTextEntry("Application Settings", 20)
