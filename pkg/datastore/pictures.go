@@ -90,6 +90,7 @@ func (p *PictureCollection) Reset() error {
 func (p *PictureCollection) Update(id string, updates Picture) error {
 	p.Lock()
 	defer p.Unlock()
+	updates.UpdateExifTags()
 	return p.DB.Model(&Picture{}).Where("id = ?", id).Updates(updates).Error
 }
 

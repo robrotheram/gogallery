@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"log"
@@ -13,7 +14,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
-	jpegstructure "github.com/dsoprea/go-jpeg-image-structure/v2"
+	jpeg "github.com/dsoprea/go-jpeg-image-structure/v2"
 )
 
 var exifIfdMapping *exifcommon.IfdMapping
@@ -21,7 +22,7 @@ var exifTagIndex = exif.NewTagIndex()
 var exifDateTimeTags = []string{"DateTimeOriginal", "DateTimeCreated", "CreateDate", "DateTime", "DateTimeDigitized"}
 
 func parser(fileName string) (rawExif []byte, err error) {
-	jpegMp := jpegstructure.NewJpegMediaParser()
+	jpegMp := jpeg.NewJpegMediaParser()
 	sl, err := jpegMp.ParseFile(fileName)
 
 	if err != nil {
@@ -107,6 +108,7 @@ func (u *Picture) CreateExif() error {
 	}
 
 	u.parseGPS(rawExif)
+
 	u.DateTaken = parseExifDateTime(tags)
 	u.Camera = cameraModelToString(tags)
 	u.FStop = apatureToString(tags)
@@ -117,6 +119,9 @@ func (u *Picture) CreateExif() error {
 	} else {
 		u.FocalLength = tags["FocalLength"]
 	}
+
+	u.Name = tags["DocumentName"]
+	u.Caption = tags["ImageDescription"]
 
 	u.ISO = tags["ISOSpeedRatings"]
 	u.ShutterSpeed = tags["ExposureTime"]
@@ -327,4 +332,70 @@ func formatMeteringMode(val string) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func setExifTag(rootIB *exif.IfdBuilder, ifdPath, tagName, tagValue string) error {
+	ifdIb, err := exif.GetOrCreateIbFromRootIb(rootIB, ifdPath)
+	if err != nil {
+		return fmt.Errorf("failed to get or create IB: %v", err)
+	}
+
+	if err := ifdIb.SetStandardWithName(tagName, tagValue); err != nil {
+		return fmt.Errorf("failed to set tag", err)
+	}
+	return nil
+}
+
+func constructExifBuilder() (*exif.IfdBuilder, error) {
+	im, err := exifcommon.NewIfdMappingWithStandard()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new IFD mapping with standard tags: %v", err)
+	}
+	ti := exif.NewTagIndex()
+	if err := exif.LoadStandardTags(ti); err != nil {
+		return nil, fmt.Errorf("failed to load standard tags: %v", err)
+	}
+
+	rootIb := exif.NewIfdBuilder(im, ti, exifcommon.IfdStandardIfdIdentity,
+		exifcommon.EncodeDefaultByteOrder)
+	rootIb.AddStandardWithName("ProcessingSoftware", "photos-uploader")
+	return rootIb, nil
+}
+
+func (pic *Picture) UpdateExifTags() error {
+	parser := jpeg.NewJpegMediaParser()
+	intfc, err := parser.ParseFile(pic.Path)
+	if err != nil {
+		return fmt.Errorf("failed to parse JPEG file: %v", err)
+	}
+
+	sl := intfc.(*jpeg.SegmentList)
+
+	rootIb, err := sl.ConstructExifBuilder()
+	if err != nil {
+		rootIb, err = constructExifBuilder()
+		if err != nil {
+			return fmt.Errorf("failed to construct EXIF builder: %v", err)
+		}
+	}
+
+	if err := setExifTag(rootIb, "IFD0", "ImageDescription", pic.Caption); err != nil {
+		return fmt.Errorf("failed to set tag: %v", err)
+	}
+
+	if err := setExifTag(rootIb, "IFD0", "DocumentName", pic.Name); err != nil {
+		return fmt.Errorf("failed to set tag: %v", err)
+	}
+
+	if err := sl.SetExif(rootIb); err != nil {
+		return fmt.Errorf("failed to set EXIF to jpeg: %v", err)
+	}
+	b := new(bytes.Buffer)
+	if err := sl.Write(b); err != nil {
+		return fmt.Errorf("failed to create JPEG data: %v", err)
+	}
+	if err := os.WriteFile(pic.Path, b.Bytes(), 0644); err != nil {
+		return fmt.Errorf("failed to write JPEG file: %v", err)
+	}
+	return nil
 }

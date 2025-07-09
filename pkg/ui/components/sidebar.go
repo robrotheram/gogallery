@@ -6,6 +6,7 @@ import (
 	"gogallery/pkg/ai"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
+	"gogallery/pkg/ui/utils"
 	"io"
 	"log"
 
@@ -84,13 +85,30 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 		widget.NewFormItem("Title", s.titleEntry),
 		widget.NewFormItem("Caption", s.captionEntry),
 	)
+	form.OnSubmit = func() {
+		log.Println("Form submitted with title:", s.titleEntry.Text, "and caption:", s.captionEntry.Text)
+		// Update the selected picture with new title and caption
+		s.selectedPic.Name = s.titleEntry.Text
+		s.selectedPic.Caption = s.captionEntry.Text
+		if err := s.DataStore.Pictures.Update(s.selectedPic.Id, s.selectedPic); err != nil {
+			log.Println("Error updating picture:", err)
+		} else {
+			log.Println("Picture updated successfully")
+			utils.Notify("Update Successful", "Picture details updated successfully")
+		}
+	}
 	s.exifCard = container.NewVBox()
 
 	//AI button
 	var scrollContent *fyne.Container
 	if ai.IsAi() {
-		aiButton := widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
+		var aiButton *widget.Button
+		aiButton = widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
 			go func() {
+				fyne.Do(func() {
+					aiButton.Disable()
+					aiButton.SetText("Generating...")
+				})
 				cap, err := ai.GenerateCaption(s.DataStore, s.selectedPic.Id)
 				if err != nil {
 					return
@@ -98,6 +116,8 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 				fyne.Do(func() {
 					s.titleEntry.SetText(cap.Title)
 					s.captionEntry.SetText(cap.Caption)
+					aiButton.Enable()
+					aiButton.SetText("Generate Caption")
 				})
 			}()
 
@@ -105,8 +125,8 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 		scrollContent = container.NewVBox(
 			titleRow,
 			s.imageStack,
-			form,
 			aiButton,
+			form,
 			widget.NewSeparator(),
 			NewTextEntry("EXIF Details", 20),
 			s.exifCard,
