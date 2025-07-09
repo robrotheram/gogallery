@@ -7,6 +7,7 @@ import (
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/ui/utils"
+	"image/color"
 	"io"
 	"log"
 
@@ -39,11 +40,13 @@ func NewSidebar(db *datastore.DataStore, onClose func()) *Sidebar {
 	captionEntry.SetPlaceHolder("Enter image caption")
 	captionEntry.Wrapping = fyne.TextWrapWord
 
-	// Create a persistent image widget (bigger size)
-	img := canvas.NewImageFromImage(nil) // Start with nil image
+	// Use a placeholder image instead of nil to avoid layout issues on Windows
+	placeholder := canvas.NewRectangle(color.Gray16{Y: 0xAAAA}) // Use a light gray color for the placeholder
+	placeholder.SetMinSize(fyne.NewSize(600, 400))
+	img := canvas.NewImageFromImage(nil)
 	img.FillMode = canvas.ImageFillContain
-	img.SetMinSize(fyne.NewSize(600, 400))
-	imageStack := container.NewStack(img)
+	img.SetMinSize(fyne.NewSize(600, 400)) // More reasonable default
+	imageStack := container.NewStack(placeholder)
 
 	return &Sidebar{
 		visible:      false,
@@ -188,9 +191,14 @@ func (s *Sidebar) updateImageStack(data []byte, pic datastore.Picture) {
 	newImg := canvas.NewImageFromReader(bytes.NewReader(data), pic.Name)
 	newImg.FillMode = canvas.ImageFillContain
 	width := float32(500)
-	height := width / pic.AspectRatio
-	newImg.SetMinSize(fyne.NewSize(width, height))
-	newImg.Resize(fyne.NewSize(width, height))
+	if pic.AspectRatio > 0 {
+		height := width / pic.AspectRatio
+		newImg.SetMinSize(fyne.NewSize(width, height))
+		newImg.Resize(fyne.NewSize(width, height))
+	} else {
+		newImg.SetMinSize(fyne.NewSize(width, 300))
+		newImg.Resize(fyne.NewSize(width, 300))
+	}
 
 	if s.imageStack != nil {
 		s.imageStack.Objects = []fyne.CanvasObject{newImg}
