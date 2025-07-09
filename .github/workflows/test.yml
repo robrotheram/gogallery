@@ -1,4 +1,4 @@
-name: Wails build
+name: Fyne build
 
 on:
   push:
@@ -10,6 +10,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CGO_ENABLED: 1
 
 jobs:
   build:
@@ -19,57 +20,61 @@ jobs:
       matrix:
         build:
           - name: 'gogallery'
-            platform:  'linux/amd64'
             os: 'ubuntu-latest'
+            goos: 'linux'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'windows/amd64'
             os: 'windows-latest'
+            goos: 'windows'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'darwin/universal'
             os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'amd64'
+          - name: 'gogallery'
+            os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'arm64'
 
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
-        id: build
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          build-name: ${{ matrix.build.name }}
-          build-platform: ${{ matrix.build.platform }}
-          package: false
-          go-version: '1.21'
-  build-and-push-image:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+          go-version: '>=1.24.2'
+          check-latest: true
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Install Fyne dependencies (Ubuntu)
+        if: matrix.build.os == 'ubuntu-latest'
+        run: |
+          make fyne-deps-ubuntu
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      - name: Install Fyne dependencies (macOS)
+        if: matrix.build.os == 'macos-latest'
+        run: |
+          # macOS has the necessary frameworks built-in
+
+      - name: Install Fyne CLI
+        run: make fyne-cli
+
+      - name: Build Fyne app
+        env:
+          GOOS: ${{ matrix.build.goos }}
+          GOARCH: ${{ matrix.build.goarch }}
+          CGO_ENABLED: 1
+        shell: bash
+        run: |
+          make fyne-build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ matrix.build.name }}-${{ matrix.build.goos }}-${{ matrix.build.goarch }}
+          path: |
+            ${{ matrix.build.name }}*
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}

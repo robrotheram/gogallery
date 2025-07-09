@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  },
+  "scripts": {
+    "build": "tailwindcss -i ./input.css -o ./assets/css/style.css --minify",
+    "clean": "rm -rf ./node_modules && rm -rf ./package-lock.json"
+  }
+}

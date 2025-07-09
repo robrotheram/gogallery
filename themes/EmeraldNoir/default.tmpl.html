@@ -1,0 +1,46 @@
+  <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="apple-touch-icon" href="/assets/logos/logo192.png" />
+    <link rel="icon" href="/assets/logos/favicon.ico" />
+    {{if .SEO.Description}}
+    <meta name="description" content="{{.SEO.Description}}">
+    {{else}}
+    <meta name="description" content="{{.Author.Description}}">
+    {{end}}
+
+    <title>
+      {{.Settings.Name}}
+    </title>   
+
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="manifest" href="/manifest.json">
+
+    <meta property="og:url"  content="{{.SEO.Site}}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="{{.SEO.Title}}">
+    <meta name="og:description" content="{{.SEO.Description}}">
+    <meta property="og:image" content="{{.SEO.ImageUrl}}">
+    <meta property="og:image:width" content="{{.SEO.ImageWidth}}">
+    <meta property="og:image:height" content="{{.SEO.ImageHeight}}">
+
+    <meta name="twitter:card" content="{{.SEO.Title}}">
+    <meta name="twitter:title" content="{{.SEO.Title}}">
+    <meta name="twitter:description" content="{{.SEO.Description}}">
+    <meta name="twitter:image" content="{{.SEO.ImageUrl}}">
+
+
+
+  </head>
+  <body class="min-h-screen bg-black">
+     {{template "header" . }}
+      <main>
+        {{template "main" .}}
+      </main>
+      {{template "social" .}}
+  </body>
+</html>

@@ -1,0 +1,31 @@
+{{ define "albums" }}
+<a href="/album/{{.Id}}">
+    <div
+        class="bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden border border-gray-800 hover:border-emerald-500/30">
+
+        <picture>
+            {{range $key, $val := ImgSizes}}
+            <source media="(min-width: {{$val.MinWidth}}px)" srcset="/img/{{$.ProfileId}}/{{$key}}.webp"
+                type="image/webp">
+            {{end}}
+            <source srcset="/img/{{.Id}}/small.webp" type="image/webp">
+            <img src="/img/{{.ProfileId}}/xsmall.webp" alt="{{.Name}}" loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 aspect-[3/2]">
+        </picture>
+        <div class="p-8">
+            <div class="flex items-start justify-between mb-4">
+                <h1 class="text-2xl font-light text-white group-hover:text-emerald-100 transition-colors capitalize">
+                    {{.Name}}
+                </h1>
+                <div
+                    class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors ml-4 flex-shrink-0">
+                    <svg class="w-4 h-4 text-emerald-400 transform group-hover:translate-x-0.5 transition-transform"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</a>
+{{end}}
