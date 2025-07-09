@@ -1,4 +1,4 @@
-name: Release CI
+name: Fyne build
 
 on:
   push:
@@ -10,6 +10,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CGO_ENABLED: 1
 
 jobs:
   build:
@@ -19,28 +20,64 @@ jobs:
       matrix:
         build:
           - name: 'gogallery'
-            platform:  'linux/amd64'
-            os: 'ubuntu-24.04'
+            os: 'ubuntu-latest'
+            goos: 'linux'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'windows/amd64'
             os: 'windows-latest'
+            goos: 'windows'
+            goarch: 'amd64'
           - name: 'gogallery'
-            platform:  'darwin/universal'
             os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'amd64'
+          - name: 'gogallery'
+            os: 'macos-latest'
+            goos: 'darwin'
+            goarch: 'arm64'
 
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
-        id: build
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          build-name: ${{ matrix.build.name }}
-          build-platform: ${{ matrix.build.platform }}
-          package: true
-          go-version: '1.23'
+          go-version: '>=1.24.2'
+          check-latest: true
+
+      - name: Install Fyne dependencies (Ubuntu)
+        if: matrix.build.os == 'ubuntu-latest'
+        run: |
+          make fyne-deps-ubuntu
+
+      - name: Install Fyne dependencies (macOS)
+        if: matrix.build.os == 'macos-latest'
+        run: |
+          # macOS has the necessary frameworks built-in
+
+      - name: Install Fyne CLI
+        run: make fyne-cli
+
+      - name: Build Fyne app
+        env:
+          GOOS: ${{ matrix.build.goos }}
+          GOARCH: ${{ matrix.build.goarch }}
+          CGO_ENABLED: 1
+        shell: bash
+        run: |
+          make fyne-build
+
+      # Removed 'Upload artifacts' step; artifacts are now attached directly to the GitHub release
+
+      - name: Create GitHub Release and upload assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.build.name }}*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

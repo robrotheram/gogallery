@@ -6,6 +6,7 @@ require (
 	fyne.io/fyne/v2 v2.6.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/dsoprea/go-exif/v3 v3.0.0-20210428042052-dca55bf8ca15
+	google.golang.org/genai v1.14.0
 	gorm.io/gorm v1.30.0
 )
 
@@ -21,7 +22,6 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
-	google.golang.org/genai v1.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241223144023-3abc09e42ca8 // indirect
 	google.golang.org/grpc v1.67.3 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
@@ -115,7 +115,6 @@ require (
 	github.com/hack-pad/go-indexeddb v0.3.2 // indirect
 	github.com/hack-pad/safejs v0.1.0 // indirect
 	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08 // indirect
-	github.com/joho/godotenv v1.5.1
 	github.com/jsummers/gobmp v0.0.0-20230614200233-a9de23ed2e25 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/netlify/open-api/v2 v2.37.0
