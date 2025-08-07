@@ -32,11 +32,12 @@ func (r *RenderPipeline) BuildIndex(w io.Writer) {
 
 	albums, _ := r.Albums.GetLatestAlbums()
 	indexPage.Albums = make([]datastore.AlbumNode, 3)
-	for i, alb := range albums {
-		if i >= 3 {
+	//Skip the first album as it is the featured album
+	for i := 1; i < len(albums); i++ {
+		if i >= 4 {
 			break
 		}
-		indexPage.Albums[i] = alb.ToAlbumNode()
+		indexPage.Albums[i-1] = albums[i].ToAlbumNode()
 	}
 
 	if len(images) > 0 {

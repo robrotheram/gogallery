@@ -37,12 +37,14 @@ func App() error {
 
 	galleryPage := pages.NewGalleryPage(db)
 	settingsPage := pages.NewSettingsPage(db)
+	collectionPage := pages.NewCollectionPage(db)
 	tasksPage := pages.NewTasksPage(db, server)
 
 	pages := map[string]pages.Page{
-		"Gallery":  galleryPage,
-		"Settings": settingsPage,
-		"Tasks":    tasksPage,
+		"Gallery":     galleryPage,
+		"Settings":    settingsPage,
+		"Tasks":       tasksPage,
+		"Collections": collectionPage,
 	}
 
 	var navBar *fyne.Container

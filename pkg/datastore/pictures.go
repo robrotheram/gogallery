@@ -168,3 +168,21 @@ func (p *Picture) Load() (image.Image, error) {
 	}
 	return img, nil
 }
+
+func (p *PictureCollection) RemoveInvalidPictures() error {
+	var invalidPics []Picture
+	pictures, _ := p.GetAll()
+	for _, pic := range pictures {
+		if _, err := os.Stat(pic.Path); os.IsNotExist(err) {
+			invalidPics = append(invalidPics, pic)
+		}
+	}
+	if len(invalidPics) > 0 {
+		p.Lock()
+		defer p.Unlock()
+		if err := p.DB.Delete(&invalidPics).Error; err != nil {
+			return fmt.Errorf("failed to remove invalid pictures: %w", err)
+		}
+	}
+	return nil
+}

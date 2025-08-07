@@ -40,6 +40,7 @@ func createAlbum(fInfo os.FileInfo, path string) Album {
 		ModTime:    info.ModTime,
 		Parent:     filepath.Base(filepath.Dir(path)),
 		ParentPath: (filepath.Dir(path)),
+		Path:       path,
 	}
 }
 
@@ -97,6 +98,7 @@ func (db *DataStore) ScanPath(path string) error {
 	db.Pictures.BatchInsert(pictures)
 	db.Albums.BatchInsert(albums)
 	db.updateAlbumProfiles(albumUpdates)
+	db.PerformCleanup()
 
 	// log.Println("Scanning Complete")
 	return nil
@@ -156,4 +158,11 @@ func (db *DataStore) updateAlbumProfiles(albumUpdates []albumUpdate) {
 			return nil
 		})
 	}
+}
+
+func (db *DataStore) PerformCleanup() {
+	log.Println("Performing cleanup of old pictures and albums")
+	db.Pictures.RemoveInvalidPictures()
+	db.Albums.RemoveInvalidAlbums()
+	log.Println("Cleanup complete")
 }
