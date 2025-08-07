@@ -43,51 +43,64 @@ func (page *CollectionPage) RefreshLayout() {
 
 func (page *CollectionPage) Refresh() {
 	log.Println("Refreshing CollectionPage")
-	albums, err := page.Albums.GetAll()
-	if err != nil {
-		log.Printf("Error loading albums: %v", err)
-		return
-	}
 
-	// Filter out blacklisted albums
-	var filteredAlbums []datastore.Album
-	for _, alb := range albums {
-		if !datastore.IsAlbumInBlacklist(alb.Name) {
-			filteredAlbums = append(filteredAlbums, alb)
-		}
-	}
-
-	cells := []fyne.CanvasObject{}
-	for _, alb := range filteredAlbums {
-		if alb.ProfileId == "" {
-			continue
-		}
-		_, err := page.Pictures.FindById(alb.ProfileId)
+	// Do database operations in background
+	go func() {
+		albums, err := page.Albums.GetAll()
 		if err != nil {
-			continue
+			log.Printf("Error loading albums: %v", err)
+			return
 		}
 
-		card := page.makeAlbumCard(alb)
-		cells = append(cells, card)
-	}
-	page.grid.Objects = cells
-	page.grid.Refresh()
+		// Filter out blacklisted albums
+		var filteredAlbums []datastore.Album
+		for _, alb := range albums {
+			if !datastore.IsAlbumInBlacklist(alb.Name) {
+				filteredAlbums = append(filteredAlbums, alb)
+			}
+		}
 
+		cells := []fyne.CanvasObject{}
+		for _, alb := range filteredAlbums {
+			if alb.ProfileId == "" {
+				continue
+			}
+			_, err := page.Pictures.FindById(alb.ProfileId)
+			if err != nil {
+				continue
+			}
+
+			card := page.makeAlbumCard(alb)
+			cells = append(cells, card)
+		}
+
+		// Update UI on main thread
+		fyne.Do(func() {
+			page.grid.Objects = cells
+			page.grid.Refresh()
+		})
+	}()
 }
 
 func (page *CollectionPage) Layout() fyne.CanvasObject {
-	page.Refresh()
+	// Refresh asynchronously to avoid blocking UI
+	go page.Refresh()
 	return page.content
 }
 
 func (page *CollectionPage) makeAlbumCard(alb datastore.Album) fyne.CanvasObject {
 	// Create the album image
-	pic, _ := page.Pictures.FindById(alb.ProfileId)
+	pic, err := page.Pictures.FindById(alb.ProfileId)
+	if err != nil {
+		// Create a placeholder image if no picture is found
+		pic = datastore.Picture{Id: "", Name: "No Image"}
+	}
+
 	img := components.NewImage(page.DataStore, pic, nil, func(clickedPic datastore.Picture) {
 		log.Printf("Album %s clicked", alb.Name)
 		cnt := components.NewCollectionAlbumContainer(page.DataStore, alb)
 		cnt.OnUpdate = func() {
-			page.Refresh() // Refresh the grid after update
+			go page.Refresh() // Make refresh async to avoid blocking
 		}
 		page.sidebar.Content = cnt.Layout()
 		page.sidebar.Show()

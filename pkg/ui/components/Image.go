@@ -278,16 +278,27 @@ func (img *Image) loadImageAsync() {
 }
 
 func (img *Image) cropToAspect(imgBuf bytes.Buffer, targetW, targetH int) *bytes.Buffer {
-	// Decode image from buffer
-	srcImg, _, err := image.Decode(&imgBuf)
+	// Create a new buffer from the input to avoid read position issues
+	bufCopy := bytes.NewBuffer(imgBuf.Bytes())
+
+	// For performance, do a fast crop or skip if image is close to target aspect ratio
+	srcImg, _, err := image.Decode(bufCopy)
 	if err != nil {
+		log.Printf("Failed to decode image for cropping: %v", err)
 		return &imgBuf // fallback: return original if decode fails
 	}
+
 	srcBounds := srcImg.Bounds()
 	srcW := srcBounds.Dx()
 	srcH := srcBounds.Dy()
 	targetAspect := float64(targetW) / float64(targetH)
 	srcAspect := float64(srcW) / float64(srcH)
+
+	// If aspect ratios are close enough, skip cropping for performance
+	aspectDiff := targetAspect / srcAspect
+	if aspectDiff > 0.9 && aspectDiff < 1.1 {
+		return &imgBuf
+	}
 
 	var cropW, cropH int
 	if srcAspect > targetAspect {
@@ -299,6 +310,7 @@ func (img *Image) cropToAspect(imgBuf bytes.Buffer, targetW, targetH int) *bytes
 		cropW = srcW
 		cropH = int(float64(cropW) / targetAspect)
 	}
+
 	x0 := srcBounds.Min.X + (srcW-cropW)/2
 	y0 := srcBounds.Min.Y + (srcH-cropH)/2
 	cropRect := image.Rect(x0, y0, x0+cropW, y0+cropH)
@@ -307,9 +319,15 @@ func (img *Image) cropToAspect(imgBuf bytes.Buffer, targetW, targetH int) *bytes
 	cropped := image.NewRGBA(image.Rect(0, 0, cropW, cropH))
 	draw.Draw(cropped, cropped.Bounds(), srcImg, cropRect.Min, draw.Src)
 
-	// Encode cropped image back to buffer
+	// Encode cropped image back to buffer as JPEG
 	var outBuf bytes.Buffer
-	jpeg.Encode(&outBuf, cropped, nil)
+	err = jpeg.Encode(&outBuf, cropped, &jpeg.Options{Quality: 90})
+
+	if err != nil {
+		log.Printf("Failed to encode cropped image: %v", err)
+		return &imgBuf // fallback to original
+	}
+
 	return &outBuf
 }
 
@@ -331,8 +349,20 @@ func (img *Image) loadImage(pic datastore.Picture) (*canvas.Image, error) {
 
 		// Do cropping in background thread
 		croppedBuf := img.cropToAspect(buf, img.aspectWidth, img.aspectHeight)
-		canvasImg := canvas.NewImageFromReader(croppedBuf, "")
-		canvasImg.FillMode = canvas.ImageFill(canvas.ImageScaleFastest)
+
+		// Validate that we have image data before creating canvas image
+		if croppedBuf.Len() == 0 {
+			log.Printf("Cropped buffer is empty for image %s", pic.Id)
+			return nil, fmt.Errorf("cropped image data is empty")
+		}
+
+		canvasImg := canvas.NewImageFromReader(croppedBuf, pic.Id+".jpg")
+		if canvasImg == nil {
+			log.Printf("Failed to create canvas image from reader for %s", pic.Id)
+			return nil, fmt.Errorf("failed to create canvas image")
+		}
+
+		canvasImg.FillMode = canvas.ImageFillContain // Use contain for better performance
 		canvasImg.SetMinSize(fyne.NewSize(0, 0))
 		return canvasImg, nil
 	}
@@ -356,8 +386,20 @@ func (img *Image) loadImage(pic datastore.Picture) (*canvas.Image, error) {
 
 	// Do cropping in background thread
 	croppedBuf := img.cropToAspect(buf, img.aspectWidth, img.aspectHeight)
-	canvasImg := canvas.NewImageFromReader(croppedBuf, "")
-	canvasImg.FillMode = canvas.ImageFillStretch
+
+	// Validate that we have image data before creating canvas image
+	if croppedBuf.Len() == 0 {
+		log.Printf("Cropped buffer is empty for image %s", pic.Id)
+		return nil, fmt.Errorf("cropped image data is empty")
+	}
+
+	canvasImg := canvas.NewImageFromReader(croppedBuf, pic.Id+".jpg")
+	if canvasImg == nil {
+		log.Printf("Failed to create canvas image from reader for %s", pic.Id)
+		return nil, fmt.Errorf("failed to create canvas image")
+	}
+
+	canvasImg.FillMode = canvas.ImageFillContain // Use contain for better performance
 	canvasImg.SetMinSize(fyne.NewSize(0, 0))
 	log.Println("Successfully loaded and cached image:", pic.Id)
 	return canvasImg, nil

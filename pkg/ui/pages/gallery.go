@@ -38,15 +38,6 @@ func (g *GalleryPage) OnImageSelected(img datastore.Picture) {
 	cnt := components.NewImageEditContainer(g.db, img)
 	g.sidebar.Content = cnt.Layout()
 	g.sidebar.Show()
-	g.content.Refresh()
-}
-
-func (g *GalleryPage) FilterByAlbum(alb string) {
-	if pics, err := g.db.Pictures.FindByField("album_name", alb); err == nil {
-		g.gallery.SetImages(pics)
-	} else {
-		log.Println("Error filtering by album:", err)
-	}
 }
 
 func (g *GalleryPage) createSideBar() *components.Sidebar {
@@ -66,15 +57,22 @@ func (g *GalleryPage) refreshLayout() {
 }
 
 func (g *GalleryPage) Refresh() {
-	pics, err := g.db.Pictures.GetAll()
-	if err != nil {
-		panic(err)
-	}
-	g.gallery.SetImages(pics)
+	go func() {
+		pics, err := g.db.Pictures.GetAll()
+		if err != nil {
+			log.Printf("Error loading pictures: %v", err)
+			return
+		}
+
+		// Update UI on main thread
+		fyne.Do(func() {
+			g.gallery.SetImages(pics)
+		})
+	}()
 }
 
 func (g *GalleryPage) Layout() fyne.CanvasObject {
-	g.Refresh()
+	go g.Refresh() // Make refresh async
 	g.content = container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout())
 	return g.content
 }

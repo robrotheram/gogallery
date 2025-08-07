@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 
 	"fyne.io/fyne/v2"
@@ -36,6 +37,7 @@ type ImageGrid struct {
 	imageCache     map[string]*Image // Cache of loaded Image widgets by picture ID
 	cacheMutex     sync.RWMutex      // Mutex to protect the cache
 	preloadWorkers int               // Number of background workers for preloading
+	refreshMutex   sync.Mutex        // Mutex to prevent concurrent refreshes
 }
 
 func NewImageGrid(db *datastore.DataStore) *ImageGrid {
@@ -77,7 +79,8 @@ func (g *ImageGrid) SetImages(images []datastore.Picture) {
 		// g.placeholder() // Show placeholder if no images
 		g.totalPages = 0
 		g.currentPage = 0
-		g.Refresh()
+		// Make refresh async to avoid blocking
+		go g.Refresh()
 		return
 	}
 	g.totalPages = (len(images) + g.itemsPerPage - 1) / g.itemsPerPage
@@ -87,7 +90,8 @@ func (g *ImageGrid) SetImages(images []datastore.Picture) {
 	// Clear the image cache when new images are set
 	g.clearImageCache()
 
-	g.Refresh()
+	// Make refresh async to avoid blocking
+	go g.Refresh()
 }
 
 func (g *ImageGrid) pagination() {
@@ -95,15 +99,21 @@ func (g *ImageGrid) pagination() {
 	g.pageLabel = canvas.NewText(fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages), color.White)
 	g.pageLabel.Alignment = fyne.TextAlignCenter
 	prevBtn := widget.NewButtonWithIcon("Previous", theme.NavigateBackIcon(), func() {
-		if g.currentPage > 0 {
-			g.currentPage--
-			g.Refresh()
+		if g.refreshMutex.TryLock() {
+			defer g.refreshMutex.Unlock()
+			if g.currentPage > 0 {
+				g.currentPage--
+				go g.Refresh() // Make refresh async to avoid blocking UI
+			}
 		}
 	})
 	nextBtn := widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), func() {
-		if g.currentPage < g.totalPages-1 {
-			g.currentPage++
-			g.Refresh()
+		if g.refreshMutex.TryLock() {
+			defer g.refreshMutex.Unlock()
+			if g.currentPage < g.totalPages-1 {
+				g.currentPage++
+				go g.Refresh() // Make refresh async to avoid blocking UI
+			}
 		}
 	})
 	nextBtn.IconPlacement = widget.ButtonIconTrailingText
@@ -162,7 +172,10 @@ func (g *ImageGrid) LoadImages() {
 		} else {
 			// Create new image and cache it
 			newImg := NewImage(g.DataStore, pic, func() {
-				g.grid.Refresh()
+				// Use fyne.Do to ensure grid refresh happens on UI thread
+				fyne.Do(func() {
+					g.grid.Refresh()
+				})
 			}, func(clickedPic datastore.Picture) {
 				if g.OnImageSelected != nil {
 					g.OnImageSelected(clickedPic)
@@ -172,8 +185,13 @@ func (g *ImageGrid) LoadImages() {
 			cells[i] = newImg
 		}
 	}
-	g.grid.Objects = cells
-	g.grid.Refresh()
+
+	// Update UI on main thread
+	fyne.Do(func() {
+		g.grid.Objects = cells
+		g.grid.Refresh()
+	})
+
 	log.Println("Started loading images for page", g.currentPage+1)
 
 	// Start preloading adjacent pages in background
@@ -202,6 +220,7 @@ func (g *ImageGrid) galleryHeader() fyne.CanvasObject {
 	for i, album := range albms {
 		albumOptions[i+1] = album.Name
 	}
+	sort.Strings(albumOptions[1:]) // Sort album options alphabetically, excluding "All Photos"
 
 	albumSelect := widget.NewSelect(albumOptions, func(selected string) {
 		log.Printf("Selected album: %s", selected)
