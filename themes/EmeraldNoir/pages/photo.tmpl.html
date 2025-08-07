@@ -3,8 +3,8 @@
      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div class="lg:col-span-3">
                <div id="photo-image"
-                    style="background: url('/img/{{.Picture.Id}}/xsmall.webp') center center / cover no-repeat; aspect-ratio: {{.Picture.AspectRatio}};  "
-                    class="   relative rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black group border border-gray-800">
+                    style="background: url('/img/{{.Picture.Id}}/xsmall.webp') center center / cover no-repeat; aspect-ratio: {{.Picture.AspectRatio}};"
+                    class="relative rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black group border border-gray-800">
                     <img src="/img/{{.Picture.Id}}/xlarge.webp" class="object-contain w-full h-full" />
 
 
@@ -103,7 +103,7 @@
                          </div>
 
                          <div class="grid grid-cols-2 gap-4">
-                              {{if .Picture.FStop}}
+                              {{if and .Picture.FStop (ne .Picture.FStop "0.0") (ne .Picture.FStop "")}}
                               <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                                    <div class="text-xl font-bold text-emerald-100 mb-1">f/{{.Picture.FStop}}</div>
                                    <div class="text-sm text-emerald-300 uppercase tracking-wide">Aperture</div>

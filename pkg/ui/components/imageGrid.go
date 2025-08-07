@@ -1,18 +1,15 @@
 package components
 
 import (
-	"bytes"
 	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
-	"gogallery/pkg/pipeline"
 	"image"
 	"image/color"
-	"image/draw"
-	"image/jpeg"
-	"io"
 	"log"
 	"net/http"
+	"sort"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -24,17 +21,23 @@ import (
 
 type ImageGrid struct {
 	*datastore.DataStore
-	currentPage     int
-	images          []datastore.Picture
-	itemsPerPage    int
-	totalPages      int
-	paginationBar   *fyne.Container
-	grid            *fyne.Container
-	pageLabel       *canvas.Text
-	gridItems       []fyne.CanvasObject
+	currentPage   int
+	images        []datastore.Picture
+	itemsPerPage  int
+	totalPages    int
+	paginationBar *fyne.Container
+	grid          *fyne.Container
+	pageLabel     *canvas.Text
+	// gridItems       []fyne.CanvasObject
 	title           *canvas.Text
 	selectedAlbum   string                      // Track currently selected album
 	OnImageSelected func(pic datastore.Picture) // Callback for image click
+
+	// Image caching for better navigation performance
+	imageCache     map[string]*Image // Cache of loaded Image widgets by picture ID
+	cacheMutex     sync.RWMutex      // Mutex to protect the cache
+	preloadWorkers int               // Number of background workers for preloading
+	refreshMutex   sync.Mutex        // Mutex to prevent concurrent refreshes
 }
 
 func NewImageGrid(db *datastore.DataStore) *ImageGrid {
@@ -44,11 +47,13 @@ func NewImageGrid(db *datastore.DataStore) *ImageGrid {
 	}
 
 	ig := &ImageGrid{
-		DataStore:    db,
-		currentPage:  0,
-		itemsPerPage: itemsPerPage,
-		totalPages:   0,
-		title:        NewTextEntry("All Images", 20),
+		DataStore:      db,
+		currentPage:    0,
+		itemsPerPage:   itemsPerPage,
+		totalPages:     0,
+		title:          NewTextEntry("All Images", 20),
+		imageCache:     make(map[string]*Image),
+		preloadWorkers: 2, // Number of concurrent preloading workers
 	}
 	ig.pagination()
 	ig.imageGrid()
@@ -71,17 +76,22 @@ func (g *ImageGrid) filterByAlbum(alb string) {
 func (g *ImageGrid) SetImages(images []datastore.Picture) {
 	if len(images) == 0 {
 		log.Println("No images to display")
-		g.placeholder() // Show placeholder if no images
+		// g.placeholder() // Show placeholder if no images
 		g.totalPages = 0
 		g.currentPage = 0
-		g.Refresh()
+		// Make refresh async to avoid blocking
+		go g.Refresh()
 		return
 	}
 	g.totalPages = (len(images) + g.itemsPerPage - 1) / g.itemsPerPage
 	g.images = images
 	g.currentPage = 0 // Reset to first page when setting new images
-	//
-	g.Refresh()
+
+	// Clear the image cache when new images are set
+	g.clearImageCache()
+
+	// Make refresh async to avoid blocking
+	go g.Refresh()
 }
 
 func (g *ImageGrid) pagination() {
@@ -89,15 +99,21 @@ func (g *ImageGrid) pagination() {
 	g.pageLabel = canvas.NewText(fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages), color.White)
 	g.pageLabel.Alignment = fyne.TextAlignCenter
 	prevBtn := widget.NewButtonWithIcon("Previous", theme.NavigateBackIcon(), func() {
-		if g.currentPage > 0 {
-			g.currentPage--
-			g.Refresh()
+		if g.refreshMutex.TryLock() {
+			defer g.refreshMutex.Unlock()
+			if g.currentPage > 0 {
+				g.currentPage--
+				go g.Refresh() // Make refresh async to avoid blocking UI
+			}
 		}
 	})
 	nextBtn := widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), func() {
-		if g.currentPage < g.totalPages-1 {
-			g.currentPage++
-			g.Refresh()
+		if g.refreshMutex.TryLock() {
+			defer g.refreshMutex.Unlock()
+			if g.currentPage < g.totalPages-1 {
+				g.currentPage++
+				go g.Refresh() // Make refresh async to avoid blocking UI
+			}
 		}
 	})
 	nextBtn.IconPlacement = widget.ButtonIconTrailingText
@@ -115,40 +131,10 @@ func (g *ImageGrid) pagination() {
 func (g *ImageGrid) imageGrid() {
 	// Only create the grid container if it doesn't exist
 	if g.grid == nil {
-		g.grid = container.New(&ResponsiveGridLayout{
-			minCellWidth: 400,
-			aspectRatio:  1.5,
-			gap:          20,
-		}, g.gridItems...)
+		g.grid = container.New(NewResponsiveGridLayout(400, 1.5, 20))
 	} else {
 		// Just update the layout, don't reset gridItems
-		g.grid.Layout = &ResponsiveGridLayout{
-			minCellWidth: 400,
-			aspectRatio:  1.5,
-			gap:          20,
-		}
-		g.grid.Refresh()
-	}
-}
-
-func (g *ImageGrid) placeholder() {
-	start := g.currentPage * g.itemsPerPage
-	end := min(start+g.itemsPerPage, len(g.images))
-	items := make([]fyne.CanvasObject, end-start)
-	for i := range items {
-		// Use a lightweight placeholder (no URL text, just a rectangle)
-		cellBg := canvas.NewRectangle(color.RGBA{R: 241, G: 241, B: 241, A: 255})
-		cellBg.StrokeColor = color.Black
-		cellBg.StrokeWidth = 1
-		// Optionally, add a spinner or "Loading..." label for better UX
-		label := canvas.NewText("Loading...", color.Gray{Y: 128})
-		label.Alignment = fyne.TextAlignCenter
-		cell := container.NewStack(cellBg, label)
-		items[i] = cell
-	}
-	g.gridItems = items
-	if g.grid != nil {
-		g.grid.Objects = g.gridItems
+		g.grid.Layout = NewResponsiveGridLayout(400, 1.5, 20)
 		g.grid.Refresh()
 	}
 }
@@ -170,109 +156,59 @@ func ImageFromURL(url string) (*canvas.Image, error) {
 	return img, nil
 }
 
-func cropToAspect(imgBuf bytes.Buffer, targetW, targetH int) *bytes.Buffer {
-	// Decode image from buffer
-	srcImg, _, err := image.Decode(&imgBuf)
-	if err != nil {
-		return &imgBuf // fallback: return original if decode fails
-	}
-	srcBounds := srcImg.Bounds()
-	srcW := srcBounds.Dx()
-	srcH := srcBounds.Dy()
-	targetAspect := float64(targetW) / float64(targetH)
-	srcAspect := float64(srcW) / float64(srcH)
-
-	var cropW, cropH int
-	if srcAspect > targetAspect {
-		// Source is wider than target: crop width
-		cropH = srcH
-		cropW = int(float64(cropH) * targetAspect)
-	} else {
-		// Source is taller than target: crop height
-		cropW = srcW
-		cropH = int(float64(cropW) / targetAspect)
-	}
-	x0 := srcBounds.Min.X + (srcW-cropW)/2
-	y0 := srcBounds.Min.Y + (srcH-cropH)/2
-	cropRect := image.Rect(x0, y0, x0+cropW, y0+cropH)
-
-	// Crop and copy to a new RGBA image
-	cropped := image.NewRGBA(image.Rect(0, 0, cropW, cropH))
-	draw.Draw(cropped, cropped.Bounds(), srcImg, cropRect.Min, draw.Src)
-
-	// Encode cropped image back to buffer
-	var outBuf bytes.Buffer
-	jpeg.Encode(&outBuf, cropped, nil)
-	return &outBuf
-}
-
-func (g *ImageGrid) Thumbnail(pic datastore.Picture) (*canvas.Image, error) {
-	size := "small" // Default size
-
-	if file, err := g.ImageCache.Get(pic.Id, config.JPEG, size); err == nil {
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, file); err != nil {
-			return nil, fmt.Errorf("failed to read cached image %s: %w", pic.Id, err)
-		}
-		img := canvas.NewImageFromReader(cropToAspect(buf, 6, 4), "")
-		img.FillMode = canvas.ImageFillOriginal // Use Stretch to fill cell, will crop via layout
-		img.SetMinSize(fyne.NewSize(0, 0))      // Let layout control size
-		return img, nil
-	}
-	src, err := pic.Load()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load image %s: %w", pic.Id, err)
-	}
-
-	cache, err := g.ImageCache.Writer(pic.Id, config.JPEG, size)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get cache writer: %w", err)
-	}
-
-	var buf bytes.Buffer
-	multi := io.MultiWriter(cache, &buf)
-	pipeline.ProcessImage(src, 400, config.JPEG, multi)
-
-	img := canvas.NewImageFromReader(cropToAspect(buf, 6, 4), "")
-	img.FillMode = canvas.ImageFillStretch // Use Stretch to fill cell, will crop via layout
-	img.SetMinSize(fyne.NewSize(0, 0))     // Let layout control size
-	return img, nil
-}
-
-// Load replace the placeholder with actual images
-// This function can be used to load images asynchronously or on demand.
 func (g *ImageGrid) LoadImages() {
-	g.placeholder()
-
 	start := g.currentPage * g.itemsPerPage
 	end := min((g.currentPage+1)*g.itemsPerPage, len(g.images))
-	for i := start; i < end; i++ {
-		idx := i - start
-		pic := g.images[i]
-		go func(i, idx int, pic datastore.Picture) {
-			img, err := g.Thumbnail(pic)
-			if err != nil {
-				log.Println("Error loading image:", err)
-				return
-			}
-			// Make the image fill the cell and be fully clickable, with a border on hover
-			img.FillMode = canvas.ImageFillContain
-			img.SetMinSize(fyne.NewSize(180, 180)) // Adjust as needed for your grid cell size
-			cell := NewImageCell(img, func() {
+
+	// Create cells for current page, using cache when available
+	cells := make([]fyne.CanvasObject, end-start)
+	for i := range cells {
+		idx := start + i // Correct index from the current page
+		pic := g.images[idx]
+
+		// Try to get from cache first
+		if cachedImg := g.getCachedImage(pic.Id); cachedImg != nil {
+			cells[i] = cachedImg
+		} else {
+			// Create new image and cache it
+			newImg := NewImage(g.DataStore, pic, func() {
+				// Use fyne.Do to ensure grid refresh happens on UI thread
+				fyne.Do(func() {
+					g.grid.Refresh()
+				})
+			}, func(clickedPic datastore.Picture) {
 				if g.OnImageSelected != nil {
-					g.OnImageSelected(pic)
+					g.OnImageSelected(clickedPic)
 				}
 			})
-			if idx < len(g.grid.Objects) {
-				g.grid.Objects[idx] = cell
-			}
-			fyne.Do(func() {
-				g.grid.Refresh()
-			})
-		}(i, idx, pic)
+			g.cacheImage(pic.Id, newImg)
+			cells[i] = newImg
+		}
 	}
+
+	// Update UI on main thread
+	fyne.Do(func() {
+		g.grid.Objects = cells
+		g.grid.Refresh()
+	})
+
 	log.Println("Started loading images for page", g.currentPage+1)
+
+	// Start preloading adjacent pages in background
+	go g.preloadAdjacentPages()
 }
+
+type TappableContainer struct {
+	*fyne.Container
+	onTap func()
+}
+
+func (t *TappableContainer) Tapped(_ *fyne.PointEvent) {
+	if t.onTap != nil {
+		t.onTap()
+	}
+}
+
 func (g *ImageGrid) galleryHeader() fyne.CanvasObject {
 	leftPad := canvas.NewRectangle(nil)
 	leftPad.SetMinSize(fyne.NewSize(12, 0))
@@ -284,6 +220,7 @@ func (g *ImageGrid) galleryHeader() fyne.CanvasObject {
 	for i, album := range albms {
 		albumOptions[i+1] = album.Name
 	}
+	sort.Strings(albumOptions[1:]) // Sort album options alphabetically, excluding "All Photos"
 
 	albumSelect := widget.NewSelect(albumOptions, func(selected string) {
 		log.Printf("Selected album: %s", selected)
@@ -316,4 +253,80 @@ func (g *ImageGrid) Refresh() {
 	g.pageLabel.Text = fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages)
 	g.pageLabel.Refresh()
 	g.LoadImages()
+}
+
+// clearImageCache clears all cached images
+func (g *ImageGrid) clearImageCache() {
+	g.cacheMutex.Lock()
+	defer g.cacheMutex.Unlock()
+	g.imageCache = make(map[string]*Image)
+	log.Println("Image cache cleared")
+}
+
+// getCachedImage retrieves an image from cache
+func (g *ImageGrid) getCachedImage(picId string) *Image {
+	g.cacheMutex.RLock()
+	defer g.cacheMutex.RUnlock()
+	return g.imageCache[picId]
+}
+
+// cacheImage stores an image in cache
+func (g *ImageGrid) cacheImage(picId string, img *Image) {
+	g.cacheMutex.Lock()
+	defer g.cacheMutex.Unlock()
+	g.imageCache[picId] = img
+}
+
+// preloadAdjacentPages preloads images from previous and next pages
+func (g *ImageGrid) preloadAdjacentPages() {
+	if len(g.images) == 0 {
+		return
+	}
+
+	// Preload previous page if it exists
+	if g.currentPage > 0 {
+		go g.preloadPage(g.currentPage - 1)
+	}
+
+	// Preload next page if it exists
+	if g.currentPage < g.totalPages-1 {
+		go g.preloadPage(g.currentPage + 1)
+	}
+}
+
+// preloadPage preloads images for a specific page
+func (g *ImageGrid) preloadPage(pageNum int) {
+	if pageNum < 0 || pageNum >= g.totalPages {
+		return
+	}
+
+	start := pageNum * g.itemsPerPage
+	end := min((pageNum+1)*g.itemsPerPage, len(g.images))
+
+	// Use a semaphore to limit concurrent preloading
+	semaphore := make(chan struct{}, g.preloadWorkers)
+
+	for i := start; i < end; i++ {
+		pic := g.images[i]
+
+		// Skip if already cached
+		if g.getCachedImage(pic.Id) != nil {
+			continue
+		}
+
+		semaphore <- struct{}{} // Acquire
+		go func(picture datastore.Picture) {
+			defer func() { <-semaphore }() // Release
+
+			// Create and cache the image
+			img := NewImage(g.DataStore, picture, func() {
+				// No need to refresh grid for preloaded images
+			}, func(clickedPic datastore.Picture) {
+				if g.OnImageSelected != nil {
+					g.OnImageSelected(clickedPic)
+				}
+			})
+			g.cacheImage(picture.Id, img)
+		}(pic)
+	}
 }

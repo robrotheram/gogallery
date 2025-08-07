@@ -14,13 +14,11 @@ type Page interface {
 }
 
 type GalleryPage struct {
-	Title         string
-	db            *datastore.DataStore
-	sidebar       *components.Sidebar
-	gallery       *components.ImageGrid
-	content       *fyne.Container
-	galleryWidget fyne.CanvasObject
-	sidebarWidget fyne.CanvasObject
+	Title   string
+	db      *datastore.DataStore
+	sidebar *components.Sidebar
+	gallery *components.ImageGrid
+	content *fyne.Container
 }
 
 func NewGalleryPage(db *datastore.DataStore) *GalleryPage {
@@ -28,7 +26,7 @@ func NewGalleryPage(db *datastore.DataStore) *GalleryPage {
 		Title: "Gallery",
 		db:    db,
 	}
-	page.sidebar = components.NewSidebar(db, page.CloseSidebar)
+	page.sidebar = page.createSideBar()
 	// Pass the image selection callback to ImageGrid
 	page.gallery = components.NewImageGrid(db)
 	page.gallery.OnImageSelected = page.OnImageSelected
@@ -37,45 +35,44 @@ func NewGalleryPage(db *datastore.DataStore) *GalleryPage {
 
 // OnImageSelected is called when an image is clicked in the gallery
 func (g *GalleryPage) OnImageSelected(img datastore.Picture) {
-	g.sidebar.ShowImage(img)
+	cnt := components.NewImageEditContainer(g.db, img)
+	g.sidebar.Content = cnt.Layout()
+	g.sidebar.Show()
+}
+
+func (g *GalleryPage) createSideBar() *components.Sidebar {
+	sidebar := components.NewSidebar("Image Details")
+	sidebar.OnToggle = g.refreshLayout
+
+	return sidebar
+}
+
+func (g *GalleryPage) refreshLayout() {
 	if g.content != nil {
-		sidebarBox := container.NewStack(g.sidebarWidget)
-		g.content.Objects = []fyne.CanvasObject{
-			container.NewBorder(nil, nil, nil, sidebarBox, g.galleryWidget),
-		}
+		// Recreate the layout with the current sidebar state
+		g.content.Objects = nil
+		g.content.Add(container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout()))
 		g.content.Refresh()
 	}
 }
 
-func (g *GalleryPage) FilterByAlbum(alb string) {
-	if pics, err := g.db.Pictures.FindByField("album_name", alb); err == nil {
-		g.gallery.SetImages(pics)
-	} else {
-		log.Println("Error filtering by album:", err)
-	}
-}
-
-func (g *GalleryPage) CloseSidebar() {
-	g.sidebar.Hide()
-	if g.content != nil {
-		g.content.Objects = []fyne.CanvasObject{
-			container.NewBorder(nil, nil, nil, nil, g.galleryWidget),
-		}
-		g.content.Refresh()
-	}
-}
 func (g *GalleryPage) Refresh() {
-	pics, err := g.db.Pictures.GetAll()
-	if err != nil {
-		panic(err)
-	}
-	g.gallery.SetImages(pics)
+	go func() {
+		pics, err := g.db.Pictures.GetAll()
+		if err != nil {
+			log.Printf("Error loading pictures: %v", err)
+			return
+		}
+
+		// Update UI on main thread
+		fyne.Do(func() {
+			g.gallery.SetImages(pics)
+		})
+	}()
 }
 
 func (g *GalleryPage) Layout() fyne.CanvasObject {
-	g.Refresh()
-	g.galleryWidget = g.gallery.Layout()
-	g.sidebarWidget = g.sidebar.Layout()
-	g.content = container.NewBorder(nil, nil, nil, nil, g.galleryWidget)
+	go g.Refresh() // Make refresh async
+	g.content = container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout())
 	return g.content
 }

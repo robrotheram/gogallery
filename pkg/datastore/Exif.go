@@ -120,7 +120,9 @@ func (u *Picture) CreateExif() error {
 		u.FocalLength = tags["FocalLength"]
 	}
 
-	u.Name = tags["DocumentName"]
+	if tags["DocumentName"] != "" {
+		u.Name = tags["DocumentName"]
+	}
 	u.Caption = tags["ImageDescription"]
 
 	u.ISO = tags["ISOSpeedRatings"]

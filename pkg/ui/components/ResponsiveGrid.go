@@ -10,6 +10,15 @@ type ResponsiveGridLayout struct {
 	lastWidth    float32 // <-- add this
 }
 
+func NewResponsiveGridLayout(minCellWidth int, aspectRatio float64, gap int) *ResponsiveGridLayout {
+	return &ResponsiveGridLayout{
+		minCellWidth: minCellWidth,
+		aspectRatio:  aspectRatio,
+		gap:          gap,
+		lastWidth:    0, // Initialize lastWidth
+	}
+}
+
 func (l *ResponsiveGridLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	l.lastWidth = size.Width
 	w := float64(size.Width)

@@ -15,8 +15,9 @@ const basePrompt = `
 	You are a helpful assistant. 
 	You will be given an image and I need a title and a caption for it.
 	Please provide a short title and a detailed caption for the image. 
-	The Captions should be descriptive and engaging, providing context and details about the image.
-	Make sure to include any relevant information that would help someone understand the image better.
+	The caption should include any relevant information that would help someone understand the image better.
+	But also and some creative flair to make it engaging for social media posts. 
+	Specifically, the caption should be suitable for Instagram. But not include hashtags.
 `
 
 type AIClient interface {

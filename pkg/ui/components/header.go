@@ -33,6 +33,9 @@ func NewHeader(title string, db *datastore.DataStore, server *preview.Server, on
 }
 
 func (h *Header) nav() *fyne.Container {
+	collection := widget.NewButtonWithIcon("Collections", theme.FolderIcon(), func() {
+		h.onNavChange("Collections")
+	})
 	preview := widget.NewButtonWithIcon("Preview", theme.VisibilityIcon(), func() {
 		h.Preview()
 	})
@@ -42,7 +45,7 @@ func (h *Header) nav() *fyne.Container {
 	settings := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {
 		h.onNavChange("Settings")
 	})
-	navButtons := []fyne.CanvasObject{preview, tasks, settings}
+	navButtons := []fyne.CanvasObject{collection, preview, tasks, settings}
 	return container.NewHBox(container.NewHBox(navButtons...))
 }
 

@@ -159,3 +159,28 @@ func RemoveAlbumFromSlice(albums []Album, target Album) []Album {
 	}
 	return albums
 }
+
+func (c *AlbumCollection) RemoveInvalidAlbums() error {
+	c.Lock()
+	defer c.Unlock()
+
+	// Get all albums
+	albums, err := c.GetAll()
+	if err != nil {
+		fmt.Println("Error fetching albums:", err)
+		return err
+	}
+
+	for _, album := range albums {
+		// Check if the album directory exists
+		if _, err := os.Stat(album.Path); os.IsNotExist(err) {
+			// If it doesn't exist, delete the album from the database
+			if err := c.DB.Delete(&Album{}, "id = ?", album.Id).Error; err != nil {
+				fmt.Println("Error deleting album:", err)
+			} else {
+				fmt.Printf("Deleted album: %s\n", album.Path)
+			}
+		}
+	}
+	return nil
+}
