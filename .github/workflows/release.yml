@@ -75,6 +75,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
+          if [ "${{ matrix.build.goos }}" = "darwin" ]; then
+            app="$(find . -maxdepth 1 -type d -name '${{ matrix.build.name }}*.app' -print -quit)"
+            if [ -z "$app" ]; then
+              echo "No macOS application bundle was produced" >&2
+              exit 1
+            fi
+            tar -czf "dist/${{ matrix.build.name }}-${{ matrix.build.goos }}-${{ matrix.build.goarch }}.tar.gz" "$app"
+            exit 0
+          fi
           artifact="$(find . -maxdepth 1 -type f -name '${{ matrix.build.name }}*' -print -quit)"
           if [ -z "$artifact" ]; then
             echo "No packaged application was produced" >&2
