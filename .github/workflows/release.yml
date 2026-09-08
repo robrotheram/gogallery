@@ -71,13 +71,25 @@ jobs:
         run: |
           make fyne-build
 
+      - name: Name release asset
+        shell: bash
+        run: |
+          mkdir -p dist
+          artifact="$(find . -maxdepth 1 -type f -name '${{ matrix.build.name }}*' -print -quit)"
+          if [ -z "$artifact" ]; then
+            echo "No packaged application was produced" >&2
+            exit 1
+          fi
+          filename="$(basename "$artifact")"
+          suffix="${filename#${{ matrix.build.name }}}"
+          mv "$artifact" "dist/${{ matrix.build.name }}-${{ matrix.build.goos }}-${{ matrix.build.goarch }}${suffix}"
+
       # Removed 'Upload artifacts' step; artifacts are now attached directly to the GitHub release
 
       - name: Create GitHub Release and upload assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.build.name }}*
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
