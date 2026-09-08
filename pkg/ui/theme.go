@@ -13,6 +13,44 @@ type ComfortableTheme struct {
 	variant string // "light" or "dark"
 }
 
+var darkPalette = map[fyne.ThemeColorName]color.Color{
+	theme.ColorNameButton:              color.NRGBA{R: 35, G: 41, B: 45, A: 255},
+	theme.ColorNameDisabledButton:      color.NRGBA{R: 28, G: 33, B: 36, A: 255},
+	theme.ColorNamePrimary:             color.NRGBA{R: 45, G: 178, B: 111, A: 255},
+	theme.ColorNameForegroundOnPrimary: color.White,
+	theme.ColorNameSelection:           color.NRGBA{R: 45, G: 178, B: 111, A: 110},
+	theme.ColorNameFocus:               color.NRGBA{R: 79, G: 209, B: 143, A: 180},
+	theme.ColorNameBackground:          color.NRGBA{R: 17, G: 20, B: 22, A: 255},
+	theme.ColorNameForeground:          color.White,
+	theme.ColorNameInputBackground:     color.NRGBA{R: 27, G: 32, B: 35, A: 255},
+	theme.ColorNameInputBorder:         color.NRGBA{R: 69, G: 79, B: 84, A: 255},
+	theme.ColorNameScrollBar:           color.NRGBA{R: 103, G: 116, B: 122, A: 210},
+	theme.ColorNameShadow:              color.NRGBA{R: 0, G: 0, B: 0, A: 100},
+	theme.ColorNameSeparator:           color.NRGBA{R: 62, G: 70, B: 74, A: 180},
+	theme.ColorNameMenuBackground:      color.NRGBA{R: 21, G: 25, B: 27, A: 255},
+	theme.ColorNameOverlayBackground:   color.NRGBA{R: 9, G: 11, B: 12, A: 220},
+	theme.ColorNameHover:               color.NRGBA{R: 255, G: 255, B: 255, A: 18},
+}
+
+var lightPalette = map[fyne.ThemeColorName]color.Color{
+	theme.ColorNameButton:              color.NRGBA{R: 231, G: 237, B: 240, A: 255},
+	theme.ColorNameDisabledButton:      color.NRGBA{R: 240, G: 243, B: 244, A: 255},
+	theme.ColorNamePrimary:             color.NRGBA{R: 22, G: 142, B: 86, A: 255},
+	theme.ColorNameForegroundOnPrimary: color.White,
+	theme.ColorNameSelection:           color.NRGBA{R: 22, G: 142, B: 86, A: 70},
+	theme.ColorNameFocus:               color.NRGBA{R: 22, G: 142, B: 86, A: 140},
+	theme.ColorNameBackground:          color.NRGBA{R: 247, G: 249, B: 250, A: 255},
+	theme.ColorNameForeground:          color.NRGBA{R: 27, G: 35, B: 39, A: 255},
+	theme.ColorNameInputBackground:     color.White,
+	theme.ColorNameInputBorder:         color.NRGBA{R: 190, G: 200, B: 205, A: 255},
+	theme.ColorNameScrollBar:           color.NRGBA{R: 102, G: 115, B: 121, A: 180},
+	theme.ColorNameShadow:              color.NRGBA{R: 23, G: 32, B: 36, A: 45},
+	theme.ColorNameSeparator:           color.NRGBA{R: 205, G: 213, B: 217, A: 255},
+	theme.ColorNameMenuBackground:      color.NRGBA{R: 241, G: 245, B: 246, A: 255},
+	theme.ColorNameOverlayBackground:   color.NRGBA{R: 245, G: 248, B: 249, A: 235},
+	theme.ColorNameHover:               color.NRGBA{R: 18, G: 31, B: 37, A: 18},
+}
+
 // NewComfortableTheme creates a new ComfortableTheme with the specified variant
 func NewComfortableTheme(variant string) *ComfortableTheme {
 	return &ComfortableTheme{
@@ -21,46 +59,12 @@ func NewComfortableTheme(variant string) *ComfortableTheme {
 }
 
 func (c *ComfortableTheme) Color(name fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
-	// Refactored: use a map for color lookups to reduce complexity
-	isDark := c.variant == "dark"
-	if isDark {
-		colorMap := map[fyne.ThemeColorName]color.Color{
-			theme.ColorNameButton:            color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Rich Green (dark)
-			theme.ColorNamePrimary:           color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Less bright green for progress bar
-			theme.ColorNameSelection:         color.RGBA{R: 0, G: 168, B: 89, A: 180},    // Green selection for list highlight (dark)
-			theme.ColorNameBackground:        color.RGBA{R: 8, G: 12, B: 8, A: 255},      // Nearly black background (dark)
-			theme.ColorNameForeground:        color.RGBA{R: 255, G: 255, B: 255, A: 255}, // White text
-			theme.ColorNameInputBackground:   color.RGBA{R: 20, G: 28, B: 24, A: 255},    // Deep, neutral green-gray for input background
-			theme.ColorNameInputBorder:       color.RGBA{R: 0, G: 100, B: 50, A: 255},    // Darker green border
-			theme.ColorNameScrollBar:         color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Consistent green scroll bar
-			theme.ColorNameShadow:            color.RGBA{R: 0, G: 0, B: 0, A: 0},         // Transparent shadows
-			theme.ColorNameSeparator:         color.RGBA{R: 30, G: 30, B: 30, A: 200},    // Blackish separator
-			theme.ColorNameMenuBackground:    color.RGBA{R: 12, G: 24, B: 12, A: 255},    // Sidebar bg
-			theme.ColorNameOverlayBackground: color.RGBA{R: 0, G: 200, B: 83, A: 100},    // Card border
-			theme.ColorNameHover:             color.RGBA{R: 40, G: 40, B: 40, A: 10},     // Darker gray for button/input hover
-		}
-		if col, ok := colorMap[name]; ok {
-			return col
-		}
-	} else {
-		colorMapLight := map[fyne.ThemeColorName]color.Color{
-			theme.ColorNameButton:            color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Rich Green (light)
-			theme.ColorNamePrimary:           color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Less bright green for progress bar
-			theme.ColorNameSelection:         color.RGBA{R: 0, G: 168, B: 89, A: 180},    // Green selection for list highlight (light)
-			theme.ColorNameBackground:        color.RGBA{R: 250, G: 252, B: 245, A: 255}, // Offwhite background (light)
-			theme.ColorNameForeground:        color.RGBA{R: 30, G: 60, B: 30, A: 255},    // Deep green text
-			theme.ColorNameInputBackground:   color.RGBA{R: 240, G: 255, B: 240, A: 255}, // Slightly green-tinted offwhite
-			theme.ColorNameInputBorder:       color.RGBA{R: 0, G: 200, B: 83, A: 255},    // Consistent Rich Green border
-			theme.ColorNameScrollBar:         color.RGBA{R: 0, G: 168, B: 89, A: 255},    // Consistent green scroll bar
-			theme.ColorNameShadow:            color.RGBA{R: 0, G: 0, B: 0, A: 0},         // Transparent shadows
-			theme.ColorNameSeparator:         color.RGBA{R: 30, G: 30, B: 30, A: 200},    // Blackish separator
-			theme.ColorNameMenuBackground:    color.RGBA{R: 220, G: 255, B: 220, A: 255}, // Sidebar bg
-			theme.ColorNameOverlayBackground: color.RGBA{R: 0, G: 200, B: 83, A: 100},    // Card border
-			theme.ColorNameHover:             color.RGBA{R: 40, G: 40, B: 40, A: 100},    // Darker gray for button/input hover
-		}
-		if col, ok := colorMapLight[name]; ok {
-			return col
-		}
+	palette := lightPalette
+	if c.variant == "dark" {
+		palette = darkPalette
+	}
+	if col, ok := palette[name]; ok {
+		return col
 	}
 	return theme.DefaultTheme().Color(name, v)
 }
@@ -78,19 +82,21 @@ func (c *ComfortableTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 func (c *ComfortableTheme) Size(name fyne.ThemeSizeName) float32 {
 	switch name {
 	case theme.SizeNamePadding:
-		return 10 // Increased padding for a more comfortable layout
+		return 8
 	case theme.SizeNameInnerPadding:
-		return 12 // Increased inner padding for select and similar widgets
+		return 8
 	case theme.SizeNameInputRadius:
-		return 14
+		return 8
+	case theme.SizeNameSelectionRadius:
+		return 8
 	case theme.SizeNameSeparatorThickness:
-		return 1 // Thicker separators for sidebar borders
+		return 1
 	case theme.SizeNameText:
-		return 16 // Slightly larger text for better readability
+		return 15
 	case theme.SizeNameScrollBar:
-		return 4 // Thicker scroll bar for easier interaction
+		return 8
 	case theme.SizeNameScrollBarSmall:
-		return 2 // Smaller scroll bar
+		return 4
 	default:
 		return theme.DefaultTheme().Size(name)
 	}

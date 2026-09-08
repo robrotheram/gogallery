@@ -19,6 +19,11 @@ type CollectionPage struct {
 	content *fyne.Container
 }
 
+type albumCardData struct {
+	album   datastore.Album
+	picture datastore.Picture
+}
+
 func NewCollectionPage(db *datastore.DataStore) *CollectionPage {
 	page := &CollectionPage{
 		DataStore: db,
@@ -60,22 +65,24 @@ func (page *CollectionPage) Refresh() {
 			}
 		}
 
-		cells := []fyne.CanvasObject{}
+		cardData := make([]albumCardData, 0, len(filteredAlbums))
 		for _, alb := range filteredAlbums {
 			if alb.ProfileId == "" {
 				continue
 			}
-			_, err := page.Pictures.FindById(alb.ProfileId)
+			picture, err := page.Pictures.FindByID(alb.ProfileId)
 			if err != nil {
 				continue
 			}
-
-			card := page.makeAlbumCard(alb)
-			cells = append(cells, card)
+			cardData = append(cardData, albumCardData{album: alb, picture: picture})
 		}
 
 		// Update UI on main thread
 		fyne.Do(func() {
+			cells := make([]fyne.CanvasObject, 0, len(cardData))
+			for _, data := range cardData {
+				cells = append(cells, page.makeAlbumCard(data.album, data.picture))
+			}
 			page.grid.Objects = cells
 			page.grid.Refresh()
 		})
@@ -84,23 +91,16 @@ func (page *CollectionPage) Refresh() {
 
 func (page *CollectionPage) Layout() fyne.CanvasObject {
 	// Refresh asynchronously to avoid blocking UI
-	go page.Refresh()
+	page.Refresh()
 	return page.content
 }
 
-func (page *CollectionPage) makeAlbumCard(alb datastore.Album) fyne.CanvasObject {
-	// Create the album image
-	pic, err := page.Pictures.FindById(alb.ProfileId)
-	if err != nil {
-		// Create a placeholder image if no picture is found
-		pic = datastore.Picture{Id: "", Name: "No Image"}
-	}
-
+func (page *CollectionPage) makeAlbumCard(alb datastore.Album, pic datastore.Picture) fyne.CanvasObject {
 	img := components.NewImage(page.DataStore, pic, nil, func(clickedPic datastore.Picture) {
 		log.Printf("Album %s clicked", alb.Name)
 		cnt := components.NewCollectionAlbumContainer(page.DataStore, alb)
 		cnt.OnUpdate = func() {
-			go page.Refresh() // Make refresh async to avoid blocking
+			page.Refresh()
 		}
 		page.sidebar.Content = cnt.Layout()
 		page.sidebar.Show()

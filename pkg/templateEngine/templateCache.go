@@ -7,15 +7,17 @@ import (
 
 type TemplateCache struct {
 	cache map[string]*template.Template
-	sync.Mutex
+	sync.RWMutex
 }
 
-func newTeamplateCache() *TemplateCache {
+func newTemplateCache() *TemplateCache {
 	return &TemplateCache{
 		cache: make(map[string]*template.Template),
 	}
 }
 func (te *TemplateCache) Get(key string) *template.Template {
+	te.RLock()
+	defer te.RUnlock()
 	if val, ok := te.cache[key]; ok {
 		return val
 	}
@@ -23,6 +25,8 @@ func (te *TemplateCache) Get(key string) *template.Template {
 }
 
 func (te *TemplateCache) Exists(key string) bool {
+	te.RLock()
+	defer te.RUnlock()
 	if _, ok := te.cache[key]; ok {
 		return ok
 	}

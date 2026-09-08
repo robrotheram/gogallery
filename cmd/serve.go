@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/monitor"
 	"gogallery/pkg/preview"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -18,20 +22,32 @@ var serveCMD = &cobra.Command{
 	Use:   "serve",
 	Short: "Serve static site",
 	Long:  "Serve static site",
-	Run: func(cmd *cobra.Command, args []string) {
-		config := config.LoadConfig()
-		db, err := datastore.Open(config.Gallery.Basepath, monitor.NewCMDMonitor())
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.LoadConfig()
 		if err != nil {
-			log.Fatalf("Failed to open database: %v", err)
+			return err
 		}
+		if err := cfg.Validate(); err != nil {
+			return err
+		}
+		db, err := datastore.Open(datastore.DefaultDatabasePath, monitor.NewCMDMonitor())
+		if err != nil {
+			return fmt.Errorf("open database: %w", err)
+		}
+		defer db.Close()
 
 		server := preview.NewServer(db)
 		if err := server.Start(); err != nil {
-			log.Fatalf("Server failed to start: %v", err)
+			return fmt.Errorf("start server: %w", err)
 		}
 		// Print the actual address after the server has started and acquired a port
 		log.Printf("Starting Preview Server http://%s", server.Addr())
-		// Wait for the server goroutine to exit (block until server stops)
-		select {}
+		ctx, stopSignals := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+		defer stopSignals()
+		<-ctx.Done()
+		if err := server.Stop(); err != nil {
+			return fmt.Errorf("stop server: %w", err)
+		}
+		return nil
 	},
 }

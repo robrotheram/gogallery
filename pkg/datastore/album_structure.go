@@ -2,92 +2,94 @@ package datastore
 
 import (
 	"gogallery/pkg/config"
-	"path"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 )
 
 type AlbumNode struct {
 	Album
-	Children AlbumStrcure `json:"children"`
+	Children AlbumStructure `json:"children"`
 }
 
 func (a Album) ToAlbumNode() AlbumNode {
 	return AlbumNode{
 		Album:    a,
-		Children: make(AlbumStrcure),
+		Children: make(AlbumStructure),
 	}
 }
 
-type AlbumStrcure = map[string]AlbumNode
+type AlbumStructure = map[string]AlbumNode
 
-func SliceToTree(albms []Album, basepath string) AlbumStrcure {
-	newalbms := initializeAlbumNodes(albms, basepath)
-	processChildAlbums(albms, basepath, newalbms)
-	setParentProfileImages(newalbms)
-	return newalbms
+func SliceToTree(albums []Album, basepath string) AlbumStructure {
+	tree := initializeAlbumNodes(albums, basepath)
+	processChildAlbums(albums, basepath, tree)
+	setParentProfileImages(tree)
+	return tree
 }
 
-func initializeAlbumNodes(albms []Album, basepath string) map[string]AlbumNode {
-	newalbms := make(map[string]AlbumNode)
-	sort.Slice(albms, func(i, j int) bool {
-		return albms[i].ParentPath < albms[j].ParentPath
+func initializeAlbumNodes(albums []Album, basepath string) map[string]AlbumNode {
+	tree := make(map[string]AlbumNode)
+	sort.Slice(albums, func(i, j int) bool {
+		return albums[i].ParentPath < albums[j].ParentPath
 	})
-	for _, ab := range albms {
-		if ab.ParentPath == basepath {
-			ab.ParentPath = ""
-			newalbms[ab.Name] = ab.ToAlbumNode()
+	for _, album := range albums {
+		if filepath.Clean(album.ParentPath) == filepath.Clean(basepath) {
+			album.ParentPath = ""
+			tree[album.Name] = album.ToAlbumNode()
 		}
 	}
-	return newalbms
+	return tree
 }
 
-func processChildAlbums(albms []Album, basepath string, newalbms map[string]AlbumNode) {
-	for _, ab := range albms {
-		if (ab.ParentPath != basepath) && (ab.Id != config.GetMD5Hash(basepath)) {
-			updateAlbumHierarchy(ab, basepath, newalbms)
-		}
-	}
-}
-
-func updateAlbumHierarchy(ab Album, basepath string, newalbms map[string]AlbumNode) {
-	s := strings.Split(strings.Replace(ab.ParentPath, basepath, "", 1), "/")
-	copy(s, s[1:])
-	s = s[:len(s)-1]
-	pth := basepath
-	var alb AlbumNode
-	for i, p := range s {
-		if i == 0 {
-			alb = newalbms[p]
-		} else {
-			alb = alb.Children[p]
-		}
-		pth = path.Join(pth, p)
-		if i == len(s)-1 {
-			if alb.Children != nil {
-				ab.ParentPath = ""
-				alb.Children[ab.Name] = ab.ToAlbumNode()
-			}
+func processChildAlbums(albums []Album, basepath string, tree map[string]AlbumNode) {
+	for _, album := range albums {
+		if filepath.Clean(album.ParentPath) != filepath.Clean(basepath) && album.Id != config.GetMD5Hash(basepath) {
+			updateAlbumHierarchy(album, basepath, tree)
 		}
 	}
 }
 
-func FindInAlbumStrcureById(ab AlbumNode, Id string) AlbumNode {
-	if ab.Id == Id {
-		return ab
+func updateAlbumHierarchy(album Album, basepath string, tree map[string]AlbumNode) {
+	relative, err := filepath.Rel(filepath.Clean(basepath), filepath.Clean(album.ParentPath))
+	if err != nil || relative == "." || relative == ".." ||
+		strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		return
 	}
-	for _, v := range ab.Children {
-		a := FindInAlbumStrcureById(v, Id)
-		if a.Id == Id {
-			return a
+	parents := strings.Split(relative, string(os.PathSeparator))
+	children := tree
+	for i, parentName := range parents {
+		parent, exists := children[parentName]
+		if !exists {
+			return
+		}
+		if i == len(parents)-1 {
+			album.ParentPath = ""
+			parent.Children[album.Name] = album.ToAlbumNode()
+			children[parentName] = parent
+			return
+		}
+		children = parent.Children
+	}
+}
+
+func FindInAlbumStructureByID(album AlbumNode, id string) AlbumNode {
+	if album.Id == id {
+		return album
+	}
+	for _, child := range album.Children {
+		found := FindInAlbumStructureByID(child, id)
+		if found.Id == id {
+			return found
 		}
 	}
 	return AlbumNode{}
 }
 
-func GetAlbmusFromTree(as AlbumStrcure) []AlbumNode {
+func GetAlbumsFromTree(tree AlbumStructure) []AlbumNode {
 	albumList := make([]AlbumNode, 0)
-	for _, v := range as {
+	for _, v := range tree {
 		albumList = append(albumList, v)
 	}
 	sort.Slice(albumList, func(i, j int) bool {
@@ -96,10 +98,10 @@ func GetAlbmusFromTree(as AlbumStrcure) []AlbumNode {
 	return albumList
 }
 
-func GetAlbumFromStructure(as AlbumStrcure, Id string) AlbumNode {
+func GetAlbumFromStructure(tree AlbumStructure, id string) AlbumNode {
 	album := AlbumNode{}
-	for _, v := range as {
-		album = FindInAlbumStrcureById(v, Id)
+	for _, root := range tree {
+		album = FindInAlbumStructureByID(root, id)
 		if album.Id != "" {
 			return album
 		}
@@ -107,15 +109,15 @@ func GetAlbumFromStructure(as AlbumStrcure, Id string) AlbumNode {
 	return album
 }
 
-func SortByTime(albs []Album) []Album {
-	sort.Slice(albs, func(i, j int) bool {
-		return albs[i].ModTime.After(albs[j].ModTime)
+func SortByTime(albums []Album) []Album {
+	sort.Slice(albums, func(i, j int) bool {
+		return albums[i].ModTime.After(albums[j].ModTime)
 	})
-	return albs
+	return albums
 }
 
 // Recursively set profile image for parent albums if not set, using a child album's profile image
-func setParentProfileImages(tree AlbumStrcure) {
+func setParentProfileImages(tree AlbumStructure) {
 	for key, node := range tree {
 		if node.ProfileId == "" && len(node.Children) > 0 {
 			node.ProfileId = setProfileImageRecursive(&node)

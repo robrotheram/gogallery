@@ -16,7 +16,7 @@ type TaskUpdateListener func()
 type UIMonitor struct {
 	Tasks     map[string]*monitor.ProgressStats
 	listeners []TaskUpdateListener
-	mu        sync.Mutex
+	mu        sync.RWMutex
 }
 
 func NewUIMonitor() *UIMonitor {
@@ -27,16 +27,16 @@ func NewUIMonitor() *UIMonitor {
 
 func (m *UIMonitor) NewTask(name string, total int) monitor.MonitorStat {
 	m.mu.Lock()
-	defer m.mu.Unlock()
 	stat := monitor.NewProgressStats(name, total)
 	m.Tasks[name] = stat
+	m.mu.Unlock()
 	m.notifyListeners()
 	return &uiProgressStat{ProgressStats: stat, parent: m}
 }
 
 func (m *UIMonitor) GetTasks() []monitor.MonitorStat {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	keys := make([]string, 0, len(m.Tasks))
 	for k := range m.Tasks {
 		keys = append(keys, k)
@@ -57,7 +57,10 @@ func (m *UIMonitor) RegisterListener(listener TaskUpdateListener) {
 }
 
 func (m *UIMonitor) notifyListeners() {
-	for _, l := range m.listeners {
+	m.mu.RLock()
+	listeners := append([]TaskUpdateListener(nil), m.listeners...)
+	m.mu.RUnlock()
+	for _, l := range listeners {
 		go l() // call in goroutine to avoid blocking
 	}
 }
@@ -82,12 +85,24 @@ func (u *uiProgressStat) Update() {
 
 func (u *uiProgressStat) Complete() {
 	u.ProgressStats.Complete()
+	snapshot := u.ProgressStats.Snapshot()
 	// Send Fyne notification on task complete
-	if config.Config.UI.Notification {
-		fyne.CurrentApp().SendNotification(&fyne.Notification{
-			Title:   "Task Complete",
-			Content: u.ProgressStats.Name + " finished successfully.",
+	if config.Config.UI.Notification && snapshot.State == monitor.COMPLETE {
+		fyne.Do(func() {
+			app := fyne.CurrentApp()
+			if app == nil {
+				return
+			}
+			app.SendNotification(&fyne.Notification{
+				Title:   "Task Complete",
+				Content: snapshot.Name + " finished successfully.",
+			})
 		})
 	}
+	u.parent.notifyListeners()
+}
+
+func (u *uiProgressStat) Fail(message string) {
+	u.ProgressStats.Fail(message)
 	u.parent.notifyListeners()
 }

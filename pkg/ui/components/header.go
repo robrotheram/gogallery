@@ -1,16 +1,14 @@
 package components
 
 import (
-	"fmt"
-	"gogallery/pkg/datastore"
-	"gogallery/pkg/preview"
-
+	"log"
+	"net"
 	"net/url"
 
+	"gogallery/pkg/preview"
+
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -19,9 +17,13 @@ type Header struct {
 	Title       string
 	onNavChange func(page string)
 	server      *preview.Server
+	buttons     map[string]*widget.Button
+	compactNav  *widget.Select
+	activePage  string
+	layout      *fyne.Container
 }
 
-func NewHeader(title string, db *datastore.DataStore, server *preview.Server, onNavChange func(page string)) *Header {
+func NewHeader(title string, server *preview.Server, onNavChange func(page string)) *Header {
 	if title == "" {
 		title = "GoGallery"
 	}
@@ -29,69 +31,158 @@ func NewHeader(title string, db *datastore.DataStore, server *preview.Server, on
 		Title:       title,
 		onNavChange: onNavChange,
 		server:      server,
+		buttons:     make(map[string]*widget.Button),
+		activePage:  "Gallery",
 	}
 }
 
 func (h *Header) nav() *fyne.Container {
-	collection := widget.NewButtonWithIcon("Collections", theme.FolderIcon(), func() {
-		h.onNavChange("Collections")
-	})
+	gallery := h.navButton("Gallery", theme.GridIcon())
+	collection := h.navButton("Collections", theme.FolderIcon())
 	preview := widget.NewButtonWithIcon("Preview", theme.VisibilityIcon(), func() {
 		h.Preview()
 	})
-	tasks := widget.NewButtonWithIcon("Tasks", theme.ContentPasteIcon(), func() {
-		h.onNavChange("Tasks")
+	preview.Importance = widget.MediumImportance
+	tasks := h.navButton("Tasks", theme.ContentPasteIcon())
+	settings := h.navButton("Settings", theme.SettingsIcon())
+	return container.NewHBox(gallery, collection, preview, tasks, settings)
+}
+
+func (h *Header) compactNavigation() *widget.Select {
+	pages := []string{"Gallery", "Collections", "Preview", "Tasks", "Settings"}
+	h.compactNav = widget.NewSelect(pages, func(selected string) {
+		if selected == "" || selected == h.activePage {
+			return
+		}
+		if selected == "Preview" {
+			h.Preview()
+			h.compactNav.Selected = h.activePage
+			h.compactNav.Refresh()
+			return
+		}
+		if h.onNavChange != nil {
+			h.onNavChange(selected)
+		}
 	})
-	settings := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {
-		h.onNavChange("Settings")
+	h.compactNav.Selected = h.activePage
+	return h.compactNav
+}
+
+func (h *Header) navButton(page string, icon fyne.Resource) *widget.Button {
+	button := widget.NewButtonWithIcon(page, icon, func() {
+		if h.onNavChange != nil {
+			h.onNavChange(page)
+		}
 	})
-	navButtons := []fyne.CanvasObject{collection, preview, tasks, settings}
-	return container.NewHBox(container.NewHBox(navButtons...))
+	button.Importance = widget.LowImportance
+	h.buttons[page] = button
+	return button
 }
 
 func (h *Header) Layout() *fyne.Container {
-	// Clickable title that looks like a real title
-	clickableTitle := NewClickableTitle(h.Title, func() {
-		h.onNavChange("Gallery")
-	})
-	leftPad := canvas.NewRectangle(nil)
-	leftPad.SetMinSize(fyne.NewSize(12, 0))
-	headerBox := container.NewHBox(
-		leftPad,
-		clickableTitle,
-		leftPad,
-		layout.NewSpacer(),
-		h.nav(),
-		leftPad,
-	)
-	headerBox.Resize(fyne.NewSize(0, 64))
+	if h.layout != nil {
+		return h.layout
+	}
 
-	return container.NewVBox(
-		headerBox,
+	clickableTitle := NewClickableTitle(h.Title, func() {
+		if h.onNavChange != nil {
+			h.onNavChange("Gallery")
+		}
+	})
+	fullNavigation := h.nav()
+	compactNavigation := h.compactNavigation()
+	headerBox := container.New(&responsiveHeaderLayout{gap: 16}, clickableTitle, fullNavigation, compactNavigation)
+
+	h.layout = container.NewVBox(
+		container.NewPadded(headerBox),
 		widget.NewSeparator(),
 	)
+	return h.layout
+}
+
+func (h *Header) SetActive(page string) {
+	h.activePage = page
+	if h.compactNav != nil {
+		h.compactNav.Selected = page
+		h.compactNav.Refresh()
+	}
+	for name, button := range h.buttons {
+		if name == page {
+			button.Importance = widget.HighImportance
+		} else {
+			button.Importance = widget.LowImportance
+		}
+		button.Refresh()
+	}
 }
 
 func (h *Header) Preview() {
 	status, _ := h.server.Status()
 	if !status {
-		h.server.Start()
+		if err := h.server.Start(); err != nil {
+			log.Printf("Could not start preview server: %v", err)
+			return
+		}
 	}
-	u, _ := url.Parse(fmt.Sprintf("http://%s", h.server.Addr()))
-	fyne.CurrentApp().OpenURL(u)
+	host, port, err := net.SplitHostPort(h.server.Addr())
+	if err != nil {
+		log.Printf("Could not parse preview address: %v", err)
+		return
+	}
+	if host == "0.0.0.0" || host == "::" {
+		host = "127.0.0.1"
+	}
+	u := &url.URL{Scheme: "http", Host: net.JoinHostPort(host, port)}
+	app := fyne.CurrentApp()
+	if app == nil {
+		log.Print("Could not open preview: application unavailable")
+		return
+	}
+	if err := app.OpenURL(u); err != nil {
+		log.Printf("Could not open preview URL %s: %v", u, err)
+	}
 }
 
-/*
-	if alb, err := h.Albums.GetAll(); err == nil {
-		options := make([]string, len(alb))
-		for i, a := range alb {
-			options[i] = a.Name
-		}
-		h.FilterList.Options = options
-	} else {
-		h.FilterList.Options = []string{"No Albums Found"}
-	}
-	h.FilterList.PlaceHolder = "Select Album"
-	h.FilterList.Selected = h.Title // Set the initial selected album to the title
+// responsiveHeaderLayout keeps the full labelled navigation when it fits and
+// swaps to a compact page selector before controls can overlap or clip.
+type responsiveHeaderLayout struct {
+	gap float32
+}
 
-*/
+func (l *responsiveHeaderLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+	if len(objects) < 3 {
+		return
+	}
+	brand, fullNavigation, compactNavigation := objects[0], objects[1], objects[2]
+	useFullNavigation := brand.MinSize().Width+fullNavigation.MinSize().Width+l.gap <= size.Width
+
+	navigation := compactNavigation
+	if useFullNavigation {
+		fullNavigation.Show()
+		compactNavigation.Hide()
+		navigation = fullNavigation
+	} else {
+		fullNavigation.Hide()
+		compactNavigation.Show()
+	}
+
+	brandSize := brand.MinSize()
+	navigationSize := navigation.MinSize()
+	brand.Resize(brandSize)
+	navigation.Resize(navigationSize)
+	brand.Move(fyne.NewPos(0, (size.Height-brandSize.Height)/2))
+	navigation.Move(fyne.NewPos(size.Width-navigationSize.Width, (size.Height-navigationSize.Height)/2))
+}
+
+func (l *responsiveHeaderLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
+	if len(objects) < 3 {
+		return fyne.Size{}
+	}
+	brandSize := objects[0].MinSize()
+	fullSize := objects[1].MinSize()
+	compactSize := objects[2].MinSize()
+	return fyne.NewSize(
+		brandSize.Width+compactSize.Width+l.gap,
+		max(brandSize.Height, max(fullSize.Height, compactSize.Height)),
+	)
+}

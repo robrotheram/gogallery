@@ -1,0 +1,17 @@
+Website = "https://github.com/robrotheram/gogallery"
+
+[Details]
+Icon = "Icon.png"
+Name = "GoGallery"
+ID = "io.exceptionerror.gogallery"
+Version = "7.1.0"
+Build = 1
+
+[LinuxAndBSD]
+GenericName = "Photo Gallery Generator"
+Categories = ["Graphics", "Photography"]
+Comment = "Build and manage fast static websites for large photo collections"
+Keywords = ["photo", "gallery", "photography", "static site"]
+
+[Migrations]
+fyneDo = true

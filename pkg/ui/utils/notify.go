@@ -6,11 +6,15 @@ import (
 	"fyne.io/fyne/v2"
 )
 
-func Notify(tite string, msg string) {
+func Notify(title string, message string) {
 	if config.Config.UI.Notification {
-		fyne.CurrentApp().SendNotification(&fyne.Notification{
-			Title:   tite,
-			Content: msg,
+		app := fyne.CurrentApp()
+		if app == nil {
+			return
+		}
+		app.SendNotification(&fyne.Notification{
+			Title:   title,
+			Content: message,
 		})
 	}
 }

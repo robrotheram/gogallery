@@ -22,7 +22,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "gogallery",
 	Short: "Photo Gallery Static Site generator ",
-	Long:  `Generates a full static site that you can host all use the local provided server`,
+	Long:  `Generates a complete static photo gallery that you can host or serve locally.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return ui.App()
@@ -40,8 +40,8 @@ func Execute() {
 	}
 }
 
-func Docs() {
-	doc.GenMarkdownTree(rootCmd, "/tmp/gogallery")
+func Docs() error {
+	return doc.GenMarkdownTree(rootCmd, "/tmp/gogallery")
 }
 
 func init() {

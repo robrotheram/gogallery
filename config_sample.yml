@@ -1,19 +1,18 @@
 deploy:
-    authtoken: netify-auth-token
-    siteid: netify site-id
+  authtoken: your-netlify-auth-token
+  siteid: your-netlify-site-id
 
 gallery:
   name: "Gallery"
   imagesPerPage: 50
   basepath: "Photos"
   url:      "https://your.url.here"
-  theme:    "default" #default uses embeded theme. change to path to use a differnt theme
-  albumblacklist: [] # List if folder names to exclude from indexing
-  pictureblacklist: [] # List of individule images to exclude 
-  useoriginal: false # Include the orginal image in the publish site. 
+  theme:    "EmeraldNoir" # Use an embedded theme name or a path to a custom theme.
+  albumblacklist: [] # Folder names to exclude from indexing.
+  pictureblacklist: [] # Individual images to exclude.
+  useoriginal: false # Include the original image in the published site.
   
 about:
-  enable: false
   photographer: "Joe Blogs"
   backgroundPhoto: "/img/galleryimagename"
   profilePhoto: "url to profile e.g gravatar"
@@ -24,4 +23,4 @@ about:
   blog: "https://blog.example.com"
   website: "https://example.com"
   description: "Hello there, here is my gallery containing a number of photos from a number of years"
-  footer: "Photos ©photographer"
+  footer: "Photos © Photographer"

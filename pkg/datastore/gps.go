@@ -9,7 +9,7 @@ const (
 
 func NormalizeGPS(lat, lng float64) (float64, float64) {
 
-	if lat < LatMax || lat > LatMax || lng < LngMax || lng > LngMax {
+	if lat < -LatMax || lat > LatMax || lng < -LngMax || lng >= LngMax {
 		// Clip the latitude. Normalise the longitude.
 		lat, lng = clipLat(lat), normalizeLng(lng)
 	}

@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-func RenderPhoto(w io.Writer, pic datastore.Picture, images []datastore.Picture, page Page) {
+func RenderPhoto(w io.Writer, pic datastore.Picture, images []datastore.Picture, page Page) error {
 	for i, p := range images {
 		if p.Id == pic.Id {
 			if i-1 >= 0 {
@@ -17,6 +17,6 @@ func RenderPhoto(w io.Writer, pic datastore.Picture, images []datastore.Picture,
 		}
 	}
 	page.Picture = NewPagePicture(pic)
-	page.SEO.SetNameFromPhoto(pic)
-	Templates.RenderPage(w, PhotoTemplate, page)
+	page.SEO.SetFromPhoto(pic)
+	return Templates.RenderPage(w, PhotoTemplate, page)
 }

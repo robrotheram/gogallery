@@ -5,12 +5,12 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
+	if err != nil {
 		return false
 	}
 	if info.Size() == 0 {
@@ -36,16 +36,16 @@ func Dir(src string, dst string) error {
 		return err
 	}
 	for _, fd := range fds {
-		srcfp := path.Join(src, fd.Name())
-		dstfp := path.Join(dst, fd.Name())
+		srcfp := filepath.Join(src, fd.Name())
+		dstfp := filepath.Join(dst, fd.Name())
 
 		if fd.IsDir() {
 			if err = Dir(srcfp, dstfp); err != nil {
-				fmt.Println(err)
+				return fmt.Errorf("copy directory %q: %w", srcfp, err)
 			}
 		} else {
 			if err = Copy(srcfp, dstfp); err != nil {
-				fmt.Println(err)
+				return fmt.Errorf("copy file %q: %w", srcfp, err)
 			}
 		}
 	}
@@ -58,12 +58,12 @@ func Copy(src, dst string) error {
 	var dstfd *os.File
 	var srcinfo os.FileInfo
 
-	if srcfd, err = os.Open(src); err != nil {
+	if srcfd, err = os.Open(src); err != nil { // #nosec G304 -- source is a user-configured local gallery file
 		return err
 	}
 	defer srcfd.Close()
 
-	if dstfd, err = os.Create(dst); err != nil {
+	if dstfd, err = os.Create(dst); err != nil { // #nosec G304 -- destination is under the validated build directory
 		return err
 	}
 	defer dstfd.Close()

@@ -3,15 +3,18 @@ package templateengine
 import (
 	"bytes"
 	"fmt"
+	"gogallery/pkg/config"
 	"gogallery/pkg/embeds"
 	"html/template"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/css"
@@ -27,32 +30,53 @@ const PhotoTemplate = "photo"
 const PaginationTemplate = "pagination"
 
 func (te *TemplateEngine) LoadFromEmbed(theme string) error {
-
-	te.Cache = newTeamplateCache()
-	path := "themes/" + theme
-	base, err := template.ParseFS(embeds.ThemeFS, path+"/default.tmpl.html")
-	if err != nil {
-		return err
+	te.loadMu.Lock()
+	defer te.loadMu.Unlock()
+	source := "embed:" + theme
+	if te.loadedSource == source {
+		return nil
 	}
-	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
-	base, _ = base.ParseFS(embeds.ThemeFS, path+"/partials/*.html")
+
+	cache := newTemplateCache()
+	path := "themes/" + theme
+	base, err := template.New("default.tmpl.html").Funcs(template.FuncMap{
+		"ImgSizes": func() map[string]ImgSize { return ImageSizes },
+	}).ParseFS(embeds.ThemeFS, path+"/default.tmpl.html")
+	if err != nil {
+		return fmt.Errorf("parse embedded theme %q: %w", theme, err)
+	}
+	base, err = base.ParseFS(embeds.ThemeFS, path+"/partials/*.html")
+	if err != nil {
+		return fmt.Errorf("parse embedded theme %q partials: %w", theme, err)
+	}
 
 	items, err := embeds.ThemeFS.ReadDir(path + "/pages")
 	if err != nil {
-		return err
+		return fmt.Errorf("read embedded theme %q pages: %w", theme, err)
 	}
 	for _, item := range items {
+		if item.IsDir() || !strings.HasSuffix(item.Name(), ".tmpl.html") {
+			continue
+		}
 		name := strings.TrimSuffix(item.Name(), ".tmpl.html")
-		pageTemplate := template.Must(base.Clone())
-		pageTemplate = template.Must(pageTemplate.ParseFS(embeds.ThemeFS, path+"/pages/"+item.Name()))
-		te.Cache.Add(name, pageTemplate)
+		pageTemplate, err := base.Clone()
+		if err != nil {
+			return fmt.Errorf("clone embedded theme %q for page %q: %w", theme, name, err)
+		}
+		pageTemplate, err = pageTemplate.ParseFS(embeds.ThemeFS, path+"/pages/"+item.Name())
+		if err != nil {
+			return fmt.Errorf("parse embedded theme %q page %q: %w", theme, name, err)
+		}
+		cache.Add(name, pageTemplate)
 	}
+	te.setCache(cache)
+	te.loadedSource = source
 	return nil
 }
 
-func (te *TemplateEngine) AsseetServer(theme string, assestPath string) http.Handler {
+func (te *TemplateEngine) AssetServer(theme string, assetPath string) http.Handler {
 	assetPrefix := "/assets/"
-	embedPath := "themes/" + theme + "/" + assestPath
+	embedPath := "themes/" + theme + "/" + assetPath
 	fs := http.FS(embeds.ThemeFS)
 	return http.StripPrefix(assetPrefix, http.FileServer(http.FS(&embedSubFS{fs, embedPath})))
 }
@@ -64,46 +88,74 @@ type embedSubFS struct {
 }
 
 func (e *embedSubFS) Open(name string) (fs.File, error) {
-	clean := filepath.Clean("/" + name)
-	full := filepath.Join(e.subDir, clean)
+	clean := strings.TrimPrefix(path.Clean("/"+name), "/")
+	full := path.Join(e.subDir, clean)
 	return e.fs.Open(full)
 }
 
 func (te *TemplateEngine) Load(basePath string) error {
-	if embeds.DoesThmeExist(basePath) {
+	basePath = config.NormalizeTheme(basePath)
+	if embeds.DoesThemeExist(basePath) {
 		return te.LoadFromEmbed(basePath)
 	}
 	return te.LoadFromPath(basePath)
 }
 
 func (te *TemplateEngine) LoadFromPath(basePath string) error {
-	te.Cache = newTeamplateCache()
+	te.loadMu.Lock()
+	defer te.loadMu.Unlock()
+
+	cache := newTemplateCache()
 	pagePath := "pages"
-	base, err := template.ParseFiles(filepath.Join(basePath, "default.tmpl.html"))
+	baseFile := filepath.Join(basePath, "default.tmpl.html")
+	base, err := template.New(filepath.Base(baseFile)).Funcs(template.FuncMap{
+		"ImgSizes": func() map[string]ImgSize { return ImageSizes },
+	}).ParseFiles(baseFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse theme %q: %w", basePath, err)
 	}
-	base.Funcs(template.FuncMap{"ImgSizes": func() map[string]ImgSize { return ImageSizes }})
-	base, err = base.ParseGlob(filepath.Join(basePath, "partials/*.tmpl.html"))
+	partials, err := filepath.Glob(filepath.Join(basePath, "partials/*.tmpl.html"))
 	if err != nil {
-		return err
+		return fmt.Errorf("find theme %q partials: %w", basePath, err)
+	}
+	if len(partials) > 0 {
+		base, err = base.ParseFiles(partials...)
+		if err != nil {
+			return fmt.Errorf("parse theme %q partials: %w", basePath, err)
+		}
 	}
 	items, err := os.ReadDir(filepath.Join(basePath, pagePath))
 	if err != nil {
-		return err
+		return fmt.Errorf("read theme %q pages: %w", basePath, err)
 	}
 	for _, item := range items {
+		if item.IsDir() || !strings.HasSuffix(item.Name(), ".tmpl.html") {
+			continue
+		}
 		name := strings.TrimSuffix(item.Name(), ".tmpl.html")
-		pageTemplate := template.Must(base.Clone())
-		pageTemplate = template.Must(pageTemplate.ParseGlob(filepath.Join(basePath, pagePath, item.Name())))
-		te.Cache.Add(name, pageTemplate)
+		pageTemplate, err := base.Clone()
+		if err != nil {
+			return fmt.Errorf("clone theme %q for page %q: %w", basePath, name, err)
+		}
+		pageTemplate, err = pageTemplate.ParseFiles(filepath.Join(basePath, pagePath, item.Name()))
+		if err != nil {
+			return fmt.Errorf("parse theme %q page %q: %w", basePath, name, err)
+		}
+		cache.Add(name, pageTemplate)
 	}
+	te.setCache(cache)
+	te.loadedSource = "path:" + basePath
 	return nil
 }
 
 type TemplateEngine struct {
-	Cache *TemplateCache
-	m     *minify.M
+	Cache   *TemplateCache
+	m       *minify.M
+	cacheMu sync.RWMutex
+	loadMu  sync.Mutex
+	// loadedSource avoids reparsing immutable embedded templates for every
+	// preview request. Filesystem themes are deliberately reloaded for live edits.
+	loadedSource string
 }
 
 var Templates = NewTemplateEngine()
@@ -115,19 +167,39 @@ func NewTemplateEngine() *TemplateEngine {
 	m.AddFunc("image/svg+xml", svg.Minify)
 	m.AddFuncRegexp(regexp.MustCompile("^(application|text)/(x-)?(java|ecma)script$"), js.Minify)
 	return &TemplateEngine{
-		m: m,
+		Cache: newTemplateCache(),
+		m:     m,
 	}
 }
 
-func (te *TemplateEngine) RenderPage(w io.Writer, pageName string, data Page) {
+func (te *TemplateEngine) setCache(cache *TemplateCache) {
+	te.cacheMu.Lock()
+	te.Cache = cache
+	te.cacheMu.Unlock()
+}
+
+func (te *TemplateEngine) RenderPage(w io.Writer, pageName string, data Page) error {
+	te.cacheMu.RLock()
+	cache := te.Cache
+	te.cacheMu.RUnlock()
+	if cache == nil {
+		return fmt.Errorf("render page %q: templates are not loaded", pageName)
+	}
+	pageTemplate := cache.Get(pageName)
+	if pageTemplate == nil {
+		return fmt.Errorf("render page %q: template does not exist", pageName)
+	}
+
 	var tpl bytes.Buffer
-	err := te.Cache.Get(pageName).Execute(&tpl, data)
-	if err != nil {
-		fmt.Println(err)
+	if err := pageTemplate.Execute(&tpl, data); err != nil {
+		return fmt.Errorf("render page %q: %w", pageName, err)
 	}
 	b, err := te.m.Bytes("text/html", tpl.Bytes())
 	if err != nil {
-		fmt.Println(err)
+		return fmt.Errorf("minify page %q: %w", pageName, err)
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		return fmt.Errorf("write page %q: %w", pageName, err)
+	}
+	return nil
 }

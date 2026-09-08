@@ -8,110 +8,103 @@ import (
 	"gogallery/pkg/pipeline"
 	"image"
 	"image/color"
-	"image/draw"
-	"image/jpeg"
 	"io"
 	"log"
+	"path/filepath"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
-// Image is a custom Fyne widget for displaying images with placeholder and async loading
+// The height reserves a 3:2 photo area plus the caption footer.
+var imageTileMinSize = fyne.NewSize(260, 218)
+
+// Image is a reusable image tile with asynchronous thumbnail loading.
 type Image struct {
 	widget.BaseWidget
 
 	dataStore *datastore.DataStore
 	pic       datastore.Picture
 
-	// UI components
 	content       *fyne.Container
 	placeholderUI *fyne.Container
 	imageObj      *canvas.Image
 	hoverBorder   *canvas.Rectangle
 	activeBorder  *canvas.Rectangle
+	captionLabel  *widget.Label
+	showCaption   bool
 	isLoading     bool
 	isHovered     bool
 	isActive      bool
-	onLoad        func()                  // Callback for when image is loaded
-	onClick       func(datastore.Picture) // Callback for when image is clicked
-
-	// Aspect ratio for cropping (width, height)
-	aspectWidth  int
-	aspectHeight int
+	onLoad        func()
+	onClick       func(datastore.Picture)
 }
 
 func NewImage(dataStore *datastore.DataStore, pic datastore.Picture, onLoad func(), onClick func(datastore.Picture)) *Image {
-	return NewImageWithAspect(dataStore, pic, onLoad, onClick, 6, 4) // Default to 6:4 aspect ratio
+	return NewImageWithAspect(dataStore, pic, onLoad, onClick, 6, 4)
 }
 
-func NewImageWithAspect(dataStore *datastore.DataStore, pic datastore.Picture, onLoad func(), onClick func(datastore.Picture), aspectWidth, aspectHeight int) *Image {
+// NewImageWithAspect is kept for compatibility. ImageFillCover now performs the
+// display crop, avoiding a decode/crop/encode/decode cycle for every thumbnail.
+func NewImageWithAspect(dataStore *datastore.DataStore, pic datastore.Picture, onLoad func(), onClick func(datastore.Picture), _, _ int) *Image {
 	img := &Image{
-		dataStore:    dataStore,
-		pic:          pic,
-		isLoading:    false,
-		isHovered:    false,
-		isActive:     false,
-		onLoad:       onLoad,
-		onClick:      onClick,
-		aspectWidth:  aspectWidth,
-		aspectHeight: aspectHeight,
+		dataStore: dataStore,
+		pic:       pic,
+		onLoad:    onLoad,
+		onClick:   onClick,
 	}
 	img.ExtendBaseWidget(img)
 	img.createBorders()
 	img.createPlaceholderUI()
+	img.updateCaption(pic)
 
-	// Start loading the image asynchronously if we have a valid picture
 	if pic.Id != "" {
-		go img.loadImageAsync()
+		img.loadImageAsync()
 	}
 
 	return img
 }
 
-// Tapped implements the fyne.Tappable interface
+// Tapped implements fyne.Tappable.
 func (img *Image) Tapped(_ *fyne.PointEvent) {
-	if img.onClick != nil {
+	if img.onClick != nil && img.pic.Id != "" {
 		img.onClick(img.pic)
 	}
 }
 
-// MouseIn implements the desktop.Hoverable interface
+// MouseIn implements desktop.Hoverable.
 func (img *Image) MouseIn(_ *desktop.MouseEvent) {
 	img.isHovered = true
 	img.updateBorders()
 }
 
-// MouseOut implements the desktop.Hoverable interface
+// MouseOut implements desktop.Hoverable.
 func (img *Image) MouseOut() {
 	img.isHovered = false
 	img.updateBorders()
 }
 
-// MouseMoved implements the desktop.Hoverable interface
-func (img *Image) MouseMoved(_ *desktop.MouseEvent) {
-	// No action needed for mouse movement
-}
+// MouseMoved implements desktop.Hoverable.
+func (img *Image) MouseMoved(_ *desktop.MouseEvent) {}
 
-// Cursor returns the cursor to show when hovering
+// Cursor returns the cursor to show when hovering.
 func (img *Image) Cursor() desktop.Cursor {
 	return desktop.PointerCursor
 }
 
 func (img *Image) createBorders() {
-	// Hover border - blue with transparency
-	img.hoverBorder = canvas.NewRectangle(color.NRGBA{R: 0, G: 120, B: 255, A: 100})
-	img.hoverBorder.StrokeWidth = 3
-	img.hoverBorder.StrokeColor = color.NRGBA{R: 0, G: 120, B: 255, A: 255}
+	img.hoverBorder = canvas.NewRectangle(color.Transparent)
+	img.hoverBorder.StrokeWidth = 2
+	img.hoverBorder.StrokeColor = theme.Color(theme.ColorNamePrimary)
 	img.hoverBorder.Hide()
 
-	// Active border - darker blue
-	img.activeBorder = canvas.NewRectangle(color.NRGBA{R: 0, G: 80, B: 200, A: 150})
-	img.activeBorder.StrokeWidth = 4
-	img.activeBorder.StrokeColor = color.NRGBA{R: 0, G: 80, B: 200, A: 255}
+	img.activeBorder = canvas.NewRectangle(color.Transparent)
+	img.activeBorder.StrokeWidth = 3
+	img.activeBorder.StrokeColor = theme.Color(theme.ColorNameFocus)
 	img.activeBorder.Hide()
 }
 
@@ -126,113 +119,93 @@ func (img *Image) updateBorders() {
 		img.hoverBorder.Hide()
 		img.activeBorder.Hide()
 	}
-	img.Refresh()
 }
 
 func (img *Image) CreateRenderer() fyne.WidgetRenderer {
 	if img.content == nil {
 		img.content = img.placeholderUI
 	}
-	return &imageRenderer{
-		image: img,
-	}
+	return &imageRenderer{image: img}
 }
 
-// Custom renderer for the Image widget
 type imageRenderer struct {
-	image   *Image
-	objects []fyne.CanvasObject
+	image *Image
 }
 
 func (r *imageRenderer) Layout(size fyne.Size) {
 	if r.image.content != nil {
 		r.image.content.Resize(size)
 	}
-
-	// Position borders to cover the entire widget area
-	if r.image.hoverBorder != nil {
-		r.image.hoverBorder.Resize(size)
-	}
-	if r.image.activeBorder != nil {
-		r.image.activeBorder.Resize(size)
-	}
+	r.image.hoverBorder.Resize(size)
+	r.image.activeBorder.Resize(size)
 }
 
 func (r *imageRenderer) MinSize() fyne.Size {
-	if r.image.content != nil {
-		return r.image.content.MinSize()
-	}
-	return fyne.NewSize(100, 100) // Default minimum size
+	return imageTileMinSize
 }
 
 func (r *imageRenderer) Refresh() {
-	// Update the objects list to reflect current content
 	if r.image.content != nil {
-		r.objects = []fyne.CanvasObject{r.image.content}
 		r.image.content.Refresh()
-	} else {
-		r.objects = []fyne.CanvasObject{}
 	}
 }
 
 func (r *imageRenderer) Objects() []fyne.CanvasObject {
-	// Always return the current content plus borders
-	objects := []fyne.CanvasObject{}
-
+	objects := make([]fyne.CanvasObject, 0, 3)
 	if r.image.content != nil {
 		objects = append(objects, r.image.content)
 	}
-
-	// Add borders
-	if r.image.hoverBorder != nil {
-		objects = append(objects, r.image.hoverBorder)
-	}
-	if r.image.activeBorder != nil {
-		objects = append(objects, r.image.activeBorder)
-	}
-
-	return objects
+	return append(objects, r.image.hoverBorder, r.image.activeBorder)
 }
 
-func (r *imageRenderer) Destroy() {
-	// Cleanup if needed
-}
+func (r *imageRenderer) Destroy() {}
 
+// SetPicture reuses this tile for another picture. This is used by GridWrap so
+// only the visible set of image widgets needs to exist at any time.
 func (img *Image) SetPicture(pic datastore.Picture) {
+	if img.pic.Id == pic.Id && (img.imageObj != nil || img.isLoading) {
+		return
+	}
+
 	img.pic = pic
+	img.imageObj = nil
+	img.updateCaption(pic)
 	img.showPlaceholder()
 
-	if pic.Id == "" {
-		return // No picture set, just show placeholder
-	}
-
-	// Load image asynchronously
-	go img.loadImageAsync()
-}
-
-func (img *Image) SetAspectRatio(width, height int) {
-	img.aspectWidth = width
-	img.aspectHeight = height
-
-	// If we have a loaded image, reload it with the new aspect ratio
-	if img.pic.Id != "" && !img.isLoading {
-		go img.loadImageAsync()
+	if pic.Id != "" {
+		img.loadImageAsync()
 	}
 }
+
+func (img *Image) SetShowCaption(show bool) {
+	if img.showCaption == show {
+		return
+	}
+	img.showCaption = show
+	if img.imageObj != nil {
+		img.content = img.imageContent(img.imageObj)
+		img.Refresh()
+	}
+}
+
+// SetAspectRatio is retained for callers using the previous API. Cropping is
+// now handled efficiently by canvas.ImageFillCover.
+func (img *Image) SetAspectRatio(_, _ int) {}
 
 func (img *Image) createPlaceholderUI() {
-
-	cellBg := canvas.NewRectangle(color.RGBA{R: 241, G: 241, B: 241, A: 255})
-	cellBg.StrokeColor = color.Black
+	cellBg := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
+	cellBg.StrokeColor = theme.Color(theme.ColorNameSeparator)
 	cellBg.StrokeWidth = 1
 
-	label := canvas.NewText("Loading...", color.Gray{Y: 128})
+	icon := widget.NewIcon(theme.MediaPhotoIcon())
+	label := widget.NewLabel("Loading thumbnail…")
 	label.Alignment = fyne.TextAlignCenter
+	label.Importance = widget.LowImportance
+	placeholder := container.NewCenter(container.NewVBox(icon, label))
 
-	// Create container with content and borders
-	img.placeholderUI = container.NewStack(cellBg, label)
+	img.placeholderUI = container.NewStack(cellBg, placeholder)
 	img.content = img.placeholderUI
-	img.content.Resize(fyne.NewSize(200, 150)) // Default size for placeholder
+	img.content.Resize(imageTileMinSize)
 }
 
 func (img *Image) showPlaceholder() {
@@ -242,165 +215,128 @@ func (img *Image) showPlaceholder() {
 
 func (img *Image) loadImageAsync() {
 	if img.isLoading {
-		log.Println("Image is already loading, skipping")
-		return // Already loading
+		return
 	}
 	img.isLoading = true
 
-	// Load and process image in background thread
+	picture := img.pic
 	go func() {
-		canvasImg, err := img.loadImage(img.pic)
+		loadedImage, err := img.loadImage(picture)
 
-		// Update UI on main thread
 		fyne.Do(func() {
 			img.isLoading = false
 
 			if err != nil {
-				// Keep showing placeholder on error
 				log.Println("Error loading image:", err)
+				if img.pic.Id != picture.Id {
+					if img.pic.Id != "" {
+						img.loadImageAsync()
+					}
+					return
+				}
+				img.showLoadError()
+				return
+			}
+			if img.pic.Id != picture.Id {
+				if img.pic.Id != "" {
+					img.loadImageAsync()
+				}
 				return
 			}
 
-			// Update UI components
+			canvasImg := canvas.NewImageFromImage(loadedImage)
+			canvasImg.FillMode = canvas.ImageFillCover
+			canvasImg.SetMinSize(fyne.NewSize(0, 0))
 			img.imageObj = canvasImg
-			img.content = container.NewStack(img.imageObj)
-
-			// Update borders visibility based on current state
+			img.content = img.imageContent(canvasImg)
 			img.updateBorders()
-
-			img.Refresh() // This will now properly trigger the custom renderer
+			img.Refresh()
 
 			if img.onLoad != nil {
-				img.onLoad() // Call the onLoad callback if set
+				img.onLoad()
 			}
 		})
 	}()
 }
 
-func (img *Image) cropToAspect(imgBuf bytes.Buffer, targetW, targetH int) *bytes.Buffer {
-	// Create a new buffer from the input to avoid read position issues
-	bufCopy := bytes.NewBuffer(imgBuf.Bytes())
-
-	// For performance, do a fast crop or skip if image is close to target aspect ratio
-	srcImg, _, err := image.Decode(bufCopy)
-	if err != nil {
-		log.Printf("Failed to decode image for cropping: %v", err)
-		return &imgBuf // fallback: return original if decode fails
+func (img *Image) imageContent(canvasImg *canvas.Image) *fyne.Container {
+	if !img.showCaption {
+		return container.NewStack(canvasImg)
 	}
-
-	srcBounds := srcImg.Bounds()
-	srcW := srcBounds.Dx()
-	srcH := srcBounds.Dy()
-	targetAspect := float64(targetW) / float64(targetH)
-	srcAspect := float64(srcW) / float64(srcH)
-
-	// If aspect ratios are close enough, skip cropping for performance
-	aspectDiff := targetAspect / srcAspect
-	if aspectDiff > 0.9 && aspectDiff < 1.1 {
-		return &imgBuf
-	}
-
-	var cropW, cropH int
-	if srcAspect > targetAspect {
-		// Source is wider than target: crop width
-		cropH = srcH
-		cropW = int(float64(cropH) * targetAspect)
-	} else {
-		// Source is taller than target: crop height
-		cropW = srcW
-		cropH = int(float64(cropW) / targetAspect)
-	}
-
-	x0 := srcBounds.Min.X + (srcW-cropW)/2
-	y0 := srcBounds.Min.Y + (srcH-cropH)/2
-	cropRect := image.Rect(x0, y0, x0+cropW, y0+cropH)
-
-	// Crop and copy to a new RGBA image
-	cropped := image.NewRGBA(image.Rect(0, 0, cropW, cropH))
-	draw.Draw(cropped, cropped.Bounds(), srcImg, cropRect.Min, draw.Src)
-
-	// Encode cropped image back to buffer as JPEG
-	var outBuf bytes.Buffer
-	err = jpeg.Encode(&outBuf, cropped, &jpeg.Options{Quality: 90})
-
-	if err != nil {
-		log.Printf("Failed to encode cropped image: %v", err)
-		return &imgBuf // fallback to original
-	}
-
-	return &outBuf
+	captionBg := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
+	caption := container.NewStack(captionBg, container.NewPadded(img.caption()))
+	return container.NewBorder(nil, caption, nil, nil, canvasImg)
 }
 
-func (img *Image) loadImage(pic datastore.Picture) (*canvas.Image, error) {
+func (img *Image) caption() *widget.Label {
+	if img.captionLabel == nil {
+		img.captionLabel = widget.NewLabel("")
+		img.captionLabel.TextStyle = fyne.TextStyle{Bold: true}
+		img.captionLabel.Truncation = fyne.TextTruncateEllipsis
+	}
+	return img.captionLabel
+}
+
+func (img *Image) updateCaption(pic datastore.Picture) {
+	text := pic.Name
+	if text == "" {
+		text = filepath.Base(pic.Path)
+	}
+	if text == "." || text == "" {
+		text = "Untitled photo"
+	}
+	img.caption().SetText(text)
+}
+
+func (img *Image) showLoadError() {
+	background := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
+	icon := widget.NewIcon(theme.BrokenImageIcon())
+	label := widget.NewLabel("Preview unavailable")
+	label.Alignment = fyne.TextAlignCenter
+	label.Importance = widget.LowImportance
+	img.content = container.NewStack(background, container.NewCenter(container.NewVBox(icon, label)))
+	img.Refresh()
+}
+
+func (img *Image) loadImage(pic datastore.Picture) (image.Image, error) {
 	if img.dataStore == nil {
 		return nil, fmt.Errorf("datastore not available")
 	}
 
-	size := "small" // Default size
-
-	// Try to get from cache first
+	const size = "small"
 	if file, err := img.dataStore.ImageCache.Get(pic.Id, config.JPEG, size); err == nil {
-		var buf bytes.Buffer
-		if _, err := io.Copy(&buf, file); err != nil {
-			file.Close()
-			return nil, fmt.Errorf("failed to read cached image %s: %w", pic.Id, err)
+		loadedImage, _, decodeErr := image.Decode(file)
+		_ = file.Close()
+		if decodeErr == nil {
+			return loadedImage, nil
 		}
-		file.Close()
-
-		// Do cropping in background thread
-		croppedBuf := img.cropToAspect(buf, img.aspectWidth, img.aspectHeight)
-
-		// Validate that we have image data before creating canvas image
-		if croppedBuf.Len() == 0 {
-			log.Printf("Cropped buffer is empty for image %s", pic.Id)
-			return nil, fmt.Errorf("cropped image data is empty")
-		}
-
-		canvasImg := canvas.NewImageFromReader(croppedBuf, pic.Id+".jpg")
-		if canvasImg == nil {
-			log.Printf("Failed to create canvas image from reader for %s", pic.Id)
-			return nil, fmt.Errorf("failed to create canvas image")
-		}
-
-		canvasImg.FillMode = canvas.ImageFillContain // Use contain for better performance
-		canvasImg.SetMinSize(fyne.NewSize(0, 0))
-		return canvasImg, nil
+		log.Printf("Cached thumbnail %s could not be decoded; regenerating it: %v", pic.Id, decodeErr)
 	}
 
-	log.Println("Image not in cache, loading from source:", pic.Id)
-	// Load from source and cache
 	src, err := pic.Load()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load image %s: %w", pic.Id, err)
 	}
 
+	var buf bytes.Buffer
+	if err := pipeline.ProcessImage(src, config.ImageSizes[size].ImgWidth, config.JPEG, &buf); err != nil {
+		return nil, fmt.Errorf("encode processed image %s: %w", pic.Id, err)
+	}
 	cache, err := img.dataStore.ImageCache.Writer(pic.Id, config.JPEG, size)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cache writer: %w", err)
 	}
-	defer cache.Close()
-
-	var buf bytes.Buffer
-	multi := io.MultiWriter(cache, &buf)
-	pipeline.ProcessImage(src, 400, config.JPEG, multi)
-
-	// Do cropping in background thread
-	croppedBuf := img.cropToAspect(buf, img.aspectWidth, img.aspectHeight)
-
-	// Validate that we have image data before creating canvas image
-	if croppedBuf.Len() == 0 {
-		log.Printf("Cropped buffer is empty for image %s", pic.Id)
-		return nil, fmt.Errorf("cropped image data is empty")
+	if _, err := io.Copy(cache, bytes.NewReader(buf.Bytes())); err != nil {
+		_ = cache.Abort()
+		return nil, fmt.Errorf("cache processed image %s: %w", pic.Id, err)
+	}
+	if err := cache.Close(); err != nil {
+		return nil, fmt.Errorf("publish processed image %s: %w", pic.Id, err)
 	}
 
-	canvasImg := canvas.NewImageFromReader(croppedBuf, pic.Id+".jpg")
-	if canvasImg == nil {
-		log.Printf("Failed to create canvas image from reader for %s", pic.Id)
-		return nil, fmt.Errorf("failed to create canvas image")
+	loadedImage, _, err := image.Decode(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		return nil, fmt.Errorf("decode processed image %s: %w", pic.Id, err)
 	}
-
-	canvasImg.FillMode = canvas.ImageFillContain // Use contain for better performance
-	canvasImg.SetMinSize(fyne.NewSize(0, 0))
-	log.Println("Successfully loaded and cached image:", pic.Id)
-	return canvasImg, nil
+	return loadedImage, nil
 }

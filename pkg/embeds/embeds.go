@@ -2,6 +2,7 @@ package embeds
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -10,19 +11,8 @@ import (
 
 var ThemeFS embed.FS
 
-func CopyTheme(templatePath string) {
-	os.MkdirAll(templatePath, os.ModePerm)
-	fs.WalkDir(ThemeFS, ".", func(path string, d fs.DirEntry, err error) error {
-		newPath := filepath.Join(templatePath, path)
-		if d.IsDir() {
-			os.MkdirAll(newPath, os.ModePerm)
-		} else {
-			file, _ := ThemeFS.ReadFile(path)
-			os.WriteFile(newPath, file, os.ModePerm)
-		}
-		return nil
-	})
-
+func CopyTheme(templatePath string) error {
+	return copyEmbeddedTree(".", templatePath)
 }
 
 func ListThemes() []string {
@@ -38,7 +28,7 @@ func ListThemes() []string {
 	return pages
 }
 
-func DoesThmeExist(theme string) bool {
+func DoesThemeExist(theme string) bool {
 	themes := ListThemes()
 	for _, t := range themes {
 		if t == theme {
@@ -48,18 +38,37 @@ func DoesThmeExist(theme string) bool {
 	return false
 }
 
-func CopyThemeAssets(theme string, templatePath string) {
-	os.MkdirAll(templatePath, os.ModePerm)
+func CopyThemeAssets(theme string, templatePath string) error {
 	root := "themes/" + theme + "/assets"
-	fs.WalkDir(ThemeFS, root, func(path string, d fs.DirEntry, err error) error {
-		newPath := filepath.Join(templatePath, strings.Replace(path, root, "", -1))
+	return copyEmbeddedTree(root, templatePath)
+}
+
+func copyEmbeddedTree(root, destination string) error {
+	// #nosec G301 -- copied static-site assets must be readable by a web server.
+	if err := os.MkdirAll(destination, 0o755); err != nil {
+		return err
+	}
+	return fs.WalkDir(ThemeFS, root, func(name string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relative, err := filepath.Rel(root, name)
+		if err != nil || relative == ".." || strings.HasPrefix(relative, "../") {
+			return fmt.Errorf("invalid embedded path %q", name)
+		}
+		newPath := filepath.Join(destination, filepath.FromSlash(relative))
 		if d.IsDir() {
-			os.MkdirAll(newPath, os.ModePerm)
-		} else {
-			file, _ := ThemeFS.ReadFile(path)
-			os.WriteFile(newPath, file, os.ModePerm)
+			// #nosec G301 -- copied static-site assets must be readable by a web server.
+			return os.MkdirAll(newPath, 0o755)
+		}
+		file, err := ThemeFS.ReadFile(name)
+		if err != nil {
+			return err
+		}
+		// #nosec G306 -- copied static-site assets must be readable by a web server.
+		if err := os.WriteFile(newPath, file, 0o644); err != nil {
+			return fmt.Errorf("write embedded file %q: %w", newPath, err)
 		}
 		return nil
 	})
-
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
+	"gogallery/pkg/ui/utils"
 	"io"
 	"log"
 
@@ -17,7 +18,6 @@ type CollectionAlbumContainer struct {
 	*datastore.DataStore
 	selectedAlbum datastore.Album // Reference to the currently selected album
 	titleEntry    *widget.Entry
-	image         *canvas.Image     // Placeholder for the image to be displayed
 	imageStack    *fyne.Container   // Direct reference to the image stack
 	container     fyne.CanvasObject // Reference to the sidebar container for refresh
 	OnUpdate      func()            // Callback for album update
@@ -30,16 +30,12 @@ func NewCollectionAlbumContainer(db *datastore.DataStore, selectedAlbum datastor
 	// Use a placeholder image instead of nil to avoid layout issues on Windows
 	placeholder := canvas.NewRectangle(nil)
 	placeholder.SetMinSize(fyne.NewSize(600, 400))
-	img := canvas.NewImageFromImage(nil)
-	img.FillMode = canvas.ImageFillContain
-	img.SetMinSize(fyne.NewSize(600, 400)) // More reasonable default
 	imageStack := container.NewStack(placeholder)
 
 	return &CollectionAlbumContainer{
 		DataStore:     db,
 		selectedAlbum: selectedAlbum,
 		titleEntry:    titleEntry,
-		image:         img,
 		imageStack:    imageStack,
 	}
 }
@@ -51,12 +47,12 @@ func (c *CollectionAlbumContainer) loadImage(pic datastore.Picture) {
 		log.Println("Error loading image from cache:", err)
 		return
 	}
+	defer file.Close()
 	data, err := io.ReadAll(file)
 	if err != nil {
 		log.Println("Error reading image file:", err)
 		return
 	}
-	log.Printf("[Sidebar] Loaded image bytes: %d for %s", len(data), pic.Name)
 	if len(data) < 16 {
 		log.Println("[Sidebar] Image data too small or empty, not displaying.")
 		return
@@ -78,13 +74,12 @@ func (c *CollectionAlbumContainer) loadImage(pic datastore.Picture) {
 		c.imageStack.Objects = []fyne.CanvasObject{newImg}
 		c.imageStack.Refresh()
 	}
-	c.image = newImg
 	c.imageStack.Refresh()
 }
 
 func (c *CollectionAlbumContainer) Layout() fyne.CanvasObject {
 
-	if pic, err := c.DataStore.Pictures.FindById(c.selectedAlbum.ProfileId); err == nil {
+	if pic, err := c.DataStore.Pictures.FindByID(c.selectedAlbum.ProfileId); err == nil {
 		c.loadImage(pic)
 	}
 	c.titleEntry.SetText(c.selectedAlbum.Name)
@@ -125,10 +120,7 @@ func (c *CollectionAlbumContainer) Layout() fyne.CanvasObject {
 			return
 		}
 		log.Printf("Updated album name to: %s", c.selectedAlbum.Name)
-		fyne.CurrentApp().SendNotification(&fyne.Notification{
-			Title:   "Album Updated",
-			Content: "The album details have been saved successfully.",
-		})
+		utils.Notify("Album Updated", "The album details have been saved successfully.")
 		if c.OnUpdate != nil {
 			c.OnUpdate() // Call the update callback if set
 		}

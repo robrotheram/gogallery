@@ -66,10 +66,9 @@ func (s *Sidebar) Layout() fyne.CanvasObject {
 		nil,       // right
 		s.Content, // main content
 	)
-	paddedScrollContent := container.NewPadded(scrollContent)
-	// card := widget.NewCard("", "", scrollContent)
-
-	s.container = container.NewVScroll(paddedScrollContent)
+	panelBackground := canvas.NewRectangle(theme.Color(theme.ColorNameMenuBackground))
+	panel := container.NewStack(panelBackground, container.NewPadded(scrollContent))
+	s.container = container.NewBorder(nil, nil, widget.NewSeparator(), nil, container.NewVScroll(panel))
 	return s.container
 }
 

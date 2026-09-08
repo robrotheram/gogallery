@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/monitor"
@@ -19,75 +20,56 @@ func init() {
 var benchmark = &cobra.Command{
 	Use: "benchmark",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cpuFile, _ := os.Create("cpu.prof")
-		pprof.StartCPUProfile(cpuFile)
-		defer pprof.StopCPUProfile()
+		cpuFile, err := os.Create("cpu.prof")
+		if err != nil {
+			return fmt.Errorf("create CPU profile: %w", err)
+		}
+		if err := pprof.StartCPUProfile(cpuFile); err != nil {
+			_ = cpuFile.Close()
+			return fmt.Errorf("start CPU profile: %w", err)
+		}
+		err = benchmarkScanPath()
+		pprof.StopCPUProfile()
+		if closeErr := cpuFile.Close(); err == nil && closeErr != nil {
+			err = closeErr
+		}
+		if err != nil {
+			return err
+		}
 
-		memFile, _ := os.Create("mem.prof")
-		pprof.WriteHeapProfile(memFile)
-		defer memFile.Close()
-
-		benchmarkScanPath()
-		return nil
+		memFile, err := os.Create("mem.prof")
+		if err != nil {
+			return fmt.Errorf("create memory profile: %w", err)
+		}
+		if err := pprof.WriteHeapProfile(memFile); err != nil {
+			_ = memFile.Close()
+			return fmt.Errorf("write memory profile: %w", err)
+		}
+		return memFile.Close()
 	},
 }
 
-func benchmarkScanPath() {
+func benchmarkScanPath() error {
 
 	start := time.Now()
-	config := config.LoadConfig()
-	config.Validate()
-	db, err := datastore.Open(config.Gallery.Basepath, monitor.NewCMDMonitor())
+	config, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
+		return err
 	}
+	if err := config.Validate(); err != nil {
+		return err
+	}
+	db, err := datastore.Open(datastore.DefaultDatabasePath, monitor.NewCMDMonitor())
+	if err != nil {
+		return fmt.Errorf("open database: %w", err)
+	}
+	defer db.Close()
 
 	if err := db.ScanPath(config.Gallery.Basepath); err != nil {
-		log.Fatalf("Error scanning path: %v", err)
+		return fmt.Errorf("scan gallery: %w", err)
 	}
 
 	elapsed := time.Since(start)
 	log.Printf("Scan completed in %s", elapsed)
-}
-
-func benchmarkImage() {
-	var totalTime time.Duration
-	p := datastore.Picture{
-		Id:   "benchmark",
-		Path: "/home/robert/Pictures/gallery/pictures/bergen/20250511_0010.jpg",
-	}
-	start := time.Now()
-	p.CreateExif()
-
-	elapsed := time.Since(start)
-	totalTime += elapsed
-	log.Printf("Benchmark completed in %s", elapsed)
-
-	// src, err := p.Load()
-	// if err != nil {
-	// 	log.Fatalf("Error loading benchmark image: %v", err)
-	// }
-	// destPath := "benchmark.webp"
-	// sizes := templateengine.ImageSizes
-	// for _, size := range sizes {
-	// 	if _, err := os.Stat(destPath); err == nil {
-	// 		if err := os.Remove(destPath); err != nil {
-	// 			log.Fatalf("Error deleting existing file: %v", err)
-	// 		}
-	// 	}
-	// 	fo, err := os.Create(destPath)
-	// 	if err != nil {
-	// 		log.Fatalf("Error creating file: %v", err)
-	// 	}
-	// 	defer fo.Close()
-
-	// 	start := time.Now()
-
-	// 	pipeline.ProcessImage(src, size.ImgWidth, fo)
-
-	// elapsed := time.Since(start)
-	// totalTime += elapsed
-	// log.Printf("Benchmark completed in %s", elapsed)
-	// }
-	log.Printf("Total benchmark time for all sizes: %s", totalTime)
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -53,18 +54,31 @@ func (s *Server) Start() error {
 		return nil // already running
 	}
 	// Listen on the requested address to get a free port, then use that for http.Server
-	ln, err := net.Listen("tcp", s.addr)
+	ln, err := net.Listen("tcp", generateAddr())
 	if err != nil {
 		return err
 	}
 	s.listener = ln
 	s.addr = ln.Addr().String()
-	s.server = &http.Server{Handler: s.Router}
+	httpServer := &http.Server{
+		Handler:           s.Router,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      2 * time.Minute,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    64 << 10,
+	}
+	s.server = httpServer
 	s.running = true
 	go func() {
-		if err := s.server.Serve(ln); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.Serve(ln); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Server error: %v\n", err)
 		}
+		s.mu.Lock()
+		if s.server == httpServer {
+			s.running = false
+		}
+		s.mu.Unlock()
 	}()
 	return nil
 }
@@ -76,8 +90,10 @@ func (s *Server) Stop() error {
 	if !s.running {
 		return nil
 	}
-	err := s.server.Shutdown(context.Background())
-	s.listener.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := s.server.Shutdown(ctx)
+	_ = s.listener.Close()
 	s.running = false
 	return err
 }

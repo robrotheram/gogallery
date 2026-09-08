@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var validExtension = []string{"jpg", "png", "gif"}
+var validExtension = []string{"jpg", "jpeg", "png", "gif", "webp"}
 
 type FileInfo struct {
 	Name    string      `json:"name"`
@@ -44,7 +44,11 @@ func CheckEXT(path string) bool {
 }
 
 func RemoveContents(dir string) error {
-	d, err := os.Open(dir)
+	clean, err := safeRemovalDirectory(dir)
+	if err != nil {
+		return err
+	}
+	d, err := os.Open(clean) // #nosec G304 -- clean was resolved and checked against sensitive roots
 	if err != nil {
 		return err
 	}
@@ -54,12 +58,35 @@ func RemoveContents(dir string) error {
 		return err
 	}
 	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(dir, name))
+		err = os.RemoveAll(filepath.Join(clean, name))
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func safeRemovalDirectory(dir string) (string, error) {
+	if strings.TrimSpace(dir) == "" {
+		return "", fmt.Errorf("refusing to empty an unspecified directory")
+	}
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return "", err
+	}
+	unsafe := []string{filepath.VolumeName(abs) + string(os.PathSeparator)}
+	if home, err := os.UserHomeDir(); err == nil {
+		unsafe = append(unsafe, home)
+	}
+	if workingDirectory, err := os.Getwd(); err == nil {
+		unsafe = append(unsafe, workingDirectory)
+	}
+	for _, path := range unsafe {
+		if abs == filepath.Clean(path) {
+			return "", fmt.Errorf("refusing to empty unsafe directory %q", abs)
+		}
+	}
+	return abs, nil
 }
 
 func Contains(s []string, e string) bool {
@@ -102,24 +129,41 @@ func IsPictureInBlacklist(name string) bool {
 }
 
 func MoveFile(sourcePath, destPath string) error {
-	inputFile, err := os.Open(sourcePath)
+	if !pathWithinRoot(sourcePath, config.Config.Gallery.Basepath) ||
+		!pathWithinRoot(destPath, config.Config.Gallery.Basepath) {
+		return fmt.Errorf("source or destination is outside the gallery root")
+	}
+	if _, err := os.Stat(destPath); err == nil {
+		return fmt.Errorf("destination file already exists: %s", destPath)
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	inputFile, err := os.Open(sourcePath) // #nosec G304 -- source is constrained to the configured gallery root
 	if err != nil {
 		return fmt.Errorf("couldn't open source file: %s", err)
 	}
-	outputFile, err := os.Create(destPath)
+	defer inputFile.Close()
+	outputFile, err := os.CreateTemp(filepath.Dir(destPath), ".gogallery-move-*") // #nosec G304 -- destination is constrained above
 	if err != nil {
-		inputFile.Close()
 		return fmt.Errorf("couldn't open dest file: %s", err)
 	}
 	defer outputFile.Close()
-	_, err = io.Copy(outputFile, inputFile)
-	inputFile.Close()
-	if err != nil {
+	temporaryPath := outputFile.Name()
+	defer os.Remove(temporaryPath)
+	if _, err = io.Copy(outputFile, inputFile); err != nil {
 		return fmt.Errorf("writing to output file failed: %s", err)
 	}
+	if err := outputFile.Sync(); err != nil {
+		return err
+	}
+	if err := outputFile.Close(); err != nil {
+		return err
+	}
+	if err := os.Rename(temporaryPath, destPath); err != nil {
+		return err
+	}
 	// The copy was successful, so now delete the original file
-	err = os.Remove(sourcePath)
-	if err != nil {
+	if err = os.Remove(sourcePath); err != nil {
 		return fmt.Errorf("failed removing original file: %s", err)
 	}
 	return nil

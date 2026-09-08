@@ -51,12 +51,12 @@ fyne-cli:
 .PHONY: fyne-deps-ubuntu
 fyne-deps-ubuntu:
 	sudo apt-get update
-	sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev
+	sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libwayland-dev libxkbcommon-dev
 
 # Install Fyne dependencies (RedHat/Fedora)
 .PHONY: fyne-deps-fedora
 fyne-deps-fedora:
-	sudo dnf install -y gcc mesa-libGL-devel libX11-devel libxkbcommon-devel
+	sudo dnf install -y gcc mesa-libGL-devel libXcursor-devel libXrandr-devel libXi-devel libXinerama-devel libXxf86vm-devel libxkbcommon-devel wayland-devel
 
 # Build all (default)
 .PHONY: all

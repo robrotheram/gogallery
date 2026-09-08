@@ -3,6 +3,7 @@ package monitor
 import (
 	"fmt"
 	"sort"
+	"sync"
 
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uiprogress/util/strutil"
@@ -11,6 +12,7 @@ import (
 type CmdMonitor struct {
 	Tasks map[string]*CmdTask
 	done  chan bool
+	mu    sync.RWMutex
 }
 
 type CmdTask struct {
@@ -35,26 +37,27 @@ func NewCmdTask(name string, total int) *CmdTask {
 func (t *CmdTask) Start() {
 	t.ProgressStats.Start()
 	if t.Bar != nil {
-		t.Bar.Set(t.GetProcessed())
+		_ = t.Bar.Set(t.GetProcessed())
 	}
 }
 func (t *CmdTask) Update() {
 	t.ProgressStats.Update()
 	if t.Bar != nil {
-		t.Bar.Set(t.GetProcessed())
+		_ = t.Bar.Set(t.GetProcessed())
 	}
 }
 
-func (t *CmdTask) Fail(string) {
+func (t *CmdTask) Fail(message string) {
+	t.ProgressStats.Fail(message)
 	if t.Bar != nil {
-		t.Bar.Set(t.GetProcessed())
+		_ = t.Bar.Set(t.GetProcessed())
 	}
 }
 
 func (t *CmdTask) Complete() {
 	t.ProgressStats.Complete()
 	if t.Bar != nil {
-		t.Bar.Set(t.GetProcessed())
+		_ = t.Bar.Set(t.GetProcessed())
 	}
 }
 
@@ -66,6 +69,8 @@ func NewCMDMonitor() *CmdMonitor {
 }
 
 func (t *CmdMonitor) NewTask(name string, total int) MonitorStat {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	if stat, exists := t.Tasks[name]; exists {
 		return stat
 	}
@@ -75,6 +80,8 @@ func (t *CmdMonitor) NewTask(name string, total int) MonitorStat {
 }
 
 func (t *CmdMonitor) GetTasks() []MonitorStat {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
 	keys := make([]string, 0, len(t.Tasks))
 	values := make([]MonitorStat, 0, len(t.Tasks))
 	for k := range t.Tasks {

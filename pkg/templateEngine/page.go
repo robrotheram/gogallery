@@ -2,19 +2,21 @@ package templateengine
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
-	"net/http"
 )
 
 type PagePicture struct {
 	datastore.Picture
-	OrginalImgPath string
+	OriginalImagePath string
 }
 
 type Page struct {
 	Settings      config.GalleryConfiguration
-	SEO           SocailSEO
+	SEO           SocialSEO
 	Author        config.AboutConfiguration
 	Images        []datastore.Picture
 	Albums        []datastore.AlbumNode
@@ -28,10 +30,13 @@ type Page struct {
 	ImgSizes      map[string]ImgSize
 }
 
-type SocailSEO struct {
+type SocialSEO struct {
 	Site        string
+	Type        string
 	Title       string
 	Description string
+	Keywords    string
+	Tags        []string
 	ImageUrl    string
 	ImageWidth  int
 	ImageHeight int
@@ -49,26 +54,52 @@ var ImageSizes = map[string]ImgSize{
 	"xlarge": {MinWidth: 1440, ImgWidth: 0},    // Large desktops (0 means use original size)
 }
 
-func (s *SocailSEO) SetImage(picture datastore.Picture) {
-	s.ImageUrl = fmt.Sprintf("%s/img/%s/xlarge.webp", config.Config.Gallery.Url, picture.Id)
-	s.ImageWidth = 1024
-	s.ImageHeight = 683
+func (s *SocialSEO) SetImage(picture datastore.Picture) {
+	if picture.Id == "" {
+		s.ImageUrl = ""
+		s.ImageWidth = 0
+		s.ImageHeight = 0
+		return
+	}
+	s.ImageUrl = absoluteURL(fmt.Sprintf("/img/%s/xlarge.webp", picture.Id))
+	if _, err := fmt.Sscanf(picture.Dimension, "%dx%d", &s.ImageWidth, &s.ImageHeight); err != nil {
+		s.ImageWidth = 0
+		s.ImageHeight = 0
+	}
 }
 
-func (s *SocailSEO) SetNameFromPhoto(picture datastore.Picture) {
+func (s *SocialSEO) SetFromPhoto(picture datastore.Picture) {
 	s.Title = picture.Name
 	if picture.Caption != "" {
 		s.Description = picture.Caption
 	}
+	s.Type = "article"
+	s.Tags = picture.TagList()
+	s.Keywords = strings.Join(s.Tags, ", ")
+	s.SetPath(fmt.Sprintf("/photo/%s/", picture.Id))
 	s.SetImage(picture)
 }
 
-func NewSocailSEO(path string) SocailSEO {
-	return SocailSEO{
-		Site:        fmt.Sprintf("%s%s", config.Config.Gallery.Url, path),
+func (s *SocialSEO) SetPath(path string) {
+	s.Site = absoluteURL(path)
+}
+
+func NewSocialSEO(path string) SocialSEO {
+	return SocialSEO{
+		Site:        absoluteURL(path),
+		Type:        "website",
 		Title:       config.Config.Gallery.Name,
 		Description: config.Config.About.Description,
 	}
+}
+
+func absoluteURL(path string) string {
+	base := strings.TrimRight(config.Config.Gallery.Url, "/")
+	path = "/" + strings.TrimLeft(path, "/")
+	if base == "" {
+		return path
+	}
+	return base + path
 }
 
 func NewPage(r *http.Request) Page {
@@ -76,9 +107,10 @@ func NewPage(r *http.Request) Page {
 		Settings: config.Config.Gallery,
 		Author:   config.Config.About,
 		ImgSizes: ImageSizes,
+		SEO:      NewSocialSEO("/"),
 	}
 	if r != nil {
-		page.SEO = NewSocailSEO(r.URL.EscapedPath())
+		page.SEO.SetPath(r.URL.EscapedPath())
 		page.PagePath = r.URL.EscapedPath()
 	}
 	return page
@@ -90,7 +122,7 @@ func NewPagePicture(pic datastore.Picture) PagePicture {
 		originalPath = fmt.Sprintf("/img/%s/original%s", pic.Id, pic.Ext)
 	}
 	return PagePicture{
-		Picture:        pic,
-		OrginalImgPath: originalPath,
+		Picture:           pic,
+		OriginalImagePath: originalPath,
 	}
 }

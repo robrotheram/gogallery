@@ -17,7 +17,9 @@ import (
 
 func DeploySite(c config.Configuration, stats monitor.MonitorStat) error {
 	if len(c.Deploy.SiteId) == 0 || len(c.Deploy.AuthToken) == 0 {
-		return fmt.Errorf("no deployment config found")
+		err := fmt.Errorf("no deployment config found")
+		stats.Fail(err.Error())
+		return err
 	}
 	stats.Start()
 	defer stats.Complete()
@@ -42,13 +44,14 @@ func DeploySite(c config.Configuration, stats monitor.MonitorStat) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to deploy site: %s", err)
+		stats.Fail(err.Error())
+		return fmt.Errorf("failed to deploy site: %w", err)
 	}
 	// Print the site URL
 	if resp.DeploySslURL != "" {
-		fmt.Println("Site avalible: " + resp.DeploySslURL)
+		fmt.Println("Site available: " + resp.DeploySslURL)
 	} else if resp.DeployURL != "" {
-		fmt.Println("Site avalible: " + resp.DeployURL)
+		fmt.Println("Site available: " + resp.DeployURL)
 	}
 
 	return nil

@@ -4,329 +4,288 @@ import (
 	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
-	"image"
-	"image/color"
 	"log"
-	"net/http"
 	"sort"
-	"sync"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
+const allPhotosLabel = "All Photos"
+
 type ImageGrid struct {
 	*datastore.DataStore
-	currentPage   int
-	images        []datastore.Picture
-	itemsPerPage  int
-	totalPages    int
-	paginationBar *fyne.Container
-	grid          *fyne.Container
-	pageLabel     *canvas.Text
-	// gridItems       []fyne.CanvasObject
-	title           *canvas.Text
-	selectedAlbum   string                      // Track currently selected album
-	OnImageSelected func(pic datastore.Picture) // Callback for image click
+	currentPage  int
+	images       []datastore.Picture
+	itemsPerPage int
+	totalPages   int
+	loading      bool
+	requestID    uint64
 
-	// Image caching for better navigation performance
-	imageCache     map[string]*Image // Cache of loaded Image widgets by picture ID
-	cacheMutex     sync.RWMutex      // Mutex to protect the cache
-	preloadWorkers int               // Number of background workers for preloading
-	refreshMutex   sync.Mutex        // Mutex to prevent concurrent refreshes
+	grid          *ResponsiveGrid
+	tiles         []*Image
+	title         *widget.Label
+	statusLabel   *widget.Label
+	pageLabel     *widget.Label
+	previous      *widget.Button
+	next          *widget.Button
+	emptyState    *fyne.Container
+	loadingState  *fyne.Container
+	contentStack  *fyne.Container
+	paginationBar *fyne.Container
+	layout        fyne.CanvasObject
+
+	OnImageSelected func(pic datastore.Picture)
 }
 
 func NewImageGrid(db *datastore.DataStore) *ImageGrid {
-	itemsPerPage := 20 // Default value
+	itemsPerPage := 20
 	if config.Config.UI.ImagesPerPage > 0 {
 		itemsPerPage = config.Config.UI.ImagesPerPage
 	}
 
-	ig := &ImageGrid{
-		DataStore:      db,
-		currentPage:    0,
-		itemsPerPage:   itemsPerPage,
-		totalPages:     0,
-		title:          NewTextEntry("All Images", 20),
-		imageCache:     make(map[string]*Image),
-		preloadWorkers: 2, // Number of concurrent preloading workers
+	g := &ImageGrid{
+		DataStore:    db,
+		itemsPerPage: itemsPerPage,
+		title:        widget.NewLabelWithStyle(allPhotosLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		statusLabel:  widget.NewLabel("Loading library…"),
 	}
-	ig.pagination()
-	ig.imageGrid()
+	g.statusLabel.Importance = widget.MediumImportance
 
-	return ig
+	// Page size bounds the number of tile widgets while the custom layout lets
+	// every row expand to the exact viewport width.
+	g.grid = NewResponsiveGrid(230, 1.5, 8, 48)
+
+	g.createStates()
+	g.pagination()
+	g.layout = g.buildLayout()
+	g.updateState()
+	return g
 }
 
-func (g *ImageGrid) filterByAlbum(alb string) {
-	if pics, err := g.DataStore.Pictures.FindByField("album_name", alb); err == nil {
-		g.SetImages(pics)
-		g.selectedAlbum = alb // Update selected album
-		g.title.Text = g.selectedAlbum
-	} else {
-		log.Println("Error filtering by album:", err)
-	}
-	g.currentPage = 0 // Reset to first page when filtering
-	g.Refresh()
-}
+func (g *ImageGrid) createStates() {
+	emptyIcon := widget.NewIcon(theme.MediaPhotoIcon())
+	emptyTitle := widget.NewLabelWithStyle("No photos found", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	emptyHint := widget.NewLabel("Choose another album or add photos to your gallery folder.")
+	emptyHint.Alignment = fyne.TextAlignCenter
+	emptyHint.Importance = widget.LowImportance
+	g.emptyState = container.NewCenter(container.NewVBox(emptyIcon, emptyTitle, emptyHint))
 
-func (g *ImageGrid) SetImages(images []datastore.Picture) {
-	if len(images) == 0 {
-		log.Println("No images to display")
-		// g.placeholder() // Show placeholder if no images
-		g.totalPages = 0
-		g.currentPage = 0
-		// Make refresh async to avoid blocking
-		go g.Refresh()
-		return
-	}
-	g.totalPages = (len(images) + g.itemsPerPage - 1) / g.itemsPerPage
-	g.images = images
-	g.currentPage = 0 // Reset to first page when setting new images
+	progress := widget.NewProgressBarInfinite()
+	loadingLabel := widget.NewLabel("Loading photos…")
+	loadingLabel.Alignment = fyne.TextAlignCenter
+	loadingLabel.Importance = widget.LowImportance
+	g.loadingState = container.NewCenter(container.NewVBox(progress, loadingLabel))
 
-	// Clear the image cache when new images are set
-	g.clearImageCache()
-
-	// Make refresh async to avoid blocking
-	go g.Refresh()
+	g.contentStack = container.NewStack(g.grid, g.emptyState, g.loadingState)
 }
 
 func (g *ImageGrid) pagination() {
-	// Pagination controls
-	g.pageLabel = canvas.NewText(fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages), color.White)
+	g.pageLabel = widget.NewLabel("")
 	g.pageLabel.Alignment = fyne.TextAlignCenter
-	prevBtn := widget.NewButtonWithIcon("Previous", theme.NavigateBackIcon(), func() {
-		if g.refreshMutex.TryLock() {
-			defer g.refreshMutex.Unlock()
-			if g.currentPage > 0 {
-				g.currentPage--
-				go g.Refresh() // Make refresh async to avoid blocking UI
-			}
+	g.pageLabel.Importance = widget.LowImportance
+
+	g.previous = widget.NewButtonWithIcon("Previous", theme.NavigateBackIcon(), func() {
+		if g.currentPage > 0 {
+			g.currentPage--
+			g.Refresh()
 		}
 	})
-	nextBtn := widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), func() {
-		if g.refreshMutex.TryLock() {
-			defer g.refreshMutex.Unlock()
-			if g.currentPage < g.totalPages-1 {
-				g.currentPage++
-				go g.Refresh() // Make refresh async to avoid blocking UI
-			}
+	g.next = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), func() {
+		if g.currentPage < g.totalPages-1 {
+			g.currentPage++
+			g.Refresh()
 		}
 	})
-	nextBtn.IconPlacement = widget.ButtonIconTrailingText
-	nextBtn.Alignment = widget.ButtonAlignCenter
+	g.next.IconPlacement = widget.ButtonIconTrailingText
 
 	g.paginationBar = container.NewHBox(
-		prevBtn,
+		g.previous,
 		layout.NewSpacer(),
-		container.NewStack(g.pageLabel),
+		g.pageLabel,
 		layout.NewSpacer(),
-		nextBtn,
+		g.next,
 	)
 }
 
-func (g *ImageGrid) imageGrid() {
-	// Only create the grid container if it doesn't exist
-	if g.grid == nil {
-		g.grid = container.New(NewResponsiveGridLayout(400, 1.5, 20))
-	} else {
-		// Just update the layout, don't reset gridItems
-		g.grid.Layout = NewResponsiveGridLayout(400, 1.5, 20)
-		g.grid.Refresh()
-	}
-}
-
-func ImageFromURL(url string) (*canvas.Image, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Println("Failed to fetch image:", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	imgData, _, err := image.Decode(resp.Body)
-	if err != nil {
-		log.Println("Failed to decode image:", err)
-		return nil, err
-	}
-	img := canvas.NewImageFromImage(imgData)
-	img.FillMode = canvas.ImageFillOriginal
-	return img, nil
-}
-
-func (g *ImageGrid) LoadImages() {
-	start := g.currentPage * g.itemsPerPage
-	end := min((g.currentPage+1)*g.itemsPerPage, len(g.images))
-
-	// Create cells for current page, using cache when available
-	cells := make([]fyne.CanvasObject, end-start)
-	for i := range cells {
-		idx := start + i // Correct index from the current page
-		pic := g.images[idx]
-
-		// Try to get from cache first
-		if cachedImg := g.getCachedImage(pic.Id); cachedImg != nil {
-			cells[i] = cachedImg
-		} else {
-			// Create new image and cache it
-			newImg := NewImage(g.DataStore, pic, func() {
-				// Use fyne.Do to ensure grid refresh happens on UI thread
-				fyne.Do(func() {
-					g.grid.Refresh()
-				})
-			}, func(clickedPic datastore.Picture) {
-				if g.OnImageSelected != nil {
-					g.OnImageSelected(clickedPic)
-				}
-			})
-			g.cacheImage(pic.Id, newImg)
-			cells[i] = newImg
-		}
-	}
-
-	// Update UI on main thread
-	fyne.Do(func() {
-		g.grid.Objects = cells
-		g.grid.Refresh()
-	})
-
-	log.Println("Started loading images for page", g.currentPage+1)
-
-	// Start preloading adjacent pages in background
-	go g.preloadAdjacentPages()
-}
-
-type TappableContainer struct {
-	*fyne.Container
-	onTap func()
-}
-
-func (t *TappableContainer) Tapped(_ *fyne.PointEvent) {
-	if t.onTap != nil {
-		t.onTap()
-	}
-}
-
-func (g *ImageGrid) galleryHeader() fyne.CanvasObject {
-	leftPad := canvas.NewRectangle(nil)
-	leftPad.SetMinSize(fyne.NewSize(12, 0))
-	const allPhotosLabel = "All Photos"
-
-	albms, _ := g.Albums.GetLatestAlbums()
-	albumOptions := make([]string, len(albms)+1)
-	albumOptions[0] = allPhotosLabel // First option for all photos
-	for i, album := range albms {
-		albumOptions[i+1] = album.Name
-	}
-	sort.Strings(albumOptions[1:]) // Sort album options alphabetically, excluding "All Photos"
-
-	albumSelect := widget.NewSelect(albumOptions, func(selected string) {
-		log.Printf("Selected album: %s", selected)
-		if selected == allPhotosLabel {
-			pics, err := g.DataStore.Pictures.GetAll()
-			if err != nil {
-				return
-			}
-			g.SetImages(pics)
+func (g *ImageGrid) buildLayout() fyne.CanvasObject {
+	albumSelect := widget.NewSelect(g.albumOptions(), func(selected string) {
+		if selected == "" {
 			return
 		}
-		g.filterByAlbum(selected)
+		log.Printf("Selected album: %s", selected)
+		g.loadAlbum(selected)
 	})
+	albumSelect.Selected = allPhotosLabel
 	albumSelect.PlaceHolder = allPhotosLabel
-	return (container.NewHBox(leftPad, albumSelect))
+
+	titleBlock := container.NewHBox(g.title, g.statusLabel)
+	filter := container.NewHBox(widget.NewLabel("Album"), albumSelect)
+	header := container.NewBorder(nil, nil, titleBlock, filter)
+
+	body := container.NewBorder(
+		container.NewPadded(header),
+		container.NewPadded(g.paginationBar),
+		nil,
+		nil,
+		container.NewPadded(g.contentStack),
+	)
+	return body
+}
+
+func (g *ImageGrid) albumOptions() []string {
+	options := []string{allPhotosLabel}
+	albums, err := g.Albums.GetLatestAlbums()
+	if err != nil {
+		log.Printf("Error loading albums: %v", err)
+		return options
+	}
+	for _, album := range albums {
+		options = append(options, album.Name)
+	}
+	sort.Strings(options[1:])
+	return options
+}
+
+func (g *ImageGrid) loadAlbum(album string) {
+	g.requestID++
+	requestID := g.requestID
+	g.SetLoading(true)
+
+	go func() {
+		var (
+			pictures []datastore.Picture
+			err      error
+		)
+		if album == allPhotosLabel {
+			pictures, err = g.DataStore.Pictures.GetAll()
+		} else {
+			pictures, err = g.DataStore.Pictures.FindByField("album_name", album)
+		}
+
+		fyne.Do(func() {
+			if requestID != g.requestID {
+				return
+			}
+			if err != nil {
+				log.Printf("Error loading album %q: %v", album, err)
+				g.SetLoading(false)
+				return
+			}
+			g.title.SetText(album)
+			g.SetImages(pictures)
+		})
+	}()
+}
+
+// Reload refreshes the full library while preserving the grid's async loading
+// and request ordering guarantees.
+func (g *ImageGrid) Reload() {
+	g.loadAlbum(allPhotosLabel)
+}
+
+func (g *ImageGrid) SetLoading(loading bool) {
+	g.loading = loading
+	g.updateState()
+}
+
+func (g *ImageGrid) SetImages(images []datastore.Picture) {
+	g.images = images
+	g.currentPage = 0
+	if len(images) == 0 {
+		g.totalPages = 0
+	} else {
+		g.totalPages = (len(images) + g.itemsPerPage - 1) / g.itemsPerPage
+	}
+	g.loading = false
+	g.Refresh()
+}
+
+func (g *ImageGrid) currentImages() []datastore.Picture {
+	start := g.currentPage * g.itemsPerPage
+	if start >= len(g.images) {
+		return nil
+	}
+	end := min(start+g.itemsPerPage, len(g.images))
+	return g.images[start:end]
 }
 
 func (g *ImageGrid) Layout() fyne.CanvasObject {
-	stack := container.NewVBox(g.galleryHeader(), g.grid)
-	return container.NewBorder(
-		nil,                         // top
-		g.paginationBar,             // bottom (footer)
-		nil,                         // left
-		nil,                         // right
-		container.NewVScroll(stack), // center (main scroll area)
-	)
+	return g.layout
 }
 
 func (g *ImageGrid) Refresh() {
-	g.pageLabel.Text = fmt.Sprintf("Page %d / %d", g.currentPage+1, g.totalPages)
-	g.pageLabel.Refresh()
-	g.LoadImages()
+	pageNumber := 0
+	if g.totalPages > 0 {
+		pageNumber = g.currentPage + 1
+	}
+	g.pageLabel.SetText(fmt.Sprintf("Page %d of %d", pageNumber, g.totalPages))
+
+	start := 0
+	end := 0
+	if len(g.images) > 0 {
+		start = g.currentPage*g.itemsPerPage + 1
+		end = min((g.currentPage+1)*g.itemsPerPage, len(g.images))
+	}
+	g.statusLabel.SetText(fmt.Sprintf("Showing %d–%d of %d photos", start, end, len(g.images)))
+
+	if g.currentPage == 0 {
+		g.previous.Disable()
+	} else {
+		g.previous.Enable()
+	}
+	if g.totalPages == 0 || g.currentPage >= g.totalPages-1 {
+		g.next.Disable()
+	} else {
+		g.next.Enable()
+	}
+
+	g.updateTiles()
+	g.grid.ScrollToTop()
+	g.updateState()
 }
 
-// clearImageCache clears all cached images
-func (g *ImageGrid) clearImageCache() {
-	g.cacheMutex.Lock()
-	defer g.cacheMutex.Unlock()
-	g.imageCache = make(map[string]*Image)
-	log.Println("Image cache cleared")
+func (g *ImageGrid) updateTiles() {
+	pictures := g.currentImages()
+	for len(g.tiles) < len(pictures) {
+		image := NewImage(g.DataStore, datastore.Picture{}, nil, func(pic datastore.Picture) {
+			if g.OnImageSelected != nil {
+				g.OnImageSelected(pic)
+			}
+		})
+		image.SetShowCaption(true)
+		g.tiles = append(g.tiles, image)
+	}
+
+	objects := make([]fyne.CanvasObject, len(pictures))
+	for i, picture := range pictures {
+		g.tiles[i].SetPicture(picture)
+		objects[i] = g.tiles[i]
+	}
+	g.grid.SetObjects(objects)
 }
 
-// getCachedImage retrieves an image from cache
-func (g *ImageGrid) getCachedImage(picId string) *Image {
-	g.cacheMutex.RLock()
-	defer g.cacheMutex.RUnlock()
-	return g.imageCache[picId]
-}
+func (g *ImageGrid) updateState() {
+	if g.loading {
+		g.grid.Hide()
+		g.emptyState.Hide()
+		g.loadingState.Show()
+		g.paginationBar.Hide()
+		return
+	}
 
-// cacheImage stores an image in cache
-func (g *ImageGrid) cacheImage(picId string, img *Image) {
-	g.cacheMutex.Lock()
-	defer g.cacheMutex.Unlock()
-	g.imageCache[picId] = img
-}
-
-// preloadAdjacentPages preloads images from previous and next pages
-func (g *ImageGrid) preloadAdjacentPages() {
+	g.loadingState.Hide()
 	if len(g.images) == 0 {
+		g.grid.Hide()
+		g.emptyState.Show()
+		g.paginationBar.Hide()
 		return
 	}
 
-	// Preload previous page if it exists
-	if g.currentPage > 0 {
-		go g.preloadPage(g.currentPage - 1)
-	}
-
-	// Preload next page if it exists
-	if g.currentPage < g.totalPages-1 {
-		go g.preloadPage(g.currentPage + 1)
-	}
-}
-
-// preloadPage preloads images for a specific page
-func (g *ImageGrid) preloadPage(pageNum int) {
-	if pageNum < 0 || pageNum >= g.totalPages {
-		return
-	}
-
-	start := pageNum * g.itemsPerPage
-	end := min((pageNum+1)*g.itemsPerPage, len(g.images))
-
-	// Use a semaphore to limit concurrent preloading
-	semaphore := make(chan struct{}, g.preloadWorkers)
-
-	for i := start; i < end; i++ {
-		pic := g.images[i]
-
-		// Skip if already cached
-		if g.getCachedImage(pic.Id) != nil {
-			continue
-		}
-
-		semaphore <- struct{}{} // Acquire
-		go func(picture datastore.Picture) {
-			defer func() { <-semaphore }() // Release
-
-			// Create and cache the image
-			img := NewImage(g.DataStore, picture, func() {
-				// No need to refresh grid for preloaded images
-			}, func(clickedPic datastore.Picture) {
-				if g.OnImageSelected != nil {
-					g.OnImageSelected(clickedPic)
-				}
-			})
-			g.cacheImage(picture.Id, img)
-		}(pic)
-	}
+	g.emptyState.Hide()
+	g.grid.Show()
+	g.paginationBar.Show()
 }

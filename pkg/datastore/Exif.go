@@ -7,8 +7,10 @@ import (
 	"log"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/araddon/dateparse"
@@ -17,9 +19,25 @@ import (
 	jpeg "github.com/dsoprea/go-jpeg-image-structure/v2"
 )
 
-var exifIfdMapping *exifcommon.IfdMapping
-var exifTagIndex = exif.NewTagIndex()
+var (
+	exifIfdMapping *exifcommon.IfdMapping
+	exifTagIndex   *exif.TagIndex
+	exifInitOnce   sync.Once
+	exifInitErr    error
+)
 var exifDateTimeTags = []string{"DateTimeOriginal", "DateTimeCreated", "CreateDate", "DateTime", "DateTimeDigitized"}
+
+func initializeExifDefinitions() error {
+	exifInitOnce.Do(func() {
+		exifIfdMapping, exifInitErr = exifcommon.NewIfdMappingWithStandard()
+		if exifInitErr != nil {
+			return
+		}
+		exifTagIndex = exif.NewTagIndex()
+		exifInitErr = exif.LoadStandardTags(exifTagIndex)
+	})
+	return exifInitErr
+}
 
 func parser(fileName string) (rawExif []byte, err error) {
 	jpegMp := jpeg.NewJpegMediaParser()
@@ -40,6 +58,9 @@ func parser(fileName string) (rawExif []byte, err error) {
 }
 
 func (u *Picture) parseGPS(rawExif []byte) error {
+	if err := initializeExifDefinitions(); err != nil {
+		return fmt.Errorf("initialize EXIF definitions: %w", err)
+	}
 	var ifdIndex exif.IfdIndex
 	_, ifdIndex, err := exif.Collect(exifIfdMapping, exifTagIndex, rawExif)
 
@@ -77,6 +98,10 @@ func (u *Picture) extractGPSData(ifdIndex exif.IfdIndex) error {
 }
 
 func (u *Picture) CreateExif() error {
+	if width, height, err := GetImageDimensions(u); err == nil {
+		u.Dimension = fmt.Sprintf("%dx%d", width, height)
+		u.AspectRatio = float32(width) / float32(height)
+	}
 
 	rawExif, err := parser(u.Path)
 	if err != nil {
@@ -107,11 +132,13 @@ func (u *Picture) CreateExif() error {
 		return fmt.Errorf("metadata: no exif data in %s", u.Path)
 	}
 
-	u.parseGPS(rawExif)
+	_ = u.parseGPS(rawExif) // GPS metadata is optional.
 
-	u.DateTaken = parseExifDateTime(tags)
+	if takenAt := parseExifDateTime(tags); !takenAt.IsZero() {
+		u.DateTaken = takenAt
+	}
 	u.Camera = cameraModelToString(tags)
-	u.FStop = apatureToString(tags)
+	u.FStop = apertureToString(tags)
 	u.FocalLength = focalLengthToString(tags)
 
 	if value, ok := tags["FocalLengthIn35mmFilm"]; ok {
@@ -131,11 +158,6 @@ func (u *Picture) CreateExif() error {
 	u.FileFormat = tags["FileType"]
 	u.Software = tags["Software"]
 
-	if w, h, err := GetImageDention(u); err == nil {
-		u.Dimension = fmt.Sprintf("%dx%d", w, h)
-		u.AspectRatio = float32(w) / float32(h)
-	}
-
 	u.ColorSpace = formatColorSpace(tags["ColorSpace"])
 	u.MeteringMode = formatMeteringMode(tags["MeteringMode"])
 	u.Saturation = formatSaturation(tags["Saturation"])
@@ -146,7 +168,7 @@ func (u *Picture) CreateExif() error {
 
 	return nil
 }
-func GetImageDention(u *Picture) (width, height int, err error) {
+func GetImageDimensions(u *Picture) (width, height int, err error) {
 	f, err := os.Open(u.Path)
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to open image file %s: %v", u.Path, err)
@@ -196,12 +218,15 @@ func cameraModelToString(tags map[string]string) string {
 	}
 }
 
-func apatureToString(tags map[string]string) string {
+func apertureToString(tags map[string]string) string {
 	if value, ok := tags["FNumber"]; ok {
 		values := strings.Split(value, "/")
 		if len(values) == 2 && values[1] != "0" && values[1] != "" {
-			number, _ := strconv.ParseFloat(values[0], 64)
-			denom, _ := strconv.ParseFloat(values[1], 64)
+			number, numberErr := strconv.ParseFloat(values[0], 64)
+			denom, denominatorErr := strconv.ParseFloat(values[1], 64)
+			if numberErr != nil || denominatorErr != nil || denom == 0 {
+				return "0.0"
+			}
 			return fmt.Sprintf("%.1f", math.Round((number/denom)*1000)/1000)
 		}
 	}
@@ -343,7 +368,7 @@ func setExifTag(rootIB *exif.IfdBuilder, ifdPath, tagName, tagValue string) erro
 	}
 
 	if err := ifdIb.SetStandardWithName(tagName, tagValue); err != nil {
-		return fmt.Errorf("failed to set tag", err)
+		return fmt.Errorf("failed to set tag %s: %w", tagName, err)
 	}
 	return nil
 }
@@ -360,7 +385,9 @@ func constructExifBuilder() (*exif.IfdBuilder, error) {
 
 	rootIb := exif.NewIfdBuilder(im, ti, exifcommon.IfdStandardIfdIdentity,
 		exifcommon.EncodeDefaultByteOrder)
-	rootIb.AddStandardWithName("ProcessingSoftware", "photos-uploader")
+	if err := rootIb.AddStandardWithName("ProcessingSoftware", "GoGallery"); err != nil {
+		return nil, fmt.Errorf("set processing software tag: %w", err)
+	}
 	return rootIb, nil
 }
 
@@ -371,7 +398,10 @@ func (pic *Picture) UpdateExifTags() error {
 		return fmt.Errorf("failed to parse JPEG file: %v", err)
 	}
 
-	sl := intfc.(*jpeg.SegmentList)
+	sl, ok := intfc.(*jpeg.SegmentList)
+	if !ok {
+		return fmt.Errorf("unexpected JPEG parser result %T", intfc)
+	}
 
 	rootIb, err := sl.ConstructExifBuilder()
 	if err != nil {
@@ -396,8 +426,39 @@ func (pic *Picture) UpdateExifTags() error {
 	if err := sl.Write(b); err != nil {
 		return fmt.Errorf("failed to create JPEG data: %v", err)
 	}
-	if err := os.WriteFile(pic.Path, b.Bytes(), 0644); err != nil {
+	if err := replaceFileAtomically(pic.Path, b.Bytes()); err != nil {
 		return fmt.Errorf("failed to write JPEG file: %v", err)
 	}
 	return nil
+}
+
+func replaceFileAtomically(path string, data []byte) (err error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	temporary, err := os.CreateTemp(filepath.Dir(path), ".gogallery-exif-*")
+	if err != nil {
+		return err
+	}
+	temporaryPath := temporary.Name()
+	defer func() {
+		_ = temporary.Close()
+		if err != nil {
+			_ = os.Remove(temporaryPath)
+		}
+	}()
+	if err = temporary.Chmod(info.Mode().Perm()); err != nil {
+		return err
+	}
+	if _, err = temporary.Write(data); err != nil {
+		return err
+	}
+	if err = temporary.Sync(); err != nil {
+		return err
+	}
+	if err = temporary.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temporaryPath, path)
 }

@@ -55,6 +55,13 @@
                          <p class="text-lg text-emerald-200 leading-relaxed font-light px-4">
                               {{.Picture.Caption}}
                          </p>
+                         {{if .Picture.Tags}}
+                         <div class="flex flex-wrap gap-2 px-4" aria-label="Photo tags">
+                              {{range .Picture.TagList}}
+                              <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-200">{{.}}</span>
+                              {{end}}
+                         </div>
+                         {{end}}
                     </div>
                </div>
           </div>

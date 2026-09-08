@@ -7,12 +7,14 @@ import (
 	"gogallery/pkg/monitor"
 	"gogallery/pkg/pipeline"
 	"gogallery/pkg/preview"
+	"log"
 	"time"
 
 	uiMonitor "gogallery/pkg/ui/monitors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -25,23 +27,22 @@ type TasksPage struct {
 	server  *preview.Server
 }
 
-var cfg = config.Config
-
 func NewTasksPage(db *datastore.DataStore, server *preview.Server) *TasksPage {
-	uiMonitor, ok := db.Monitor.(*uiMonitor.UIMonitor)
+	uiTaskMonitor, ok := db.Monitor.(*uiMonitor.UIMonitor)
 	if !ok {
-		panic("db.Monitor is not of type UIMonitor")
+		uiTaskMonitor = uiMonitor.NewUIMonitor()
+		db.Monitor = uiTaskMonitor
 	}
 	page := &TasksPage{
 		Title:     "Tasks",
 		DataStore: db,
 		server:    server,
-		monitor:   uiMonitor, // Ensure db.Monitor is of type UIMonitor
-		table:     nil,       // Will be initialized in Layout
+		monitor:   uiTaskMonitor,
+		table:     nil, // Will be initialized in Layout
 	}
 	page.init() // Initialize buttons and table
 
-	uiMonitor.RegisterListener(func() {
+	uiTaskMonitor.RegisterListener(func() {
 		fyne.Do(func() {
 			page.Refresh() // Refresh the page when tasks are updated
 		})
@@ -52,29 +53,69 @@ func NewTasksPage(db *datastore.DataStore, server *preview.Server) *TasksPage {
 func (t *TasksPage) init() {
 	// --- Action Buttons ---
 	rescanBtn := widget.NewButton("Rescan", func() {
-		go t.ScanPath(cfg.Gallery.Basepath)
+		go func() {
+			if err := t.ScanPath(config.Config.Gallery.Basepath); err != nil {
+				log.Printf("Gallery scan skipped: %v", err)
+			}
+		}()
 	})
-	deleteBtn := widget.NewButton("Delete Site", func() {
+	deleteSite := func() {
 		stat := t.monitor.NewTask("Delete Site", 0)
 		go func() {
 			stat.Start()
-			defer stat.Complete()
-			pipeline.NewRenderPipeline(&cfg.Gallery, t.DataStore).DeleteSite()
-			t.DataStore.Reset() // Reset datastore after deletion
+			if err := pipeline.NewRenderPipeline(&config.Config.Gallery, t.DataStore).DeleteSite(); err != nil {
+				stat.Fail(err.Error())
+				log.Printf("Could not delete generated site: %v", err)
+				return
+			}
+			stat.Complete()
 		}()
+	}
+	deleteBtn := widget.NewButton("Delete Site", func() {
+		app := fyne.CurrentApp()
+		if app == nil || len(app.Driver().AllWindows()) == 0 {
+			log.Print("Could not show delete confirmation: application window unavailable")
+			return
+		}
+		dialog.ShowConfirm(
+			"Delete generated site?",
+			"This removes the generated output directory. Your source photos will not be deleted.",
+			func(confirmed bool) {
+				if confirmed {
+					deleteSite()
+				}
+			},
+			app.Driver().AllWindows()[0],
+		)
 	})
 	buildBtn := widget.NewButton("Build Site", func() {
-		go pipeline.NewRenderPipeline(&cfg.Gallery, t.DataStore).BuildSite()
+		go func() {
+			if err := pipeline.NewRenderPipeline(&config.Config.Gallery, t.DataStore).BuildSite(); err != nil {
+				log.Printf("Could not build site: %v", err)
+			}
+		}()
 	})
 	deployBtn := widget.NewButton("Deploy Site", func() {
-		go deploy.DeploySite(*cfg, t.NewTask("netify deploy", 1))
+		go func() {
+			if err := deploy.DeploySite(*config.Config, t.NewTask("Netlify deployment", 1)); err != nil {
+				log.Printf("Could not deploy site: %v", err)
+			}
+		}()
 	})
 
 	startServerBtn := widget.NewButton("Start Preview Server", func() {
-		go t.server.Start()
+		go func() {
+			if err := t.server.Start(); err != nil {
+				log.Printf("Could not start preview server: %v", err)
+			}
+		}()
 	})
 	stopServerBtn := widget.NewButton("Stop Preview Server", func() {
-		go t.server.Stop()
+		go func() {
+			if err := t.server.Stop(); err != nil {
+				log.Printf("Could not stop preview server: %v", err)
+			}
+		}()
 	})
 
 	// Button grid in a centered, fixed-width box
@@ -84,7 +125,7 @@ func (t *TasksPage) init() {
 		startServerBtn, stopServerBtn,
 	)
 
-	t.table = craeteTable([]fyne.CanvasObject{})
+	t.table = createTable(nil)
 }
 
 func tableHeader() fyne.CanvasObject {
@@ -97,7 +138,7 @@ func tableHeader() fyne.CanvasObject {
 	)
 }
 
-func craeteTable(r []fyne.CanvasObject) *fyne.Container {
+func createTable(r []fyne.CanvasObject) *fyne.Container {
 	rows := []fyne.CanvasObject{
 		tableHeader(),
 	}
@@ -123,11 +164,16 @@ func (t *TasksPage) createTaskRow(task interface{}) fyne.CanvasObject {
 		percent                            float64
 	)
 	if ps, ok := task.(*monitor.ProgressStats); ok {
-		name = ps.Name
-		status = t.getTaskStatus(ps.State)
-		startedAt = t.getTaskStartTime(ps)
-		timeTaken = t.getTaskTimeTaken(ps)
-		percent = ps.Percent() / 100.0
+		snapshot := ps.Snapshot()
+		name = snapshot.Name
+		status = t.getTaskStatus(snapshot.State)
+		startedAt = t.getTaskStartTime(&snapshot)
+		timeTaken = t.getTaskTimeTaken(&snapshot)
+		if snapshot.Total == 0 {
+			percent = 1
+		} else {
+			percent = float64(snapshot.Processed) / float64(snapshot.Total)
+		}
 	} else {
 		name = "Unknown"
 		status = "-"
@@ -146,7 +192,7 @@ func (t *TasksPage) createTaskRow(task interface{}) fyne.CanvasObject {
 	)
 }
 
-func (t *TasksPage) getTaskStatus(state monitor.ProssesState) string {
+func (t *TasksPage) getTaskStatus(state monitor.ProcessState) string {
 	switch state {
 	case monitor.COMPLETE:
 		return "Complete"

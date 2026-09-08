@@ -49,7 +49,7 @@ const mainifestTemplate = `{
   }
 `
 const serviceWorker = `
-	const CACHE_NAME = 'gogaller-cache';
+	const CACHE_NAME = 'gogallery-cache-v1';
 	const toCache = [
 	'/',
 	'/manifest.json',
@@ -64,7 +64,7 @@ const serviceWorker = `
 		.then(function(cache) {
 			return cache.addAll(toCache)
 		})
-		.then(self.skipWaiting())
+		.then(() => self.skipWaiting())
 	)
 	})
 
@@ -96,15 +96,18 @@ const serviceWorker = `
 	})
 `
 
-func ManifestWriter(w io.Writer, config *config.GalleryConfiguration) {
+func ManifestWriter(w io.Writer, config *config.GalleryConfiguration) error {
 	manifest := Manifest{}
-	json.Unmarshal([]byte(mainifestTemplate), &manifest)
+	if err := json.Unmarshal([]byte(mainifestTemplate), &manifest); err != nil {
+		return err
+	}
 	manifest.ShortName = config.Name
 	manifest.Name = config.Name
-	manifest.StartURL = config.Url
-	json.NewEncoder(w).Encode(manifest)
+	manifest.StartURL = "/"
+	return json.NewEncoder(w).Encode(manifest)
 }
 
-func ServiceWorkerWriter(w io.Writer) {
-	w.Write([]byte(serviceWorker))
+func ServiceWorkerWriter(w io.Writer) error {
+	_, err := w.Write([]byte(serviceWorker))
+	return err
 }

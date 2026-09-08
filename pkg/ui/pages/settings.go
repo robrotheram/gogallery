@@ -2,28 +2,136 @@ package pages
 
 import (
 	"fmt"
-	"gogallery/pkg/ai"
-	"gogallery/pkg/config"
-	"gogallery/pkg/datastore"
-	"gogallery/pkg/ui/components"
+	"log"
 	"sort"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"gogallery/pkg/ai"
+	"gogallery/pkg/config"
+	"gogallery/pkg/datastore"
+	"gogallery/pkg/preview"
+	"gogallery/pkg/ui/components"
+	"gogallery/pkg/ui/utils"
 )
 
 type SettingsPage struct {
-	Title string
-	db    *datastore.DataStore
+	Title  string
+	db     *datastore.DataStore
+	server *preview.Server
 }
 
-func NewSettingsPage(db *datastore.DataStore) *SettingsPage {
-	return &SettingsPage{
+func NewSettingsPage(db *datastore.DataStore, servers ...*preview.Server) *SettingsPage {
+	page := &SettingsPage{
 		Title: "Settings",
 		db:    db,
 	}
+	if len(servers) > 0 {
+		page.server = servers[0]
+	}
+	return page
+}
+
+type settingsNotice struct {
+	container    *fyne.Container
+	icon         *widget.Icon
+	title        *widget.Label
+	message      *widget.Label
+	timerMu      sync.Mutex
+	dismissTimer *time.Timer
+}
+
+const settingsNoticeDuration = 20 * time.Second
+
+func newSettingsNotice() *settingsNotice {
+	notice := &settingsNotice{
+		icon:    widget.NewIcon(theme.NewThemedResource(theme.Icon(theme.IconNameConfirm))),
+		title:   widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		message: widget.NewLabel(""),
+	}
+	notice.message.Wrapping = fyne.TextWrapWord
+
+	dismiss := widget.NewButtonWithIcon("", theme.Icon(theme.IconNameCancel), notice.Hide)
+	dismiss.Importance = widget.LowImportance
+	body := container.NewBorder(
+		nil,
+		nil,
+		notice.icon,
+		container.NewCenter(dismiss),
+		container.NewVBox(notice.title, notice.message),
+	)
+	notice.container = container.NewStack(widget.NewCard("", "", body))
+	notice.Hide()
+	return notice
+}
+
+func (n *settingsNotice) Hide() {
+	n.timerMu.Lock()
+	if n.dismissTimer != nil {
+		n.dismissTimer.Stop()
+		n.dismissTimer = nil
+	}
+	n.timerMu.Unlock()
+	n.container.Hide()
+}
+
+func (n *settingsNotice) scheduleDismiss() {
+	n.timerMu.Lock()
+	if n.dismissTimer != nil {
+		n.dismissTimer.Stop()
+	}
+
+	var timer *time.Timer
+	timer = time.AfterFunc(settingsNoticeDuration, func() {
+		fyne.Do(func() {
+			n.timerMu.Lock()
+			if n.dismissTimer != timer {
+				n.timerMu.Unlock()
+				return
+			}
+			n.dismissTimer = nil
+			n.timerMu.Unlock()
+			n.container.Hide()
+		})
+	})
+	n.dismissTimer = timer
+	n.timerMu.Unlock()
+}
+
+func (n *settingsNotice) ShowSuccess(section string) {
+	n.icon.SetResource(theme.NewThemedResource(theme.Icon(theme.IconNameConfirm)))
+	n.title.Importance = widget.MediumImportance
+	n.title.SetText("Changes saved")
+	n.message.SetText(section + " settings are up to date.")
+	n.container.Show()
+	n.scheduleDismiss()
+}
+
+func (n *settingsNotice) ShowError(err error) {
+	n.icon.SetResource(theme.NewErrorThemedResource(theme.Icon(theme.IconNameError)))
+	n.title.Importance = widget.DangerImportance
+	n.title.SetText("Could not save settings")
+	n.message.SetText(err.Error())
+	n.container.Show()
+	n.scheduleDismiss()
+}
+
+func showSettingsSaveResult(notice *settingsNotice, section string, err error) {
+	if err != nil {
+		notice.ShowError(err)
+		utils.Notify("Settings not saved", err.Error())
+		return
+	}
+
+	message := section + " settings saved"
+	notice.ShowSuccess(section)
+	utils.Notify("Settings saved", message)
 }
 
 func (s *SettingsPage) Layout() fyne.CanvasObject {
@@ -32,7 +140,7 @@ func (s *SettingsPage) Layout() fyne.CanvasObject {
 		"Gallery":     galleryConfigForm(),
 		"Author":      aboutConfigForm(),
 		"Deployment":  deployConfigForm(),
-		"Application": uiConfigForm(),
+		"Application": uiConfigForm(s.server),
 		// "Albums":      s.Albums(),
 	}
 
@@ -73,6 +181,7 @@ func (s *SettingsPage) Layout() fyne.CanvasObject {
 
 func galleryConfigForm() fyne.CanvasObject {
 	cfg := config.Config.Gallery
+	status := newSettingsNotice()
 	name := widget.NewEntry()
 	name.SetText(cfg.Name)
 	theme := widget.NewEntry()
@@ -87,6 +196,8 @@ func galleryConfigForm() fyne.CanvasObject {
 	destpath.SetText(cfg.Destpath)
 
 	form := &widget.Form{
+		SubmitText: "Save",
+		CancelText: "Reset",
 		Items: []*widget.FormItem{
 			{Text: "Name", Widget: name, HintText: "Gallery name"},
 			{Text: "Theme", Widget: theme, HintText: "Path to the theme dir"},
@@ -97,23 +208,37 @@ func galleryConfigForm() fyne.CanvasObject {
 		OnCancel: func() {
 			name.SetText(cfg.Name)
 			theme.SetText(cfg.Theme)
+			basePath.SetText(cfg.Basepath)
+			destpath.SetText(cfg.Destpath)
 			imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
+			status.Hide()
 		},
 		OnSubmit: func() {
-			cfg.Name = name.Text
-			cfg.Theme = theme.Text
-			if n, err := strconv.Atoi(imagesPerPage.Text); err == nil {
-				cfg.ImagesPerPage = n
+			n, err := strconv.Atoi(strings.TrimSpace(imagesPerPage.Text))
+			if err != nil || n <= 0 {
+				showSettingsSaveResult(status, "Gallery", fmt.Errorf("images per page must be a positive number"))
+				return
 			}
-			cfg.Save()
+			next := cfg
+			next.Name = strings.TrimSpace(name.Text)
+			next.Theme = strings.TrimSpace(theme.Text)
+			next.Basepath = strings.TrimSpace(basePath.Text)
+			next.Destpath = strings.TrimSpace(destpath.Text)
+			next.ImagesPerPage = n
+			err = next.Save()
+			if err == nil {
+				cfg = next
+			}
+			showSettingsSaveResult(status, "Gallery", err)
 		},
 	}
 	title := components.NewTextEntry("Gallery Settings", 20)
-	return container.NewVBox(title, widget.NewSeparator(), form)
+	return container.NewVBox(title, widget.NewSeparator(), status.container, form)
 }
 
 func aboutConfigForm() fyne.CanvasObject {
 	cfg := config.Config.About
+	status := newSettingsNotice()
 	twitter := widget.NewEntry()
 	twitter.SetText(cfg.Twitter)
 	facebook := widget.NewEntry()
@@ -143,6 +268,8 @@ func aboutConfigForm() fyne.CanvasObject {
 	github.SetText(cfg.Github)
 
 	form := &widget.Form{
+		SubmitText: "Save",
+		CancelText: "Reset",
 		Items: []*widget.FormItem{
 			{Text: "Twitter", Widget: twitter, HintText: "Twitter handle"},
 			{Text: "Facebook", Widget: facebook, HintText: "Facebook page URL"},
@@ -170,27 +297,33 @@ func aboutConfigForm() fyne.CanvasObject {
 			blog.SetText(cfg.Blog)
 			website.SetText(cfg.Website)
 			github.SetText(cfg.Github)
+			status.Hide()
 		},
 		OnSubmit: func() {
-			cfg.Twitter = twitter.Text
-			cfg.Facebook = facebook.Text
-			cfg.Email = email.Text
-			cfg.Instagram = instagram.Text
-			cfg.Description = description.Text
-			cfg.Footer = footer.Text
-			cfg.Photographer = photographer.Text
-			cfg.ProfilePhoto = profilePhoto.Text
-			cfg.BackgroundPhoto = backgroundPhoto.Text
-			cfg.Blog = blog.Text
-			cfg.Website = website.Text
-			cfg.Github = github.Text
-			cfg.Save()
+			next := cfg
+			next.Twitter = twitter.Text
+			next.Facebook = facebook.Text
+			next.Email = email.Text
+			next.Instagram = instagram.Text
+			next.Description = description.Text
+			next.Footer = footer.Text
+			next.Photographer = photographer.Text
+			next.ProfilePhoto = profilePhoto.Text
+			next.BackgroundPhoto = backgroundPhoto.Text
+			next.Blog = blog.Text
+			next.Website = website.Text
+			next.Github = github.Text
+			err := next.Save()
+			if err == nil {
+				cfg = next
+			}
+			showSettingsSaveResult(status, "Author", err)
 		},
 	}
 	title := components.NewTextEntry("Author Settings", 20)
 	scrollForm := container.NewVScroll(container.NewPadded(form))
 	return container.NewBorder(
-		container.NewVBox(title, widget.NewSeparator()), // top
+		container.NewVBox(title, widget.NewSeparator(), status.container), // top
 		nil,        // bottom
 		nil,        // left
 		nil,        // right
@@ -200,13 +333,16 @@ func aboutConfigForm() fyne.CanvasObject {
 
 func deployConfigForm() fyne.CanvasObject {
 	cfg := config.Config.Deploy
+	status := newSettingsNotice()
 	siteId := widget.NewEntry()
 	siteId.SetText(cfg.SiteId)
-	authToken := widget.NewEntry()
+	authToken := widget.NewPasswordEntry()
 	authToken.SetText(cfg.AuthToken)
-	draft := widget.NewCheck("Draft", func(b bool) { cfg.Draft = b })
+	draft := widget.NewCheck("Draft", nil)
 	draft.SetChecked(cfg.Draft)
 	form := &widget.Form{
+		SubmitText: "Save",
+		CancelText: "Reset",
 		Items: []*widget.FormItem{
 			{Text: "Site ID", Widget: siteId, HintText: "Your site ID from the deployment service"},
 			{Text: "Auth Token", Widget: authToken, HintText: "Your authentication token for the deployment service"},
@@ -216,82 +352,104 @@ func deployConfigForm() fyne.CanvasObject {
 			siteId.SetText(cfg.SiteId)
 			authToken.SetText(cfg.AuthToken)
 			draft.SetChecked(cfg.Draft)
+			status.Hide()
 		},
 		OnSubmit: func() {
-			cfg.SiteId = siteId.Text
-			cfg.AuthToken = authToken.Text
-			cfg.Draft = draft.Checked
-			cfg.Save()
+			next := cfg
+			next.SiteId = strings.TrimSpace(siteId.Text)
+			next.AuthToken = strings.TrimSpace(authToken.Text)
+			next.Draft = draft.Checked
+			err := next.Save()
+			if err == nil {
+				cfg = next
+			}
+			showSettingsSaveResult(status, "Deployment", err)
 		},
 	}
 	title := components.NewTextEntry("Deployment Settings", 20)
-	return container.NewVBox(title, widget.NewSeparator(), form)
+	return container.NewVBox(title, widget.NewSeparator(), status.container, form)
 }
 
-func uiConfigForm() fyne.CanvasObject {
-	cfg := &config.Config.UI
+func uiConfigForm(server *preview.Server) fyne.CanvasObject {
+	cfg := config.Config.UI
+	status := newSettingsNotice()
 	// Theme selection: Light or Dark
 	themeOptions := []string{"light", "dark"}
-	themeSelect := widget.NewRadioGroup(themeOptions, func(selected string) {
-		if selected == "light" {
-			cfg.Theme = "light"
-		} else {
-			cfg.Theme = "dark"
-		}
-	})
+	themeSelect := widget.NewRadioGroup(themeOptions, nil)
 	themeSelect.SetSelected(cfg.Theme)
 
-	notifications := widget.NewCheck("Enable Notifications", func(b bool) {
-		cfg.Notification = b
-	})
+	notifications := widget.NewCheck("Enable Notifications", nil)
 	notifications.SetChecked(cfg.Notification)
 
-	// Preview public checkbox (add PublicPreview to UIConfiguration if not present)
-	previewPublic := widget.NewCheck("Preview Public", func(b bool) {
-		cfg.Public = b
-	})
-	if v, ok := any(cfg).(interface{ GetPublicPreview() bool }); ok {
-		previewPublic.SetChecked(v.GetPublicPreview())
-	} else {
-		previewPublic.SetChecked(cfg.Public)
-	}
-	ApiKeyEntry := widget.NewEntry()
-	ApiKeyEntry.SetPlaceHolder("Enter Gemini API Key")
-	ApiKeyEntry.SetText(cfg.GeminiApiKey)
+	previewPublic := widget.NewCheck("Preview Public", nil)
+	previewPublic.SetChecked(cfg.Public)
+	apiKeyEntry := widget.NewPasswordEntry()
+	apiKeyEntry.SetPlaceHolder("Enter Gemini API Key")
+	apiKeyEntry.SetText(cfg.GeminiApiKey)
 
 	// Setting the number of images per page
 	imagesPerPage := widget.NewEntry()
 	imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
-	imagesPerPage.OnChanged = func(text string) {
-		if n, err := strconv.Atoi(text); err == nil {
-			cfg.ImagesPerPage = n
-		} else {
-			imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
-		}
-	}
 
 	form := &widget.Form{
+		SubmitText: "Save",
+		CancelText: "Reset",
 		Items: []*widget.FormItem{
-			{Text: "Theme", Widget: themeSelect, HintText: "Select the application theme requires application restart"},
+			{Text: "Theme", Widget: themeSelect, HintText: "Theme changes apply after restarting the application"},
 			{Text: "Notifications", Widget: notifications, HintText: "Enable or disable notifications"},
-			{Text: "Public Preview", Widget: previewPublic, HintText: "Enable or disable public preview"},
+			{Text: "Public Preview", Widget: previewPublic, HintText: "Allow preview access from other devices on your network"},
 			{Text: "Images Per Page", Widget: imagesPerPage, HintText: "Number of images to display per page"},
-			{Text: "Gemini API Key", Widget: ApiKeyEntry, HintText: "Enter your Gemini API key to enable AI features"},
+			{Text: "Gemini API Key", Widget: apiKeyEntry, HintText: "Enter your Gemini API key to enable AI features"},
 		},
 		OnCancel: func() {
+			themeSelect.SetSelected(cfg.Theme)
 			notifications.SetChecked(cfg.Notification)
 			previewPublic.SetChecked(cfg.Public)
+			imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
+			apiKeyEntry.SetText(cfg.GeminiApiKey)
+			status.Hide()
 		},
 		OnSubmit: func() {
-			cfg.Notification = notifications.Checked
-			cfg.Public = previewPublic.Checked
-			cfg.GeminiApiKey = ApiKeyEntry.Text
-			config.Config.Save()
-			if ApiKeyEntry.Text != "" {
-				ai.RegisterGeminiClient()
+			n, err := strconv.Atoi(strings.TrimSpace(imagesPerPage.Text))
+			if err != nil || n <= 0 {
+				showSettingsSaveResult(status, "Application", fmt.Errorf("images per page must be a positive number"))
+				return
+			}
+			if themeSelect.Selected == "" {
+				showSettingsSaveResult(status, "Application", fmt.Errorf("select a light or dark theme"))
+				return
+			}
+
+			next := cfg
+			next.Theme = themeSelect.Selected
+			next.Notification = notifications.Checked
+			next.Public = previewPublic.Checked
+			next.ImagesPerPage = n
+			next.GeminiApiKey = strings.TrimSpace(apiKeyEntry.Text)
+			previewAccessChanged := next.Public != cfg.Public
+			candidate := *config.Config
+			candidate.UI = next
+			err = candidate.Save()
+			if err == nil {
+				cfg = next
+				if previewAccessChanged && server != nil {
+					go func() {
+						if stopErr := server.Stop(); stopErr != nil {
+							log.Printf("Could not restart preview access mode: %v", stopErr)
+						}
+					}()
+				}
+			}
+			showSettingsSaveResult(status, "Application", err)
+			if err == nil && next.GeminiApiKey == "" {
+				ai.ClearGeminiClient()
+			} else if err == nil {
+				if _, registerErr := ai.RegisterGeminiClient(); registerErr != nil {
+					log.Printf("Could not configure Gemini: %v", registerErr)
+				}
 			}
 		},
 	}
 	title := components.NewTextEntry("Application Settings", 20)
-	return container.NewVBox(title, widget.NewSeparator(), form)
+	return container.NewVBox(title, widget.NewSeparator(), status.container, form)
 }

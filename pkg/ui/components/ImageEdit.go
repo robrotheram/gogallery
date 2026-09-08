@@ -1,14 +1,14 @@
 package components
 
 import (
-	"bytes"
 	"fmt"
 	"gogallery/pkg/ai"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/ui/utils"
-	"io"
+	"image"
 	"log"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -19,94 +19,93 @@ import (
 
 type ImageEditContainer struct {
 	*datastore.DataStore
-	selectedPic  datastore.Picture // Reference to the currently selected picture
-	titleEntry   *widget.Entry
-	captionEntry *widget.Entry
-	image        *canvas.Image     // Placeholder for the image to be displayed
-	imageStack   *fyne.Container   // Direct reference to the image stack
-	container    fyne.CanvasObject // Reference to the sidebar container for refresh
-	exifCard     *fyne.Container   // Reference to the EXIF card for updates
+	selectedPic      datastore.Picture // Reference to the currently selected picture
+	titleEntry       *widget.Entry
+	descriptionEntry *widget.Entry
+	tagsEntry        *widget.Entry
+	imageStack       *fyne.Container   // Direct reference to the image stack
+	container        fyne.CanvasObject // Reference to the sidebar container for refresh
+	exifCard         *fyne.Container   // Reference to the EXIF card for updates
 }
 
 func NewImageEditContainer(db *datastore.DataStore, selectedPic datastore.Picture) *ImageEditContainer {
 	titleEntry := widget.NewEntry()
 	titleEntry.SetPlaceHolder("Enter image title")
 
-	captionEntry := widget.NewMultiLineEntry()
-	captionEntry.SetPlaceHolder("Enter image caption")
-	captionEntry.Wrapping = fyne.TextWrapWord
+	descriptionEntry := widget.NewMultiLineEntry()
+	descriptionEntry.SetPlaceHolder("Describe the image")
+	descriptionEntry.Wrapping = fyne.TextWrapWord
+
+	tagsEntry := widget.NewEntry()
+	tagsEntry.SetPlaceHolder("landscape, golden hour, mountains")
 
 	// Use a placeholder image instead of nil to avoid layout issues on Windows
 	placeholder := canvas.NewRectangle(nil)
-	placeholder.SetMinSize(fyne.NewSize(600, 400))
-	img := canvas.NewImageFromImage(nil)
-	img.FillMode = canvas.ImageFillContain
-	img.SetMinSize(fyne.NewSize(600, 400)) // More reasonable default
+	placeholder.SetMinSize(fyne.NewSize(360, 240))
 	imageStack := container.NewStack(placeholder)
 
 	return &ImageEditContainer{
-		DataStore:    db,
-		selectedPic:  selectedPic,
-		titleEntry:   titleEntry,
-		captionEntry: captionEntry,
-		image:        img,
-		imageStack:   imageStack,
+		DataStore:        db,
+		selectedPic:      selectedPic,
+		titleEntry:       titleEntry,
+		descriptionEntry: descriptionEntry,
+		tagsEntry:        tagsEntry,
+		imageStack:       imageStack,
 	}
 }
 
 func (c *ImageEditContainer) loadImage() {
-	file, err := c.ImageCache.Get(c.selectedPic.Id, config.JPEG, "small")
-	if err != nil {
-		log.Println("Error loading image from cache:", err)
-		return
-	}
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Println("Error reading image file:", err)
-		return
-	}
-	log.Printf("[Sidebar] Loaded image bytes: %d for %s", len(data), c.selectedPic.Name)
-	if len(data) < 16 {
-		log.Println("[Sidebar] Image data too small or empty, not displaying.")
-		return
-	}
+	go func() {
+		file, err := c.ImageCache.Get(c.selectedPic.Id, config.JPEG, "small")
+		if err != nil {
+			log.Println("Error loading image from cache:", err)
+			return
+		}
+		decoded, _, err := image.Decode(file)
+		_ = file.Close()
+		if err != nil {
+			log.Println("Error decoding cached image:", err)
+			return
+		}
 
-	newImg := canvas.NewImageFromReader(bytes.NewReader(data), c.selectedPic.Name)
-	newImg.FillMode = canvas.ImageFillContain
-	width := float32(500)
-	if c.selectedPic.AspectRatio > 0 {
-		height := width / c.selectedPic.AspectRatio
-		newImg.SetMinSize(fyne.NewSize(width, height))
-		newImg.Resize(fyne.NewSize(width, height))
-	} else {
-		newImg.SetMinSize(fyne.NewSize(width, 300))
-		newImg.Resize(fyne.NewSize(width, 300))
-	}
+		fyne.Do(func() {
+			newImg := canvas.NewImageFromImage(decoded)
+			newImg.FillMode = canvas.ImageFillContain
+			width := float32(360)
+			height := float32(240)
+			if c.selectedPic.AspectRatio > 0 {
+				height = width / c.selectedPic.AspectRatio
+			}
+			newImg.SetMinSize(fyne.NewSize(width, height))
+			newImg.Resize(fyne.NewSize(width, height))
 
-	if c.imageStack != nil {
-		c.imageStack.Objects = []fyne.CanvasObject{newImg}
-		c.imageStack.Refresh()
-	}
-	c.image = newImg
+			if c.imageStack != nil {
+				c.imageStack.Objects = []fyne.CanvasObject{newImg}
+				c.imageStack.Refresh()
+			}
+		})
+	}()
 }
 
 func (c *ImageEditContainer) Layout() fyne.CanvasObject {
 	c.loadImage()
 
 	c.titleEntry.SetText(c.selectedPic.Name)
-	c.captionEntry.Text = c.selectedPic.Caption
+	c.descriptionEntry.SetText(c.selectedPic.Caption)
+	c.tagsEntry.SetText(c.selectedPic.Tags)
 
 	// EXIF info section (populated in ShowImage)
 	form := widget.NewForm(
 		widget.NewFormItem("Title", c.titleEntry),
-		widget.NewFormItem("Caption", c.captionEntry),
+		widget.NewFormItem("Description", c.descriptionEntry),
+		widget.NewFormItem("Tags", c.tagsEntry),
 	)
 
 	form.OnSubmit = func() {
-		log.Println("Form submitted with title:", c.titleEntry.Text, "and caption:", c.captionEntry.Text)
-		// Update the selected picture with new title and caption
+		log.Println("Saving metadata for picture:", c.selectedPic.Id)
 		c.selectedPic.Name = c.titleEntry.Text
-		c.selectedPic.Caption = c.captionEntry.Text
+		c.selectedPic.Caption = c.descriptionEntry.Text
+		c.selectedPic.Tags = c.tagsEntry.Text
 		if err := c.DataStore.Pictures.Update(c.selectedPic.Id, c.selectedPic); err != nil {
 			log.Println("Error updating picture:", err)
 		} else {
@@ -129,23 +128,32 @@ func (c *ImageEditContainer) Layout() fyne.CanvasObject {
 
 	//AI button
 	var scrollContent *fyne.Container
-	if ai.IsAi() {
+	if ai.IsAIEnabled() {
 		var aiButton *widget.Button
-		aiButton = widget.NewButtonWithIcon("Generate Caption", theme.ContentAddIcon(), func() {
+		aiButton = widget.NewButtonWithIcon("Generate metadata", theme.ContentAddIcon(), func() {
 			go func() {
 				fyne.Do(func() {
 					aiButton.Disable()
 					aiButton.SetText("Generating...")
 				})
-				cap, err := ai.GenerateCaption(c.DataStore, c.selectedPic.Id)
+				metadata, err := ai.GenerateMetadata(c.DataStore, c.selectedPic.Id)
 				if err != nil {
+					fyne.Do(func() {
+						aiButton.Enable()
+						aiButton.SetText("Generate metadata")
+						utils.Notify("AI metadata failed", err.Error())
+					})
 					return
 				}
 				fyne.Do(func() {
-					c.titleEntry.SetText(cap.Title)
-					c.captionEntry.SetText(cap.Caption)
+					c.selectedPic.Name = metadata.Title
+					c.selectedPic.Caption = metadata.Description
+					c.selectedPic.Tags = strings.Join(metadata.Tags, ", ")
+					c.titleEntry.SetText(metadata.Title)
+					c.descriptionEntry.SetText(metadata.Description)
+					c.tagsEntry.SetText(c.selectedPic.Tags)
 					aiButton.Enable()
-					aiButton.SetText("Generate Caption")
+					aiButton.SetText("Generate metadata")
 				})
 			}()
 

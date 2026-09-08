@@ -3,7 +3,6 @@ package pages
 import (
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/ui/components"
-	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -57,22 +56,11 @@ func (g *GalleryPage) refreshLayout() {
 }
 
 func (g *GalleryPage) Refresh() {
-	go func() {
-		pics, err := g.db.Pictures.GetAll()
-		if err != nil {
-			log.Printf("Error loading pictures: %v", err)
-			return
-		}
-
-		// Update UI on main thread
-		fyne.Do(func() {
-			g.gallery.SetImages(pics)
-		})
-	}()
+	g.gallery.Reload()
 }
 
 func (g *GalleryPage) Layout() fyne.CanvasObject {
-	go g.Refresh() // Make refresh async
+	g.Refresh()
 	g.content = container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout())
 	return g.content
 }

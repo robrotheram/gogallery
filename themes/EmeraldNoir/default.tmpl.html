@@ -7,33 +7,37 @@
     <meta name="theme-color" content="#000000" />
     <link rel="apple-touch-icon" href="/assets/logos/logo192.png" />
     <link rel="icon" href="/assets/logos/favicon.ico" />
-    {{if .SEO.Description}}
     <meta name="description" content="{{.SEO.Description}}">
-    {{else}}
-    <meta name="description" content="{{.Author.Description}}">
-    {{end}}
+    {{if .SEO.Keywords}}<meta name="keywords" content="{{.SEO.Keywords}}">{{end}}
+    <link rel="canonical" href="{{.SEO.Site}}">
 
-    <title>
-      {{.Settings.Name}}
-    </title>   
+    <title>{{.SEO.Title}}{{if ne .SEO.Title .Settings.Name}} | {{.Settings.Name}}{{end}}</title>
 
     <link rel="stylesheet" href="/assets/css/style.css" />
     <link rel="manifest" href="/manifest.json">
 
     <meta property="og:url"  content="{{.SEO.Site}}" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="{{.SEO.Type}}" />
+    <meta property="og:site_name" content="{{.Settings.Name}}" />
     <meta property="og:title" content="{{.SEO.Title}}">
-    <meta name="og:description" content="{{.SEO.Description}}">
+    <meta property="og:description" content="{{.SEO.Description}}">
+    {{if .SEO.ImageUrl}}
     <meta property="og:image" content="{{.SEO.ImageUrl}}">
+    <meta property="og:image:alt" content="{{.SEO.Title}}">
+    {{if .SEO.ImageWidth}}
     <meta property="og:image:width" content="{{.SEO.ImageWidth}}">
     <meta property="og:image:height" content="{{.SEO.ImageHeight}}">
+    {{end}}
+    {{end}}
+    {{range .SEO.Tags}}<meta property="article:tag" content="{{.}}">{{end}}
 
-    <meta name="twitter:card" content="{{.SEO.Title}}">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{.SEO.Title}}">
     <meta name="twitter:description" content="{{.SEO.Description}}">
+    {{if .SEO.ImageUrl}}
     <meta name="twitter:image" content="{{.SEO.ImageUrl}}">
-
-
+    <meta name="twitter:image:alt" content="{{.SEO.Title}}">
+    {{end}}
 
   </head>
   <body class="min-h-screen bg-black">

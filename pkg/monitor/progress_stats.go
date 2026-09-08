@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-type ProssesState string
+type ProcessState string
 
 const (
-	INACTIVE = ProssesState("inactive")
-	RUNNING  = ProssesState("running")
-	STOPPED  = ProssesState("stopped")
-	COMPLETE = ProssesState("complete")
-	ERROR    = ProssesState("error")
+	INACTIVE = ProcessState("inactive")
+	RUNNING  = ProcessState("running")
+	STOPPED  = ProcessState("stopped")
+	COMPLETE = ProcessState("complete")
+	ERROR    = ProcessState("error")
 )
 
 type ProgressStats struct {
@@ -21,8 +21,8 @@ type ProgressStats struct {
 	EndTime   time.Time     `json:"end"`
 	Duration  time.Duration `json:"duration"`
 	Total     int           `json:"total"`
-	Proceesed int           `json:"processed"`
-	State     ProssesState  `json:"state"`
+	Processed int           `json:"processed"`
+	State     ProcessState  `json:"state"`
 	Message   string        `json:"message,omitempty"`
 	mu        sync.Mutex    `json:"-"`
 }
@@ -36,12 +36,20 @@ func NewProgressStats(name string, total int) *ProgressStats {
 }
 
 func (p *ProgressStats) Start() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.startLocked()
+}
+
+func (p *ProgressStats) startLocked() {
 	p.StartTime = time.Now()
 	p.Duration = time.Duration(0)
 	p.State = RUNNING
 }
 
 func (p *ProgressStats) Fail(msg string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.State = ERROR
 	p.EndTime = time.Now()
 	p.Duration = p.EndTime.Sub(p.StartTime)
@@ -50,29 +58,52 @@ func (p *ProgressStats) Fail(msg string) {
 
 func (s *ProgressStats) Update() {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.State != RUNNING {
-		s.Start()
+		s.startLocked()
 	}
-	s.Proceesed++
-	s.mu.Unlock()
+	s.Processed++
 }
 
 func (s *ProgressStats) GetProcessed() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.Proceesed
+	return s.Processed
 }
 
 func (p *ProgressStats) Complete() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.State == ERROR || p.State == COMPLETE {
+		return
+	}
 	p.EndTime = time.Now()
 	p.Duration = p.EndTime.Sub(p.StartTime)
 	p.State = COMPLETE
-	p.Proceesed = p.Total // Ensure processed is set to total on completion
+	p.Processed = p.Total
 }
 
 func (p *ProgressStats) Percent() float64 {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.Total == 0 {
 		return 100
 	}
-	return ((float64(p.Proceesed) / float64(p.Total)) * float64(100))
+	return float64(p.Processed) / float64(p.Total) * 100
+}
+
+// Snapshot returns a consistent copy that is safe to inspect from another goroutine.
+func (p *ProgressStats) Snapshot() ProgressStats {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return ProgressStats{
+		Name:      p.Name,
+		StartTime: p.StartTime,
+		EndTime:   p.EndTime,
+		Duration:  p.Duration,
+		Total:     p.Total,
+		Processed: p.Processed,
+		State:     p.State,
+		Message:   p.Message,
+	}
 }

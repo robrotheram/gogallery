@@ -17,11 +17,16 @@ var deployCMD = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy static site",
 	Long:  "Deploy static site",
-	Run: func(cmd *cobra.Command, args []string) {
-		config := config.LoadConfig()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		config, err := config.LoadConfig()
+		if err != nil {
+			return err
+		}
 		monitor := monitor.NewMonitor()
-		config.Validate()
+		if err := config.Validate(); err != nil {
+			return err
+		}
 		fmt.Println("Deploying Site")
-		deploy.DeploySite(*config, monitor.NewTask("deploy", 0))
+		return deploy.DeploySite(*config, monitor.NewTask("deploy", 0))
 	},
 }

@@ -1,12 +1,11 @@
 # GoGallery
-***Its like Hugo but for large photo galleries***
+***It's like Hugo, but for large photo galleries.***
 
-GoGallery is a static site generator designed just for large photo sets. 
-The problem is that just my modest approximate 1000 image gallery is around 5GB in size. This means traditional static stie generators where you host everything is github is not going to work. Also I do not want to keep reorgaising my photos or rely on some database. I have my photo in folders (albums) and I needed a tool to generate a webpage for those images.
+GoGallery is a static site generator designed for large photo collections. A gallery of approximately 1,000 original images can easily reach 5 GB, making workflows that keep every asset in a Git repository impractical. GoGallery works with photos already organised in folders (albums), without requiring you to rearrange them around a separate content database.
 
-Incomes GoGallery just point it at your photos and it will generate a static site for with a  customizable theme. The template language is Handlebars no fancy Javascript single page webapps here. What is included. is image optomization into multiple sizes for the web and the site also generates a PWA so it can act like a desktop/mobile app. Chrome Lighthouse scores the site at 93/100 for performance and 95/100 for accessibility
+Point GoGallery at your photos and it generates a static site with a customisable Go-template theme. It optimises images into multiple web-friendly sizes and generates a progressive web app that can be installed on desktop and mobile devices. The Fyne dashboard lets you edit titles, descriptions, tags, albums, and AI-generated photo metadata, as well as preview, build, and deploy the site.
 
-The Software also has a dashboard that you can use to manage the photos e.g change captions add albums to be hidden etc. You can also preview the site using the serve command 
+The desktop dashboard lets you manage photo metadata, choose album covers, and control which albums and pictures are published. You can also preview the generated site with the `serve` command.
 
 
 ## Usage
@@ -34,15 +33,15 @@ gogallery [flags]
 
 ## History
 
- The inspiration for this gallery is to provide a some of the functionaities of my old gallery cms Koken which has had no updates in over a year+ and had gone silent. *NOTE* that this is not a replacement for Koken just the very limited features I was using. 
+GoGallery was inspired by the parts of the Koken gallery CMS that I used most. It is not intended to be a full Koken replacement.
 
-The application uses react frontend and a seperate react dashboard that supports upload and managing photos in collections. 
+The application provides a cross-platform Fyne dashboard for managing photos and collections alongside its command-line tools.
 
 
 ## Demo
 
 
-Demo at https://gallery.exceptionerror.io 
+Demo: https://gallery.exceptionerror.io
 
 ## Screenshots
 
@@ -64,18 +63,20 @@ Demo at https://gallery.exceptionerror.io
 
 
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
 ## License
+
 [apache-2.0](https://choosealicense.com/licenses/apache-2.0)
 
 
 
 ## Building GoGallery
 
-You can build GoGallery from source using Go. Make sure you have Go 1.20 or newer installed.
+You can build GoGallery from source using Go. Make sure you have Go 1.26 or newer installed.
 
 ### Standard Build (CLI and Web)
 
@@ -108,7 +109,7 @@ make fyne-build         # Build the Fyne desktop app for your platform
 - The `fyne-build` target will auto-detect your OS and build the appropriate package.
 - You can also run `make all` to install Fyne CLI and build the desktop app in one step.
 
-> For more details, see the [Fyne documentation](https://developer.fyne.io/started/packaging) and the GoGallery wiki.
+> For more details, see the [Fyne packaging documentation](https://docs.fyne.io/started/packaging/) and the GoGallery wiki.
 
 ## Theme Development
 

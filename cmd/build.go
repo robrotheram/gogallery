@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/monitor"
@@ -21,19 +22,29 @@ var buildCMD = &cobra.Command{
 	Short: "Build static site",
 	Long:  "Build static site",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config := config.LoadConfig()
-		config.Validate()
-		db, err := datastore.Open(config.Gallery.Basepath, cmdMonitor)
+		config, err := config.LoadConfig()
 		if err != nil {
-			log.Fatalf("Failed to open database: %v", err)
+			return err
 		}
+		if err := config.Validate(); err != nil {
+			return err
+		}
+		db, err := datastore.Open(datastore.DefaultDatabasePath, cmdMonitor)
+		if err != nil {
+			return fmt.Errorf("open database: %w", err)
+		}
+		defer db.Close()
 		cmdMonitor.StartUpdater()
-		db.ScanPath(config.Gallery.Basepath)
+		if err := db.ScanPath(config.Gallery.Basepath); err != nil {
+			return err
+		}
 		log.Println("Building Site at: " + config.Gallery.Destpath)
 		uiprogress.Start()
 		render := pipeline.NewRenderPipeline(&config.Gallery, db)
 
-		render.BuildSite()
+		if err := render.BuildSite(); err != nil {
+			return err
+		}
 		log.Println("Building Complete")
 		return nil
 	},
