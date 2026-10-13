@@ -109,6 +109,22 @@ func GetAlbumFromStructure(tree AlbumStructure, id string) AlbumNode {
 	return album
 }
 
+// GetParentAlbumFromStructure returns the immediate parent in the published tree.
+// Top-level albums and unknown IDs have no parent.
+func GetParentAlbumFromStructure(tree AlbumStructure, id string) Album {
+	for _, node := range tree {
+		for _, child := range node.Children {
+			if child.Id == id {
+				return node.Album
+			}
+		}
+		if parent := GetParentAlbumFromStructure(node.Children, id); parent.Id != "" {
+			return parent
+		}
+	}
+	return Album{}
+}
+
 func SortByTime(albums []Album) []Album {
 	sort.Slice(albums, func(i, j int) bool {
 		return albums[i].ModTime.After(albums[j].ModTime)

@@ -48,6 +48,10 @@ func App() error {
 	settingsPage := pages.NewSettingsPage(db, server)
 	collectionPage := pages.NewCollectionPage(db)
 	tasksPage := pages.NewTasksPage(db, server)
+	tasksPage.OnRescanComplete = func() {
+		galleryPage.Refresh()
+		collectionPage.Refresh()
+	}
 
 	pages := map[string]pages.Page{
 		"Gallery":     galleryPage,

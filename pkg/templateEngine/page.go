@@ -21,6 +21,7 @@ type Page struct {
 	Images        []datastore.Picture
 	Albums        []datastore.AlbumNode
 	Album         datastore.AlbumNode
+	ParentAlbum   datastore.Album
 	FeaturedAlbum datastore.AlbumNode
 	Picture       PagePicture
 	NextImagePath string

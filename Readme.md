@@ -89,6 +89,22 @@ make clean         # Remove built binaries
 ```
 This will produce the `gogallery` binary in your current directory.
 
+To build and install the binary to `/usr/local/bin`, run `make install`
+(the destination must be writable). For a user-local installation:
+
+```bash
+make install PREFIX="$HOME/.local"
+```
+
+Ensure `$HOME/.local/bin` is on your `PATH`. You can override `BINDIR` to
+choose another binary directory, or set `DESTDIR` to stage the installation
+for packaging.
+
+On Linux, `make install` also installs a desktop entry and the application icon
+under `$(PREFIX)/share`, so **GoGallery** appears in application launchers such
+as Omarchy's. The entry launches the desktop dashboard using the installed
+binary's absolute path. Override `DATADIR` to choose another data directory.
+
 Or, to build manually:
 
 ```bash

@@ -5,6 +5,10 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 FYNE=fyne
 BINARY_NAME=gogallery
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+DATADIR ?= $(PREFIX)/share
+DESTDIR ?=
 
 ifndef CIRCLE_BRANCH
 override CIRCLE_BRANCH = latest
@@ -22,9 +26,20 @@ build-themes:
 		fi; \
 	done
 
+.PHONY: build install
 build:
 	@echo "Building GoGallery..."
 	$(GOBUILD) -o $(BINARY_NAME) -v .
+
+install: build
+	install -d "$(DESTDIR)$(BINDIR)"
+	install -m 0755 "$(BINARY_NAME)" "$(DESTDIR)$(BINDIR)/$(BINARY_NAME)"
+ifeq ($(shell uname -s),Linux)
+	install -d "$(DESTDIR)$(DATADIR)/applications" "$(DESTDIR)$(DATADIR)/icons/hicolor/192x192/apps"
+	install -m 0644 packaging/linux/io.exceptionerror.gogallery.desktop "$(DESTDIR)$(DATADIR)/applications/io.exceptionerror.gogallery.desktop"
+	sed -i 's|^Exec=.*|Exec="$(BINDIR)/$(BINARY_NAME)"|' "$(DESTDIR)$(DATADIR)/applications/io.exceptionerror.gogallery.desktop"
+	install -m 0644 Icon.png "$(DESTDIR)$(DATADIR)/icons/hicolor/192x192/apps/io.exceptionerror.gogallery.png"
+endif
 
 # Cross-platform Fyne build (mimics CI logic)
 .PHONY: fyne-build

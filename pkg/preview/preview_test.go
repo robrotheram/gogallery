@@ -1,8 +1,12 @@
 package preview
 
 import (
+	"compress/gzip"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +18,70 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+func TestPreviewPagesServeHTML(t *testing.T) {
+	previous := *config.Config
+	t.Cleanup(func() { *config.Config = previous })
+	config.Config.Gallery.Theme = filepath.Join("..", "..", "themes", "EmeraldNoir")
+	config.Config.Gallery.Basepath = t.TempDir()
+	if err := os.Mkdir(filepath.Join(config.Config.Gallery.Basepath, "Album"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	config.Config.Gallery.AlbumBlacklist = nil
+	config.Config.Gallery.PictureBlacklist = nil
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = sqlDB.Close() })
+	if err := db.AutoMigrate(&datastore.Picture{}, &datastore.Album{}); err != nil {
+		t.Fatal(err)
+	}
+	store := &datastore.DataStore{Pictures: datastore.NewPictureCollection(db), Albums: datastore.NewAlbumCollection(db)}
+	if err := db.Create(&datastore.Picture{Id: "photo", Name: "Photo", Album: "album", AlbumName: "Album", Visibility: "PUBLIC", Path: filepath.Join(config.Config.Gallery.Basepath, "Album", "photo.jpg")}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&datastore.Album{Id: "album", Name: "Album", ProfileId: "photo", ParentPath: config.Config.Gallery.Basepath, Path: filepath.Join(config.Config.Gallery.Basepath, "Album")}).Error; err != nil {
+		t.Fatal(err)
+	}
+	server := NewServer(store)
+	for _, path := range []string{"/", "/albums", "/photo/photo", "/album/album"} {
+		for _, encoding := range []string{"identity", "gzip"} {
+			t.Run(path+"/"+encoding, func(t *testing.T) {
+				request := httptest.NewRequest(http.MethodGet, path, nil)
+				request.Header.Set("Accept-Encoding", encoding)
+				response := httptest.NewRecorder()
+				server.ServeHTTP(response, request)
+				if response.Code != http.StatusOK {
+					t.Fatalf("status = %d, body = %s", response.Code, response.Body)
+				}
+				if got := response.Result().Header.Get("Content-Type"); got != "text/html; charset=utf-8" {
+					t.Errorf("Content-Type = %q, want text/html; charset=utf-8", got)
+				}
+				var body io.Reader = response.Body
+				if encoding == "gzip" {
+					reader, err := gzip.NewReader(body)
+					if err != nil {
+						t.Fatal(err)
+					}
+					defer reader.Close()
+					body = reader
+				}
+				html, err := io.ReadAll(body)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !strings.HasPrefix(string(html), "<!doctype html>") {
+					t.Fatalf("response is not an HTML document: %.100s", html)
+				}
+			})
+		}
+	}
+}
 
 func TestInvalidThemeReturnsServerError(t *testing.T) {
 	previous := *config.Config

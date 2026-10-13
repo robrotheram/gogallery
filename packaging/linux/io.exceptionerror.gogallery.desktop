@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=GoGallery
+GenericName=Photo Gallery Generator
+Comment=Build and manage fast static websites for large photo collections
+Exec=gogallery
+Icon=io.exceptionerror.gogallery
+Terminal=false
+Categories=Graphics;Photography;
+Keywords=photo;gallery;photography;static site;

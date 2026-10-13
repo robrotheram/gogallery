@@ -44,6 +44,7 @@ func (r *RenderPipeline) BuildAlbum(albId string, w io.Writer) error {
 	}
 
 	page.Album = album
+	page.ParentAlbum = datastore.GetParentAlbumFromStructure(albums, album.Id)
 	page.Picture = templateengine.NewPagePicture(profile)
 	page.SEO.SetPath(fmt.Sprintf("/album/%s/", slug.Make(album.Id)))
 	page.SEO.Description = fmt.Sprintf("Explore %d photographs from %s.", len(page.Images), album.Name)

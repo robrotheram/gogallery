@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"fmt"
 	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/deploy"
@@ -22,9 +23,11 @@ type TasksPage struct {
 	*datastore.DataStore
 	Title   string
 	monitor *uiMonitor.UIMonitor
-	table   *fyne.Container
-	btnGrid *fyne.Container // Action buttons grid
-	server  *preview.Server
+	// OnRescanComplete refreshes gallery views on the UI thread.
+	OnRescanComplete func()
+	table            *fyne.Container
+	btnGrid          *fyne.Container // Action buttons grid
+	server           *preview.Server
 }
 
 func NewTasksPage(db *datastore.DataStore, server *preview.Server) *TasksPage {
@@ -52,13 +55,21 @@ func NewTasksPage(db *datastore.DataStore, server *preview.Server) *TasksPage {
 
 func (t *TasksPage) init() {
 	// --- Action Buttons ---
-	rescanBtn := widget.NewButton("Rescan", func() {
+	rescanBtn := widget.NewButton("Rescan", nil)
+	rescanBtn.OnTapped = func() {
+		rescanBtn.Disable()
 		go func() {
-			if err := t.ScanPath(config.Config.Gallery.Basepath); err != nil {
-				log.Printf("Gallery scan skipped: %v", err)
+			if err := t.rescanGallery(); err != nil {
+				log.Printf("Gallery rescan failed: %v", err)
 			}
+			fyne.Do(func() {
+				rescanBtn.Enable()
+				if t.OnRescanComplete != nil {
+					t.OnRescanComplete()
+				}
+			})
 		}()
-	})
+	}
 	deleteSite := func() {
 		stat := t.monitor.NewTask("Delete Site", 0)
 		go func() {
@@ -128,6 +139,23 @@ func (t *TasksPage) init() {
 	t.table = createTable(nil)
 }
 
+func (t *TasksPage) rescanGallery() error {
+	stat := t.monitor.NewTask("Rescan gallery", 2)
+	stat.Start()
+	if err := t.ScanPath(config.Config.Gallery.Basepath); err != nil {
+		stat.Fail(err.Error())
+		return err
+	}
+	stat.Update()
+	if err := pipeline.NewRenderPipeline(&config.Config.Gallery, t.DataStore).GenerateThumbnails(); err != nil {
+		err = fmt.Errorf("generate thumbnails: %w", err)
+		stat.Fail(err.Error())
+		return err
+	}
+	stat.Complete()
+	return nil
+}
+
 func tableHeader() fyne.CanvasObject {
 	return container.NewGridWithColumns(5,
 		widget.NewLabelWithStyle("Task Name", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
@@ -167,6 +195,9 @@ func (t *TasksPage) createTaskRow(task interface{}) fyne.CanvasObject {
 		snapshot := ps.Snapshot()
 		name = snapshot.Name
 		status = t.getTaskStatus(snapshot.State)
+		if snapshot.State == monitor.ERROR && snapshot.Message != "" {
+			status += ": " + snapshot.Message
+		}
 		startedAt = t.getTaskStartTime(&snapshot)
 		timeTaken = t.getTaskTimeTaken(&snapshot)
 		if snapshot.Total == 0 {

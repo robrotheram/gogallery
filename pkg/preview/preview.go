@@ -206,6 +206,7 @@ func (api *Server) PreviewPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	builder := pipeline.NewRenderPipeline(&config.Config.Gallery, api.DataStore)
 
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := builder.BuildIndex(w); err != nil {
 		writePreviewError(w, err)
 	}
@@ -216,6 +217,7 @@ func (api *Server) PreviewAlbumsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	builder := pipeline.NewRenderPipeline(&config.Config.Gallery, api.DataStore)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := builder.BuildAlbums(w); err != nil {
 		writePreviewError(w, err)
 	}
@@ -236,6 +238,7 @@ func (api *Server) PreviewPictureHandler(w http.ResponseWriter, r *http.Request)
 		http.NotFound(w, r)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := builder.BuildPhoto(pic, w); err != nil {
 		writePreviewError(w, err)
 	}
@@ -252,6 +255,7 @@ func (api *Server) PreviewCollectionHandler(w http.ResponseWriter, r *http.Reque
 		http.NotFound(w, r)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := builder.BuildAlbum(photoID, w); err != nil {
 		writePreviewError(w, err)
 	}
