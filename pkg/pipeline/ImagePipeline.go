@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -20,18 +21,35 @@ func ProcessImage(src image.Image, size int, encodeType config.ImageType, w io.W
 	if src == nil {
 		return fmt.Errorf("source image is nil")
 	}
+	bounds := src.Bounds()
+	if bounds.Empty() {
+		return fmt.Errorf("source image has empty dimensions")
+	}
+	scale := 1.0
+	if size > 0 {
+		scale = float64(size) / float64(bounds.Dx())
+	}
+	if encodeType == config.WebP {
+		// Clamp the requested output before allocating a resized image.
+		// libwebp's WEBP_MAX_DIMENSION applies to both sides, so a tall
+		// photo can exceed it even at one of the smaller requested widths.
+		const maxDimension = 16383
+		scale = min(scale, float64(maxDimension)/float64(bounds.Dx()), float64(maxDimension)/float64(bounds.Dy()))
+	}
+	width := max(1, int(math.Round(float64(bounds.Dx())*scale)))
+	height := max(1, int(math.Round(float64(bounds.Dy())*scale)))
 	// Use a faster filter for small images, Lanczos for larger ones
 	var filter imaging.ResampleFilter
 	switch {
-	case size <= 350:
+	case size > 0 && size <= 350:
 		filter = imaging.Linear // fast, good for thumbnails
-	case size <= 640:
+	case size > 0 && size <= 640:
 		filter = imaging.CatmullRom // good quality, faster than Lanczos
 	default:
 		filter = imaging.Lanczos // best for large images
 	}
-	if size > 0 {
-		src = imaging.Resize(src, size, 0, filter)
+	if width != bounds.Dx() || height != bounds.Dy() {
+		src = imaging.Resize(src, width, height, filter)
 	}
 
 	switch encodeType {
@@ -50,7 +68,12 @@ func ProcessImage(src image.Image, size int, encodeType config.ImageType, w io.W
 	}
 }
 
-func (r *RenderPipeline) imageGenV2(pic datastore.Picture) error {
+func (r *RenderPipeline) imageGenV2(pic datastore.Picture) (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("%s: %w", pic.Path, err)
+		}
+	}()
 	destPath := filepath.Join(r.imgDir, pic.Id)
 	// #nosec G301 -- generated website directories must be readable by a web server.
 	if err := os.MkdirAll(destPath, 0o755); err != nil {

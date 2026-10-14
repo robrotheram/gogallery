@@ -1,136 +1,91 @@
 package components
 
 import (
-	"bytes"
-	"gogallery/pkg/config"
-	"gogallery/pkg/datastore"
-	"gogallery/pkg/ui/utils"
-	"io"
-	"log"
-
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"gogallery/pkg/datastore"
+	"strings"
 )
 
 type CollectionAlbumContainer struct {
 	*datastore.DataStore
-	selectedAlbum datastore.Album // Reference to the currently selected album
+	selectedAlbum datastore.Album
 	titleEntry    *widget.Entry
-	imageStack    *fyne.Container   // Direct reference to the image stack
-	container     fyne.CanvasObject // Reference to the sidebar container for refresh
-	OnUpdate      func()            // Callback for album update
+	OnUpdate      func()
 }
 
-func NewCollectionAlbumContainer(db *datastore.DataStore, selectedAlbum datastore.Album) *CollectionAlbumContainer {
-	titleEntry := widget.NewEntry()
-	titleEntry.SetPlaceHolder("Enter album title")
-
-	// Use a placeholder image instead of nil to avoid layout issues on Windows
-	placeholder := canvas.NewRectangle(nil)
-	placeholder.SetMinSize(fyne.NewSize(600, 400))
-	imageStack := container.NewStack(placeholder)
-
-	return &CollectionAlbumContainer{
-		DataStore:     db,
-		selectedAlbum: selectedAlbum,
-		titleEntry:    titleEntry,
-		imageStack:    imageStack,
-	}
+func NewCollectionAlbumContainer(db *datastore.DataStore, album datastore.Album) *CollectionAlbumContainer {
+	title := widget.NewEntry()
+	title.SetText(album.Name)
+	title.SetPlaceHolder("Album title")
+	return &CollectionAlbumContainer{DataStore: db, selectedAlbum: album, titleEntry: title}
 }
-
-func (c *CollectionAlbumContainer) loadImage(pic datastore.Picture) {
-
-	file, err := c.ImageCache.Get(pic.Id, config.JPEG, "small")
-	if err != nil {
-		log.Println("Error loading image from cache:", err)
-		return
-	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Println("Error reading image file:", err)
-		return
-	}
-	if len(data) < 16 {
-		log.Println("[Sidebar] Image data too small or empty, not displaying.")
-		return
-	}
-
-	newImg := canvas.NewImageFromReader(bytes.NewReader(data), pic.Name)
-	newImg.FillMode = canvas.ImageFillContain
-	width := float32(500)
-	if pic.AspectRatio > 0 {
-		height := width / pic.AspectRatio
-		newImg.SetMinSize(fyne.NewSize(width, height))
-		newImg.Resize(fyne.NewSize(width, height))
-	} else {
-		newImg.SetMinSize(fyne.NewSize(width, 300))
-		newImg.Resize(fyne.NewSize(width, 300))
-	}
-
-	if c.imageStack != nil {
-		c.imageStack.Objects = []fyne.CanvasObject{newImg}
-		c.imageStack.Refresh()
-	}
-	c.imageStack.Refresh()
-}
-
 func (c *CollectionAlbumContainer) Layout() fyne.CanvasObject {
-
-	if pic, err := c.DataStore.Pictures.FindByID(c.selectedAlbum.ProfileId); err == nil {
-		c.loadImage(pic)
+	pic := datastore.Picture{}
+	if c.selectedAlbum.ProfileId != "" {
+		pic, _ = c.Pictures.FindByID(c.selectedAlbum.ProfileId)
 	}
-	c.titleEntry.SetText(c.selectedAlbum.Name)
-
-	var imageOptions []string
-	imageMap := make(map[string]datastore.Picture)
-	selectedImage := c.selectedAlbum.ProfileId
-	if pics, err := c.Pictures.FindByField("album", c.selectedAlbum.Id); err == nil {
-		imageOptions = make([]string, len(pics))
-		for i, pic := range pics {
-			imageOptions[i] = pic.Name
-			imageMap[pic.Name] = pic
-			if pic.Id == c.selectedAlbum.ProfileId {
-				selectedImage = pic.Name // Set the selected image name
+	if pic.Id == "" {
+		pic, _ = c.Pictures.FindLatestInAlbum(c.selectedAlbum.Id)
+	}
+	var content *fyne.Container
+	status := Hint("")
+	status.Hide()
+	save := widget.NewButtonWithIcon("Save album", theme.DocumentSaveIcon(), nil)
+	save.Importance = widget.HighImportance
+	save.Disable()
+	c.titleEntry.OnChanged = func(string) {
+		save.Enable()
+		status.SetText("Unsaved changes")
+		status.Show()
+		if content != nil {
+			content.Refresh()
+		}
+	}
+	save.OnTapped = func() {
+		name := strings.TrimSpace(c.titleEntry.Text)
+		if name == "" {
+			status.SetText("Give this album a title.")
+			status.Show()
+			if content != nil {
+				content.Refresh()
 			}
-		}
-	}
-
-	imageSelect := widget.NewSelect(imageOptions, func(selected string) {
-		selectedImage = imageMap[selected].Id
-		if pic, exists := imageMap[selected]; exists {
-			c.loadImage(pic)
-		}
-	})
-	imageSelect.Selected = selectedImage
-
-	// EXIF info section (populated in ShowImage)
-	form := widget.NewForm(
-		widget.NewFormItem("Title", c.titleEntry),
-		widget.NewFormItem("Feature Image", imageSelect),
-	)
-
-	form.OnSubmit = func() {
-		c.selectedAlbum.Name = c.titleEntry.Text
-		c.selectedAlbum.ProfileId = selectedImage
-		if err := c.DataStore.Albums.Update(c.selectedAlbum.Id, c.selectedAlbum); err != nil {
-			log.Println("Error updating album name:", err)
 			return
 		}
-		log.Printf("Updated album name to: %s", c.selectedAlbum.Name)
-		utils.Notify("Album Updated", "The album details have been saved successfully.")
+		// Read the latest album so editing its title cannot overwrite a cover that
+		// was changed from another photo inspector.
+		album, err := c.Albums.FindById(c.selectedAlbum.Id)
+		if err == nil {
+			album.Name = name
+			err = c.Albums.Update(album.Id, album)
+		}
+		if err != nil {
+			status.SetText("Could not save: " + err.Error())
+			status.Show()
+			if content != nil {
+				content.Refresh()
+			}
+			return
+		}
+		c.selectedAlbum = album
+		save.Disable()
+		status.SetText("Album saved")
+		status.Show()
+		if content != nil {
+			content.Refresh()
+		}
 		if c.OnUpdate != nil {
-			c.OnUpdate() // Call the update callback if set
+			c.OnUpdate()
 		}
 	}
-
-	scrollContent := container.NewVBox(
-		c.imageStack,
-		form,
-	)
-
-	c.container = container.NewVScroll(scrollContent)
-	return c.container
+	body := container.NewVBox(PhotoPreview(c.DataStore, pic, false), Field("Album title", c.titleEntry),
+		Hint("To change the cover, select a photo in this album and choose “Use as album cover”."),
+		widget.NewSeparator(), Field("Folder", Hint(c.selectedAlbum.Path)), Hint("Changing the title keeps your folder name unchanged."))
+	content = container.NewBorder(nil, container.NewVBox(status, save), nil, nil, container.NewVScroll(body))
+	if datastore.IsAlbumInBlacklist(c.selectedAlbum.Name) {
+		body.Add(Hint("This album is excluded from the website by your gallery settings."))
+	}
+	return content
 }

@@ -24,6 +24,7 @@ import (
 )
 
 const HomeTemplate = "index"
+const AboutTemplate = "about"
 const AlbumTemplate = "albums"
 const CollectionTemplate = "collections"
 const PhotoTemplate = "photo"

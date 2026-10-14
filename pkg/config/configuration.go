@@ -22,6 +22,7 @@ type UIConfiguration struct {
 	Notification  bool
 	Theme         string
 	ImagesPerPage int
+	AIEnabled     bool
 	GeminiApiKey  string
 }
 
@@ -58,6 +59,14 @@ type DeployConfig struct {
 	AuthToken string
 }
 
+// WebsiteURL keeps older configurations with only a Blog link usable.
+func (c AboutConfiguration) WebsiteURL() string {
+	if website := strings.TrimSpace(c.Website); website != "" {
+		return website
+	}
+	return strings.TrimSpace(c.Blog)
+}
+
 const DefaultTheme = "EmeraldNoir"
 
 var Config = &Configuration{}
@@ -67,6 +76,7 @@ func LoadConfig() (*Configuration, error) {
 	viper.SetEnvPrefix("GLLRY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+	viper.SetDefault("ui.aienabled", false)
 
 	if err := viper.ReadInConfig(); err != nil {
 		var notFound viper.ConfigFileNotFoundError
@@ -186,6 +196,7 @@ func DefaultConfig() error {
 		UI: UIConfiguration{
 			Theme:         "dark",
 			ImagesPerPage: 20,
+			AIEnabled:     false,
 		},
 		About: AboutConfiguration{},
 		Gallery: GalleryConfiguration{

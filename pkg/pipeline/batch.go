@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 	"sync"
@@ -17,38 +18,41 @@ type BatchProcessing[T any] struct {
 
 func (batch *BatchProcessing[T]) Run() error {
 	var wg sync.WaitGroup
-	var errorMu sync.Mutex
-	var firstError error
-	failures := 0
-	itemCh := make(chan T)
+	// Each worker owns its item's slot. Keep every failure in input order
+	// so a completed batch identifies all affected files consistently.
+	itemErrors := make([]error, len(batch.items))
+	itemCh := make(chan int)
 	batch.stat.Start()
 	// Start workers
 	for i := 0; i < batch.workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for item := range itemCh {
-				if err := batch.work(item); err != nil {
-					errorMu.Lock()
-					failures++
-					if firstError == nil {
-						firstError = err
-					}
-					errorMu.Unlock()
-				}
+			for index := range itemCh {
+				itemErrors[index] = batch.work(batch.items[index])
 				batch.stat.Update()
 			}
 		}()
 	}
 
 	// Feed items to workers
-	for _, item := range batch.items {
-		itemCh <- item
+	for index := range batch.items {
+		itemCh <- index
 	}
 	close(itemCh)
 	wg.Wait()
-	if failures > 0 {
-		err := fmt.Errorf("%d item(s) failed; first error: %w", failures, firstError)
+	failures := make([]error, 0)
+	for _, err := range itemErrors {
+		if err != nil {
+			failures = append(failures, err)
+		}
+	}
+	if len(failures) > 0 {
+		itemLabel := "items"
+		if len(failures) == 1 {
+			itemLabel = "item"
+		}
+		err := fmt.Errorf("%d %s failed:\n%w", len(failures), itemLabel, errors.Join(failures...))
 		batch.stat.Fail(err.Error())
 		return err
 	}

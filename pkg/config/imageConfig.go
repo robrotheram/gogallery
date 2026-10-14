@@ -10,7 +10,7 @@ var ImageSizes = map[string]ImgSize{
 	"small":  {MinWidth: 480, ImgWidth: 400},   // Small tablets / landscape phones
 	"medium": {MinWidth: 768, ImgWidth: 960},   // Tablets
 	"large":  {MinWidth: 1024, ImgWidth: 1280}, // Laptops / small desktops
-	"xlarge": {MinWidth: 1440, ImgWidth: 0},    // Large desktops (0 means use original size)
+	"xlarge": {MinWidth: 1440, ImgWidth: 0},    // Large desktops (original size, fitted within the encoder's limits)
 }
 
 type ImageType int

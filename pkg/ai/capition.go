@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"gogallery/pkg/datastore"
@@ -21,9 +20,9 @@ const maxAIImageBytes int64 = 20 << 20
 const basePrompt = `
 	You are an expert photography editor creating accurate, accessible metadata for a public photo gallery.
 	Study the image and return:
-	- A distinctive title of 3-8 words. Make it natural and memorable, without quotes, emoji, clickbait, or hashtags.
+	- A clear, descriptive title that names the main subject directly, usually 2-6 words. Prefer simple names such as "Palm House", "Glasshouse Interior", or "Sailing Boats on a Lake". Add a distinguishing detail only when useful. Avoid poetic phrases, vague mood labels, and promotional language such as "A Timeless Escape" or "Nature's Hidden Gem". Use a specific building or place name only when confidently supported by the image; otherwise use a descriptive subject name. Do not pad a short, accurate title to meet a word count. Do not use quotes, emoji, clickbait, or hashtags.
 	- A vivid description of 1-2 sentences (roughly 120-180 characters). Lead with the main subject and add useful context about the setting, light, colour, action, or mood. Write for people and search previews, not as a list of keywords.
-	- 6-10 concise, distinct tags that improve discovery. Mix concrete subjects with relevant setting, genre, colour, season, action, or mood. Use lowercase words or short phrases without # symbols.
+	- 5-10 concise, distinct tags describing visible subjects, setting, light, and photographic style. Return tags as a JSON array of strings, without hashtags or commas inside individual tags. Avoid speculative locations or identities.
 	Only state what the image supports. Do not invent an exact place, event, relationship, identity, or backstory. Do not identify a person unless their identity is unmistakable from widely known public context.
 `
 
@@ -42,18 +41,18 @@ func IsAIEnabled() bool {
 	return len(clients) > 0
 }
 
+// GenerateMetadata returns text suggestions for review. Saving is an explicit
+// editor action; the source image and existing photo metadata are never written.
 func GenerateMetadata(db *datastore.DataStore, id string) (*ImageMetadata, error) {
-	stat := db.NewTask("AI metadata for "+id, 1)
-	defer stat.Complete()
-	stat.Start()
-
 	clientsMu.RLock()
 	c, ok := clients["gemini"]
 	clientsMu.RUnlock()
 	if !ok {
-		stat.Fail("AI client not found")
-		return nil, errors.New("AI client not found")
+		return nil, errors.New("AI suggestions are unavailable. Enable AI and add a Gemini API key in Settings")
 	}
+	stat := db.NewTask("AI suggestions for "+id, 1)
+	defer stat.Complete()
+	stat.Start()
 
 	pic, err := db.Pictures.FindByID(id)
 	if err != nil {
@@ -81,12 +80,5 @@ func GenerateMetadata(db *datastore.DataStore, id string) (*ImageMetadata, error
 		return nil, fmt.Errorf("failed to generate metadata: %w", err)
 	}
 
-	pic.Name = metadata.Title
-	pic.Caption = metadata.Description
-	pic.Tags = strings.Join(metadata.Tags, ", ")
-	if err := db.Pictures.Update(pic.Id, pic); err != nil {
-		stat.Fail("Failed to update picture: " + err.Error())
-		return nil, fmt.Errorf("failed to update picture: %w", err)
-	}
 	return metadata, nil
 }

@@ -5,13 +5,13 @@
 
         <div class="text-center mb-12">
             <h1 class="text-2xl font-light text-white mb-6">Connect & Follow</h1>
-            <div class="w-fit grid grid-cols-2 lg:grid-cols-4 gap-8 mx-auto justify-items-center">
+            <div class="flex flex-wrap justify-center gap-8 mx-auto">
 
                 {{if .Author.Instagram}}
                 <a href="https://instagram.com/{{.Author.Instagram}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
                         items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
                         transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
-                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
                             duration-300 group-hover:scale-110">
                         {{template "instagram" }}
                     </div>
@@ -21,15 +21,15 @@
                 </a>
                 {{end}}
                 {{if .Author.Twitter}}
-                <a href="https://twitter.com/{{.Author.Twitter}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                <a href="https://x.com/{{.Author.Twitter}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
                         items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
                         transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
-                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
                             duration-300 group-hover:scale-110">
                         {{template "twitter" }}
                     </div>
                     <div class="text-center">
-                        <div class="text-white font-medium text-sm mt-4">Twitter</div>
+                        <div class="text-white font-medium text-sm mt-4">X</div>
                     </div>
                 </a>
                 {{end}}
@@ -37,7 +37,7 @@
                 <a href="https://github.com/{{.Author.Github}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
                         items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
                         transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
-                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
                             duration-300 group-hover:scale-110">
                         {{template "github" }}
                     </div>
@@ -47,11 +47,37 @@
                 </a>
                 {{end}}
 
-                {{if .Author.Website}}
-                <a href="{{.Author.Website}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                {{if .Author.Facebook}}
+                <a href="{{.Author.Facebook}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
                         items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
                         transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
-                    <div class="p-3 rounded-full bg-black/50 text-gray-400 ${social.color} transition-colors
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
+                            duration-300 group-hover:scale-110">
+                       {{template "facebook" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Facebook</div>
+                    </div>
+                </a>
+                {{end}}
+                {{if .Author.Email}}
+                <a href="mailto:{{.Author.Email}}" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
+                            duration-300 group-hover:scale-110">
+                       {{template "email" }}
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white font-medium text-sm mt-4">Email</div>
+                    </div>
+                </a>
+                {{end}}
+                {{if and .Author.WebsiteURL (ne .PagePath "/about/")}}
+                <a href="{{.Author.WebsiteURL}}" target="_blank" rel="noopener noreferrer" class="group flex flex-col
+                        items-center gap-3 p-4 rounded-xl bg-gray-900/50 border border-gray-700 hover:border-emerald-500/50
+                        transition-all duration-300 hover:bg-gray-800/50 w-[120px]">
+                    <div class="p-3 rounded-full bg-black/50 text-gray-400 transition-colors
                             duration-300 group-hover:scale-110">
                        {{template "website" }}
                     </div>
@@ -60,6 +86,7 @@
                     </div>
                 </a>
                 {{end}}
+
             </div>
         </div>
 
@@ -70,6 +97,7 @@
             <div class="w-16 h-px bg-emerald-500/50"></div>
         </div>
         <div class="text-center">
+            <a href="/about/" class="inline-block text-emerald-300 mb-4"{{if eq .PagePath "/about/"}} aria-current="page"{{end}}>About</a>
             <p class="text-gray-500 text-xs">© 2025 {{.Settings.Name}}. All rights reserved.</p>
         </div>
     </div>

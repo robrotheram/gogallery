@@ -19,7 +19,13 @@ type GeminiClient struct {
 	*genai.Client
 }
 
+const geminiMetadataModel = "gemini-3.8-flash"
+
 func RegisterGeminiClient() (*GeminiClient, error) {
+	ClearGeminiClient()
+	if !config.Config.UI.AIEnabled {
+		return nil, errors.New("AI suggestions are disabled")
+	}
 	apiKey := strings.TrimSpace(config.Config.UI.GeminiApiKey)
 	if apiKey == "" {
 		return nil, errors.New("AI API key is not configured")
@@ -55,15 +61,25 @@ func (g *GeminiClient) GenerateMetadata(image []byte) (*ImageMetadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	minTags, maxTags := int64(6), int64(10)
 	generateConfig := &genai.GenerateContentConfig{
+		HTTPOptions: &genai.HTTPOptions{
+			RetryOptions: &genai.HTTPRetryOptions{
+				// Six attempts means the initial request plus five retries.
+				Attempts:        genai.Ptr[int32](6),
+				InitialDelay:    genai.Ptr(1.0),
+				MaxDelay:        genai.Ptr(8.0),
+				ExpBase:         genai.Ptr(2.0),
+				Jitter:          genai.Ptr(0.0),
+				HTTPStatusCodes: []int32{http.StatusServiceUnavailable},
+			},
+		},
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{
 			Type: genai.TypeObject,
 			Properties: map[string]*genai.Schema{
 				"title": {
 					Type:        genai.TypeString,
-					Description: "A memorable, accurate photo title of 3-8 words.",
+					Description: "A clear, concise subject name, usually 2-6 words, such as Palm House or Glasshouse Interior. Prefer concrete descriptions over poetic titles; use specific place names only when supported by the image.",
 				},
 				"description": {
 					Type:        genai.TypeString,
@@ -71,10 +87,8 @@ func (g *GeminiClient) GenerateMetadata(image []byte) (*ImageMetadata, error) {
 				},
 				"tags": {
 					Type:        genai.TypeArray,
-					Description: "Distinct lowercase discovery tags without hash symbols.",
 					Items:       &genai.Schema{Type: genai.TypeString},
-					MinItems:    &minTags,
-					MaxItems:    &maxTags,
+					Description: "5-10 distinct, concise tags grounded in visible image content, without hashtags.",
 				},
 			},
 			PropertyOrdering: []string{"title", "description", "tags"},
@@ -96,7 +110,7 @@ func (g *GeminiClient) GenerateMetadata(image []byte) (*ImageMetadata, error) {
 
 	result, err := g.Client.Models.GenerateContent(
 		ctx,
-		"gemini-2.5-flash",
+		geminiMetadataModel,
 		contents,
 		generateConfig,
 	)
@@ -117,12 +131,21 @@ func (g *GeminiClient) GenerateMetadata(image []byte) (*ImageMetadata, error) {
 func normalizeMetadata(metadata *ImageMetadata) error {
 	metadata.Title = strings.TrimSpace(metadata.Title)
 	metadata.Description = strings.Join(strings.Fields(metadata.Description), " ")
-	metadata.Tags = normalizeTags(metadata.Tags)
-	if metadata.Title == "" || metadata.Description == "" {
-		return errors.New("AI returned incomplete metadata")
+	var tags []string
+	seen := make(map[string]bool)
+	for _, value := range metadata.Tags {
+		for _, tag := range strings.Split(value, ",") {
+			tag = strings.Join(strings.Fields(strings.TrimLeft(strings.TrimSpace(tag), "#")), " ")
+			key := strings.ToLower(tag)
+			if tag != "" && !seen[key] && len(tags) < 10 {
+				seen[key] = true
+				tags = append(tags, tag)
+			}
+		}
 	}
-	if len(metadata.Tags) == 0 {
-		return errors.New("AI returned no usable tags")
+	metadata.Tags = tags
+	if metadata.Title == "" || metadata.Description == "" || len(metadata.Tags) == 0 {
+		return errors.New("AI returned incomplete metadata")
 	}
 	return nil
 }
@@ -134,26 +157,4 @@ func supportedImageMIME(mimeType string) bool {
 	default:
 		return false
 	}
-}
-
-func normalizeTags(tags []string) []string {
-	normalized := make([]string, 0, len(tags))
-	seen := make(map[string]struct{}, len(tags))
-	for _, tag := range tags {
-		tag = strings.TrimSpace(tag)
-		tag = strings.ToLower(strings.TrimSpace(strings.TrimLeft(tag, "#")))
-		tag = strings.Join(strings.Fields(tag), " ")
-		if tag == "" {
-			continue
-		}
-		if _, exists := seen[tag]; exists {
-			continue
-		}
-		seen[tag] = struct{}{}
-		normalized = append(normalized, tag)
-		if len(normalized) == 10 {
-			break
-		}
-	}
-	return normalized
 }

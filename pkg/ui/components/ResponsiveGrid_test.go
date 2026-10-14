@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/test"
 )
 
 func TestResponsiveGridFillsAvailableWidthAcrossWindowSizes(t *testing.T) {
@@ -53,5 +54,36 @@ func TestResponsiveGridReflowsRowsAfterResize(t *testing.T) {
 	}
 	if objects[2].Position().Y <= objects[1].Position().Y {
 		t.Fatal("third item did not wrap onto the next row at narrow width")
+	}
+}
+
+func TestLeadingAlbumGridSharesScrollAndReflows(t *testing.T) {
+	app := test.NewApp()
+	defer app.Quit()
+	grid := NewResponsiveGrid(180, 1.5, 6, 0)
+	photos := []fyne.CanvasObject{sizedRectangle(180, 120)}
+	children := []fyne.CanvasObject{sizedRectangle(210, 180), sizedRectangle(210, 180), sizedRectangle(210, 180)}
+	grid.SetObjects(photos)
+	grid.SetLeadingGrid("Subalbums", "Photos", children, NewResponsiveGridLayoutWithFooter(210, 1.5, 12, 64))
+	window := test.NewWindow(grid)
+	defer window.Close()
+	window.SetPadded(false)
+	window.Resize(fyne.NewSize(1000, 500))
+	wideTop := grid.content.Position().Y
+	window.Resize(fyne.NewSize(400, 500))
+	if grid.content.Position().Y <= wideTop {
+		t.Fatal("photos did not move below the wrapped subalbum rows")
+	}
+	last := children[len(children)-1]
+	if grid.content.Position().Y <= last.Position().Y+last.Size().Height {
+		t.Fatal("photos overlap the subalbum grid")
+	}
+	grid.SetObjects(nil)
+	if grid.bodyTitle.Visible() {
+		t.Fatal("parent without direct photos should not show an empty Photos section")
+	}
+	grid.SetLeadingGrid("Subalbums", "Photos", nil, NewResponsiveGridLayout(210, 1.5, 12))
+	if grid.scroller.Content != grid.content {
+		t.Fatal("leaf albums should use the normal photo grid")
 	}
 }

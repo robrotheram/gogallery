@@ -1,66 +1,50 @@
 package pages
 
 import (
+	"fyne.io/fyne/v2"
 	"gogallery/pkg/datastore"
 	"gogallery/pkg/ui/components"
-
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
 )
 
-type Page interface {
-	Layout() fyne.CanvasObject // Layout returns the main content
-}
-
+type Page interface{ Layout() fyne.CanvasObject }
 type GalleryPage struct {
-	Title   string
-	db      *datastore.DataStore
-	sidebar *components.Sidebar
-	gallery *components.ImageGrid
-	content *fyne.Container
+	Title          string
+	db             *datastore.DataStore
+	sidebar        *components.Sidebar
+	gallery        *components.ImageGrid
+	content        *fyne.Container
+	loaded         bool
+	OnAlbumUpdated func()
+	OnPhotoUpdated func()
 }
 
 func NewGalleryPage(db *datastore.DataStore) *GalleryPage {
-	page := &GalleryPage{
-		Title: "Gallery",
-		db:    db,
-	}
-	page.sidebar = page.createSideBar()
-	// Pass the image selection callback to ImageGrid
-	page.gallery = components.NewImageGrid(db)
+	page := &GalleryPage{Title: "Photos", db: db, sidebar: components.NewSidebar("Photo details"), gallery: components.NewImageGrid(db)}
 	page.gallery.OnImageSelected = page.OnImageSelected
+	page.content = components.NewInspectorWorkspace(page.gallery.Layout(), page.sidebar)
 	return page
 }
-
-// OnImageSelected is called when an image is clicked in the gallery
-func (g *GalleryPage) OnImageSelected(img datastore.Picture) {
-	cnt := components.NewImageEditContainer(g.db, img)
-	g.sidebar.Content = cnt.Layout()
-	g.sidebar.Show()
-}
-
-func (g *GalleryPage) createSideBar() *components.Sidebar {
-	sidebar := components.NewSidebar("Image Details")
-	sidebar.OnToggle = g.refreshLayout
-
-	return sidebar
-}
-
-func (g *GalleryPage) refreshLayout() {
-	if g.content != nil {
-		// Recreate the layout with the current sidebar state
-		g.content.Objects = nil
-		g.content.Add(container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout()))
-		g.content.Refresh()
+func (g *GalleryPage) OnImageSelected(pic datastore.Picture) {
+	editor := components.NewImageEditContainer(g.db, pic)
+	editor.OnUpdate = func(updated datastore.Picture) {
+		g.gallery.UpdatePicture(updated)
+		if g.OnPhotoUpdated != nil {
+			g.OnPhotoUpdated()
+		}
 	}
+	editor.OnOpen = func() { g.gallery.OpenPhoto(pic) }
+	editor.OnCoverChanged = func() {
+		if g.OnAlbumUpdated != nil {
+			g.OnAlbumUpdated()
+		}
+	}
+	g.sidebar.SetContent("Photo details", editor.Layout())
 }
-
-func (g *GalleryPage) Refresh() {
-	g.gallery.Reload()
-}
-
+func (g *GalleryPage) Refresh() { g.loaded = true; g.gallery.Reload() }
 func (g *GalleryPage) Layout() fyne.CanvasObject {
-	g.Refresh()
-	g.content = container.NewBorder(nil, nil, nil, g.sidebar.Layout(), g.gallery.Layout())
+	g.gallery.Layout()
+	if !g.loaded {
+		g.Refresh()
+	}
 	return g.content
 }

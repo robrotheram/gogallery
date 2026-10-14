@@ -3,15 +3,11 @@ package components
 import (
 	"fmt"
 	"gogallery/pkg/ai"
-	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
-	"gogallery/pkg/ui/utils"
-	"image"
-	"log"
+	"path/filepath"
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -19,163 +15,159 @@ import (
 
 type ImageEditContainer struct {
 	*datastore.DataStore
-	selectedPic      datastore.Picture // Reference to the currently selected picture
-	titleEntry       *widget.Entry
-	descriptionEntry *widget.Entry
-	tagsEntry        *widget.Entry
-	imageStack       *fyne.Container   // Direct reference to the image stack
-	container        fyne.CanvasObject // Reference to the sidebar container for refresh
-	exifCard         *fyne.Container   // Reference to the EXIF card for updates
+	selectedPic                             datastore.Picture
+	titleEntry, descriptionEntry, tagsEntry *widget.Entry
+	OnUpdate                                func(datastore.Picture)
+	OnOpen                                  func()
+	OnCoverChanged                          func()
 }
 
-func NewImageEditContainer(db *datastore.DataStore, selectedPic datastore.Picture) *ImageEditContainer {
-	titleEntry := widget.NewEntry()
-	titleEntry.SetPlaceHolder("Enter image title")
-
-	descriptionEntry := widget.NewMultiLineEntry()
-	descriptionEntry.SetPlaceHolder("Describe the image")
-	descriptionEntry.Wrapping = fyne.TextWrapWord
-
-	tagsEntry := widget.NewEntry()
-	tagsEntry.SetPlaceHolder("landscape, golden hour, mountains")
-
-	// Use a placeholder image instead of nil to avoid layout issues on Windows
-	placeholder := canvas.NewRectangle(nil)
-	placeholder.SetMinSize(fyne.NewSize(360, 240))
-	imageStack := container.NewStack(placeholder)
-
-	return &ImageEditContainer{
-		DataStore:        db,
-		selectedPic:      selectedPic,
-		titleEntry:       titleEntry,
-		descriptionEntry: descriptionEntry,
-		tagsEntry:        tagsEntry,
-		imageStack:       imageStack,
-	}
+func NewImageEditContainer(db *datastore.DataStore, pic datastore.Picture) *ImageEditContainer {
+	title := widget.NewEntry()
+	title.SetText(pic.Name)
+	title.SetPlaceHolder("Photo title")
+	description := widget.NewMultiLineEntry()
+	description.SetText(pic.Caption)
+	description.Wrapping = fyne.TextWrapWord
+	description.SetMinRowsVisible(3)
+	tags := widget.NewEntry()
+	tags.SetText(pic.Tags)
+	tags.SetPlaceHolder("Landscape, travel, summer")
+	return &ImageEditContainer{DataStore: db, selectedPic: pic, titleEntry: title, descriptionEntry: description, tagsEntry: tags}
 }
-
-func (c *ImageEditContainer) loadImage() {
-	go func() {
-		file, err := c.ImageCache.Get(c.selectedPic.Id, config.JPEG, "small")
-		if err != nil {
-			log.Println("Error loading image from cache:", err)
-			return
-		}
-		decoded, _, err := image.Decode(file)
-		_ = file.Close()
-		if err != nil {
-			log.Println("Error decoding cached image:", err)
-			return
-		}
-
-		fyne.Do(func() {
-			newImg := canvas.NewImageFromImage(decoded)
-			newImg.FillMode = canvas.ImageFillContain
-			width := float32(360)
-			height := float32(240)
-			if c.selectedPic.AspectRatio > 0 {
-				height = width / c.selectedPic.AspectRatio
-			}
-			newImg.SetMinSize(fyne.NewSize(width, height))
-			newImg.Resize(fyne.NewSize(width, height))
-
-			if c.imageStack != nil {
-				c.imageStack.Objects = []fyne.CanvasObject{newImg}
-				c.imageStack.Refresh()
-			}
-		})
-	}()
-}
-
 func (c *ImageEditContainer) Layout() fyne.CanvasObject {
-	c.loadImage()
-
-	c.titleEntry.SetText(c.selectedPic.Name)
-	c.descriptionEntry.SetText(c.selectedPic.Caption)
-	c.tagsEntry.SetText(c.selectedPic.Tags)
-
-	// EXIF info section (populated in ShowImage)
-	form := widget.NewForm(
-		widget.NewFormItem("Title", c.titleEntry),
-		widget.NewFormItem("Description", c.descriptionEntry),
-		widget.NewFormItem("Tags", c.tagsEntry),
-	)
-
-	form.OnSubmit = func() {
-		log.Println("Saving metadata for picture:", c.selectedPic.Id)
-		c.selectedPic.Name = c.titleEntry.Text
-		c.selectedPic.Caption = c.descriptionEntry.Text
-		c.selectedPic.Tags = c.tagsEntry.Text
-		if err := c.DataStore.Pictures.Update(c.selectedPic.Id, c.selectedPic); err != nil {
-			log.Println("Error updating picture:", err)
-		} else {
-			log.Println("Picture updated successfully")
-			utils.Notify("Update Successful", "Picture details updated successfully")
+	var content *fyne.Container
+	status := Hint("")
+	status.Hide()
+	report := func(message string, failed bool) {
+		status.Importance = widget.LowImportance
+		if failed {
+			status.Importance = widget.DangerImportance
+		}
+		status.SetText(message)
+		status.Show()
+		if content != nil {
+			content.Refresh()
 		}
 	}
-	c.exifCard = container.NewVBox(
-		widget.NewLabel("Camera: "+c.selectedPic.Camera),
-		widget.NewLabel("Lens: "+c.selectedPic.LensModel),
-		widget.NewLabel("F-Stop: "+c.selectedPic.FStop),
-		widget.NewLabel("Shutter: "+c.selectedPic.ShutterSpeed),
-		widget.NewLabel("ISO: "+c.selectedPic.ISO),
-		widget.NewLabel("Focal Length: "+c.selectedPic.FocalLength),
-		widget.NewLabel("Date Taken: "+c.selectedPic.DateTaken.Format("2006-01-02 15:04:05")),
-		widget.NewLabel("Dimensions: "+c.selectedPic.Dimension),
-		widget.NewLabel("Aspect Ratio: "+fmt.Sprintf("%.2f", c.selectedPic.AspectRatio)),
-		widget.NewLabel("GPS: "+fmt.Sprintf("%.6f, %.6f", c.selectedPic.GPSLat, c.selectedPic.GPSLng)),
-	)
-
-	//AI button
-	var scrollContent *fyne.Container
-	if ai.IsAIEnabled() {
-		var aiButton *widget.Button
-		aiButton = widget.NewButtonWithIcon("Generate metadata", theme.ContentAddIcon(), func() {
-			go func() {
-				fyne.Do(func() {
-					aiButton.Disable()
-					aiButton.SetText("Generating...")
-				})
-				metadata, err := ai.GenerateMetadata(c.DataStore, c.selectedPic.Id)
+	visibility := widget.NewSelect([]string{"Private", "Public"}, nil)
+	visibility.Selected = "Private"
+	if strings.EqualFold(c.selectedPic.Visibility, "PUBLIC") {
+		visibility.Selected = "Public"
+	}
+	save := widget.NewButtonWithIcon("Save changes", theme.DocumentSaveIcon(), nil)
+	save.Importance = widget.HighImportance
+	save.Disable()
+	changed := func(string) { save.Enable(); report("Unsaved changes", false) }
+	c.titleEntry.OnChanged = changed
+	c.descriptionEntry.OnChanged = changed
+	c.tagsEntry.OnChanged = changed
+	visibility.OnChanged = changed
+	save.OnTapped = func() {
+		next := c.selectedPic
+		next.Name = strings.TrimSpace(c.titleEntry.Text)
+		next.Caption = c.descriptionEntry.Text
+		next.Tags = c.tagsEntry.Text
+		next.Visibility = strings.ToUpper(visibility.Selected)
+		save.Disable()
+		c.titleEntry.Disable()
+		c.descriptionEntry.Disable()
+		c.tagsEntry.Disable()
+		visibility.Disable()
+		go func() {
+			err := c.Pictures.Update(next.Id, next)
+			fyne.Do(func() {
+				c.titleEntry.Enable()
+				c.descriptionEntry.Enable()
+				c.tagsEntry.Enable()
+				visibility.Enable()
 				if err != nil {
-					fyne.Do(func() {
-						aiButton.Enable()
-						aiButton.SetText("Generate metadata")
-						utils.Notify("AI metadata failed", err.Error())
-					})
+					report("Could not save: "+err.Error(), true)
+					save.Enable()
 					return
 				}
+				c.selectedPic = next
+				report("Changes saved", false)
+				if c.OnUpdate != nil {
+					c.OnUpdate(next)
+				}
+			})
+		}()
+	}
+	open := widget.NewButtonWithIcon("View photo", theme.ViewFullScreenIcon(), func() {
+		if c.OnOpen != nil {
+			c.OnOpen()
+		} else {
+			ShowPhotoViewer(c.DataStore, []datastore.Picture{c.selectedPic}, c.selectedPic.Id)
+		}
+	})
+	body := container.NewVBox(PhotoPreview(c.DataStore, c.selectedPic, false), open,
+		Field("Title", c.titleEntry), Field("Description", c.descriptionEntry), Field("Tags", c.tagsEntry),
+		Field("Website visibility", visibility))
+	if c.selectedPic.Album != "" {
+		cover := widget.NewButtonWithIcon("Use as album cover", theme.MediaPhotoIcon(), nil)
+		cover.OnTapped = func() {
+			album, err := c.Albums.FindById(c.selectedPic.Album)
+			if err == nil {
+				album.ProfileId = c.selectedPic.Id
+				err = c.Albums.Update(album.Id, album)
+			}
+			if err != nil {
+				report("Could not set cover: "+err.Error(), true)
+				return
+			}
+			report("Album cover updated", false)
+			if c.OnCoverChanged != nil {
+				c.OnCoverChanged()
+			}
+		}
+		body.Add(cover)
+	}
+	if ai.IsAIEnabled() {
+		generate := widget.NewButtonWithIcon("Suggest title and description", AIIcon(), nil)
+		generate.OnTapped = func() {
+			generate.Disable()
+			generate.SetText("Generating…")
+			go func() {
+				metadata, err := ai.GenerateMetadata(c.DataStore, c.selectedPic.Id)
 				fyne.Do(func() {
-					c.selectedPic.Name = metadata.Title
-					c.selectedPic.Caption = metadata.Description
-					c.selectedPic.Tags = strings.Join(metadata.Tags, ", ")
+					generate.Enable()
+					generate.SetText("Suggest metadata")
+					if err != nil {
+						report(err.Error(), true)
+						return
+					}
 					c.titleEntry.SetText(metadata.Title)
 					c.descriptionEntry.SetText(metadata.Description)
-					c.tagsEntry.SetText(c.selectedPic.Tags)
-					aiButton.Enable()
-					aiButton.SetText("Generate metadata")
+					c.tagsEntry.SetText(strings.Join(metadata.Tags, ", "))
+					report("Suggestions ready. Review the title, description, and tags, then save.", false)
 				})
 			}()
-
-		})
-		scrollContent = container.NewVBox(
-			c.imageStack,
-			aiButton,
-			form,
-			widget.NewSeparator(),
-			NewTextEntry("EXIF Details", 20),
-			c.exifCard,
-		)
-	} else {
-		scrollContent = container.NewVBox(
-			c.imageStack,
-			form,
-			widget.NewSeparator(),
-			NewTextEntry("EXIF Details", 20),
-			c.exifCard,
-		)
+		}
+		body.Add(generate)
 	}
-
-	c.container = container.NewVScroll(scrollContent)
-	return c.container
+	details := container.NewVBox()
+	addDetail := func(name, value string) {
+		if value != "" {
+			details.Add(Hint(name + "  ·  " + value))
+		}
+	}
+	pic := c.selectedPic
+	addDetail("File", filepath.Base(pic.Path))
+	addDetail("Camera", pic.Camera)
+	addDetail("Lens", pic.LensModel)
+	addDetail("Aperture", pic.FStop)
+	addDetail("Shutter", pic.ShutterSpeedDisplay())
+	addDetail("ISO", pic.ISO)
+	addDetail("Focal length", pic.FocalLength)
+	addDetail("Dimensions", pic.Dimension)
+	if !pic.DateTaken.IsZero() {
+		addDetail("Taken", pic.DateTaken.Format("2 Jan 2006, 15:04"))
+	}
+	if pic.GPSLat != 0 || pic.GPSLng != 0 {
+		addDetail("Location", fmt.Sprintf("%.5f, %.5f", pic.GPSLat, pic.GPSLng))
+	}
+	body.Add(widget.NewAccordion(widget.NewAccordionItem("Photo information", details)))
+	content = container.NewBorder(nil, container.NewVBox(status, save), nil, nil, container.NewVScroll(body))
+	return content
 }

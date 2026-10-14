@@ -5,7 +5,21 @@ GoGallery is a static site generator designed for large photo collections. A gal
 
 Point GoGallery at your photos and it generates a static site with a customisable Go-template theme. It optimises images into multiple web-friendly sizes and generates a progressive web app that can be installed on desktop and mobile devices. The Fyne dashboard lets you edit titles, descriptions, tags, albums, and AI-generated photo metadata, as well as preview, build, and deploy the site.
 
+WebP exports automatically scale oversized photos to fit within 16,383 pixels per side, preserving their aspect ratio. This also applies to the largest export size. Source photos and optional original-file downloads keep their original resolution.
+
 The desktop dashboard lets you manage photo metadata, choose album covers, and control which albums and pictures are published. You can also preview the generated site with the `serve` command.
+
+### Desktop library
+
+- **Photos** shows your library with search and sorting. Hover over a photo to see its title. Select a photo to edit its details or website visibility. Double-click to open the photo viewer; use the arrow keys to browse and Escape to close it.
+- **Albums** follows your folder hierarchy, with cards showing a cover and album title. Open an album to browse its subalbums and photos; use Back or the breadcrumb trail to navigate to a parent. Covers can come from nested albums, and search finds albums at any depth. Use **Album details** to rename it, or select a photo and choose **Use as album cover**. Titles and covers are preserved when scanning again.
+- **Settings** groups library paths, author details, application preferences, and publishing credentials into tabs. Spacious form groups sit side by side on wide screens and stack in smaller windows, with aligned headings, folder choosers, and persistent save controls.
+- **Tasks** provides a compact, responsive button grid for scanning the library, building the website, starting previews, and publishing to Netlify. Activity contains task messages, status badges, and progress percentages. Failed image exports report each source file's path and the reason it failed. **Maintenance options** reveals the generated-website cleanup controls.
+
+The details panel becomes a full-width view in small windows. Closing it returns to the same photo grid.
+
+AI suggestions are optional and disabled by default, including when an API key is already saved. Enable them under **Settings → Application → AI** and add a Gemini API key. Only when you request suggestions is the selected photo sent to Google Gemini to suggest a title, description, and tags. Review the text in the photo editor and save to apply it. AI never changes image files, or their appearance. Preview sharing has its own settings section.
+
 
 
 ## Usage

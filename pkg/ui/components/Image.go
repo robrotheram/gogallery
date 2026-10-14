@@ -20,8 +20,11 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// The height reserves a 3:2 photo area plus the caption footer.
-var imageTileMinSize = fyne.NewSize(260, 218)
+// Titles overlay the photo, keeping every tile at a 3:2 aspect ratio.
+var imageTileMinSize = fyne.NewSize(180, 120)
+
+// Bound concurrent decodes during fast paging or album filtering.
+var thumbnailSlots = make(chan struct{}, 4)
 
 // Image is a reusable image tile with asynchronous thumbnail loading.
 type Image struct {
@@ -30,18 +33,21 @@ type Image struct {
 	dataStore *datastore.DataStore
 	pic       datastore.Picture
 
-	content       *fyne.Container
-	placeholderUI *fyne.Container
-	imageObj      *canvas.Image
-	hoverBorder   *canvas.Rectangle
-	activeBorder  *canvas.Rectangle
-	captionLabel  *widget.Label
-	showCaption   bool
-	isLoading     bool
-	isHovered     bool
-	isActive      bool
-	onLoad        func()
-	onClick       func(datastore.Picture)
+	content          *fyne.Container
+	placeholderUI    *fyne.Container
+	imageObj         *canvas.Image
+	hoverBorder      *canvas.Rectangle
+	activeBorder     *canvas.Rectangle
+	captionLabel     *widget.RichText
+	captionOverlay   *fyne.Container
+	placeholderLabel *widget.Label
+	hoverCaption     bool
+	isLoading        bool
+	isHovered        bool
+	isActive         bool
+	onLoad           func()
+	onClick          func(datastore.Picture)
+	onOpen           func(datastore.Picture)
 }
 
 func NewImage(dataStore *datastore.DataStore, pic datastore.Picture, onLoad func(), onClick func(datastore.Picture)) *Image {
@@ -59,6 +65,7 @@ func NewImageWithAspect(dataStore *datastore.DataStore, pic datastore.Picture, o
 	}
 	img.ExtendBaseWidget(img)
 	img.createBorders()
+	img.caption()
 	img.createPlaceholderUI()
 	img.updateCaption(pic)
 
@@ -71,21 +78,31 @@ func NewImageWithAspect(dataStore *datastore.DataStore, pic datastore.Picture, o
 
 // Tapped implements fyne.Tappable.
 func (img *Image) Tapped(_ *fyne.PointEvent) {
-	if img.onClick != nil && img.pic.Id != "" {
+	if img.onClick != nil {
 		img.onClick(img.pic)
 	}
 }
+
+// DoubleTapped opens a larger, uncropped photo view.
+func (img *Image) DoubleTapped(_ *fyne.PointEvent) {
+	if img.onOpen != nil && img.pic.Id != "" {
+		img.onOpen(img.pic)
+	}
+}
+func (img *Image) SetActive(active bool) { img.isActive = active; img.updateBorders() }
 
 // MouseIn implements desktop.Hoverable.
 func (img *Image) MouseIn(_ *desktop.MouseEvent) {
 	img.isHovered = true
 	img.updateBorders()
+	img.updateHoverCaption()
 }
 
 // MouseOut implements desktop.Hoverable.
 func (img *Image) MouseOut() {
 	img.isHovered = false
 	img.updateBorders()
+	img.updateHoverCaption()
 }
 
 // MouseMoved implements desktop.Hoverable.
@@ -136,6 +153,9 @@ func (r *imageRenderer) Layout(size fyne.Size) {
 	if r.image.content != nil {
 		r.image.content.Resize(size)
 	}
+	height := min(size.Height, r.image.captionOverlay.MinSize().Height)
+	r.image.captionOverlay.Move(fyne.NewPos(0, size.Height-height))
+	r.image.captionOverlay.Resize(fyne.NewSize(size.Width, height))
 	r.image.hoverBorder.Resize(size)
 	r.image.activeBorder.Resize(size)
 }
@@ -146,6 +166,7 @@ func (r *imageRenderer) MinSize() fyne.Size {
 
 func (r *imageRenderer) Refresh() {
 	if r.image.content != nil {
+		r.Layout(r.image.Size())
 		r.image.content.Refresh()
 	}
 }
@@ -155,7 +176,7 @@ func (r *imageRenderer) Objects() []fyne.CanvasObject {
 	if r.image.content != nil {
 		objects = append(objects, r.image.content)
 	}
-	return append(objects, r.image.hoverBorder, r.image.activeBorder)
+	return append(objects, r.image.captionOverlay, r.image.hoverBorder, r.image.activeBorder)
 }
 
 func (r *imageRenderer) Destroy() {}
@@ -164,6 +185,8 @@ func (r *imageRenderer) Destroy() {}
 // only the visible set of image widgets needs to exist at any time.
 func (img *Image) SetPicture(pic datastore.Picture) {
 	if img.pic.Id == pic.Id && (img.imageObj != nil || img.isLoading) {
+		img.pic = pic
+		img.updateCaption(pic)
 		return
 	}
 
@@ -177,15 +200,19 @@ func (img *Image) SetPicture(pic datastore.Picture) {
 	}
 }
 
-func (img *Image) SetShowCaption(show bool) {
-	if img.showCaption == show {
-		return
+// SetHoverCaption enables title overlays for photo grids. Album covers keep
+// their album label below the image instead of exposing the cover photo title.
+func (img *Image) SetHoverCaption(enabled bool) {
+	img.hoverCaption = enabled
+	img.updateHoverCaption()
+}
+func (img *Image) updateHoverCaption() {
+	if img.hoverCaption && img.isHovered && img.pic.Id != "" {
+		img.captionOverlay.Show()
+	} else {
+		img.captionOverlay.Hide()
 	}
-	img.showCaption = show
-	if img.imageObj != nil {
-		img.content = img.imageContent(img.imageObj)
-		img.Refresh()
-	}
+	img.Refresh()
 }
 
 // SetAspectRatio is retained for callers using the previous API. Cropping is
@@ -199,6 +226,10 @@ func (img *Image) createPlaceholderUI() {
 
 	icon := widget.NewIcon(theme.MediaPhotoIcon())
 	label := widget.NewLabel("Loading thumbnail…")
+	img.placeholderLabel = label
+	if img.pic.Id == "" {
+		label.SetText("No photos yet")
+	}
 	label.Alignment = fyne.TextAlignCenter
 	label.Importance = widget.LowImportance
 	placeholder := container.NewCenter(container.NewVBox(icon, label))
@@ -209,6 +240,11 @@ func (img *Image) createPlaceholderUI() {
 }
 
 func (img *Image) showPlaceholder() {
+	if img.pic.Id != "" {
+		img.placeholderLabel.SetText("Loading thumbnail…")
+	} else {
+		img.placeholderLabel.SetText("No photos yet")
+	}
 	img.content = img.placeholderUI
 	img.Refresh()
 }
@@ -221,7 +257,9 @@ func (img *Image) loadImageAsync() {
 
 	picture := img.pic
 	go func() {
+		thumbnailSlots <- struct{}{}
 		loadedImage, err := img.loadImage(picture)
+		<-thumbnailSlots
 
 		fyne.Do(func() {
 			img.isLoading = false
@@ -248,7 +286,7 @@ func (img *Image) loadImageAsync() {
 			canvasImg.FillMode = canvas.ImageFillCover
 			canvasImg.SetMinSize(fyne.NewSize(0, 0))
 			img.imageObj = canvasImg
-			img.content = img.imageContent(canvasImg)
+			img.content = container.NewStack(canvasImg)
 			img.updateBorders()
 			img.Refresh()
 
@@ -259,20 +297,15 @@ func (img *Image) loadImageAsync() {
 	}()
 }
 
-func (img *Image) imageContent(canvasImg *canvas.Image) *fyne.Container {
-	if !img.showCaption {
-		return container.NewStack(canvasImg)
-	}
-	captionBg := canvas.NewRectangle(theme.Color(theme.ColorNameInputBackground))
-	caption := container.NewStack(captionBg, container.NewPadded(img.caption()))
-	return container.NewBorder(nil, caption, nil, nil, canvasImg)
-}
-
-func (img *Image) caption() *widget.Label {
+func (img *Image) caption() *widget.RichText {
 	if img.captionLabel == nil {
-		img.captionLabel = widget.NewLabel("")
-		img.captionLabel.TextStyle = fyne.TextStyle{Bold: true}
+		img.captionLabel = widget.NewRichText(&widget.TextSegment{Style: widget.RichTextStyle{
+			ColorName: theme.ColorNameForegroundOnPrimary, TextStyle: fyne.TextStyle{Bold: true},
+		}})
 		img.captionLabel.Truncation = fyne.TextTruncateEllipsis
+		background := canvas.NewRectangle(color.NRGBA{A: 210})
+		img.captionOverlay = container.NewStack(background, container.NewPadded(img.captionLabel))
+		img.captionOverlay.Hide()
 	}
 	return img.captionLabel
 }
@@ -285,7 +318,10 @@ func (img *Image) updateCaption(pic datastore.Picture) {
 	if text == "." || text == "" {
 		text = "Untitled photo"
 	}
-	img.caption().SetText(text)
+	caption := img.caption()
+	caption.Segments[0].(*widget.TextSegment).Text = text
+	caption.Refresh()
+	img.updateHoverCaption()
 }
 
 func (img *Image) showLoadError() {

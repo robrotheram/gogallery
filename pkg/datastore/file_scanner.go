@@ -102,6 +102,19 @@ func (db *DataStore) ScanPath(path string) error {
 		log.Printf("Error walking path %s: %v", absRoot, err)
 		return err
 	}
+	existingAlbums, err := db.Albums.GetAll()
+	if err != nil {
+		return fmt.Errorf("load album titles: %w", err)
+	}
+	titles := make(map[string]string, len(existingAlbums))
+	for _, album := range existingAlbums {
+		titles[album.Id] = album.Name
+	}
+	for i := range pictures {
+		if title, exists := titles[pictures[i].Album]; exists {
+			pictures[i].AlbumName = title
+		}
+	}
 
 	existingIDs, err := db.Pictures.IDs()
 	if err != nil {
@@ -142,10 +155,10 @@ func (db *DataStore) ScanPath(path string) error {
 			return fmt.Errorf("save albums: %w", err)
 		}
 	}
-	if err := db.updateAlbumProfiles(albumUpdates); err != nil {
+	if err := db.PerformCleanup(); err != nil {
 		return err
 	}
-	if err := db.PerformCleanup(); err != nil {
+	if err := db.updateAlbumProfiles(albumUpdates); err != nil {
 		return err
 	}
 
@@ -225,7 +238,10 @@ func (db *DataStore) updateAlbumProfiles(albumUpdates []albumUpdate) error {
 	if len(albumUpdates) > 0 {
 		if err := db.Albums.DB.Transaction(func(tx *gorm.DB) error {
 			for _, au := range albumUpdates {
-				if err := tx.Model(&Album{}).Where("id = ?", au.AlbumId).Update("profile_id", au.ProfileId).Error; err != nil {
+				if err := tx.Model(&Album{}).Where("id = ?", au.AlbumId).
+					Where("profile_id = '' OR profile_id IS NULL OR profile_id NOT IN (?)",
+						tx.Model(&Picture{}).Select("id").Where("album = ?", au.AlbumId)).
+					Update("profile_id", au.ProfileId).Error; err != nil {
 					return fmt.Errorf("update album profile %s: %w", au.AlbumId, err)
 				}
 			}

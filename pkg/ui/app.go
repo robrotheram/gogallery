@@ -27,6 +27,7 @@ func App() error {
 	myApp.Settings().SetTheme(NewComfortableTheme(cfg.UI.Theme))
 	myWindow := myApp.NewWindow("GoGallery")
 	myWindow.SetMaster()
+	myWindow.SetPadded(false)
 	installCloseShortcut(myWindow, myApp.Driver().Quit)
 
 	monitor := uiMonitor.NewUIMonitor()
@@ -36,7 +37,7 @@ func App() error {
 		return err
 	}
 	defer db.Close()
-	if cfg.UI.GeminiApiKey != "" {
+	if cfg.UI.AIEnabled && cfg.UI.GeminiApiKey != "" {
 		if _, err := ai.RegisterGeminiClient(); err != nil {
 			fmt.Println("Could not configure Gemini:", err)
 		}
@@ -47,40 +48,34 @@ func App() error {
 	galleryPage := pages.NewGalleryPage(db)
 	settingsPage := pages.NewSettingsPage(db, server)
 	collectionPage := pages.NewCollectionPage(db)
+	galleryPage.OnAlbumUpdated = collectionPage.Refresh
+	galleryPage.OnPhotoUpdated = collectionPage.Refresh
+	collectionPage.OnPhotoUpdated = galleryPage.Refresh
 	tasksPage := pages.NewTasksPage(db, server)
 	tasksPage.OnRescanComplete = func() {
 		galleryPage.Refresh()
 		collectionPage.Refresh()
 	}
 
-	pages := map[string]pages.Page{
-		"Gallery":     galleryPage,
-		"Settings":    settingsPage,
-		"Tasks":       tasksPage,
-		"Collections": collectionPage,
+	routes := map[string]pages.Page{
+		"Photos": galleryPage, "Albums": collectionPage,
+		"Settings": settingsPage, "Tasks": tasksPage,
 	}
-
-	var navBar *fyne.Container
+	content := container.NewStack()
 	var header *components.Header
-
 	setPage := func(page string) {
-		currentPage, ok := pages[page]
+		current, ok := routes[page]
 		if !ok {
-			fmt.Println("Page not found:", page)
 			return
 		}
-		if header != nil {
-			header.SetActive(page)
-		}
-		content := container.NewBorder(
-			navBar, nil, nil, nil,
-			container.NewStack(currentPage.Layout()),
-		)
-		myWindow.SetContent(content)
+		tasksPage.SetActive(page == "Tasks")
+		header.SetActive(page)
+		content.Objects = []fyne.CanvasObject{current.Layout()}
+		content.Refresh()
 	}
 	header = components.NewHeader(config.Config.Gallery.Name, server, setPage)
-	navBar = header.Layout()
-	setPage("Gallery")
+	myWindow.SetContent(header.Shell(content))
+	setPage("Photos")
 
 	// Start the scan after pages are ready so completion can refresh the views.
 	go backgroundTask(db, cfg, func() {

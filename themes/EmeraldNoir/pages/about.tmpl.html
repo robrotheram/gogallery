@@ -1,0 +1,14 @@
+{{define "main"}}
+<section class="max-w-3xl mx-auto px-6 py-16">
+    <div class="mb-8 flex items-center gap-6 md:gap-10">
+        {{if .Author.ProfilePhoto}}
+        <img src="{{.Author.ProfilePhoto}}" alt="{{if .Author.Photographer}}{{.Author.Photographer}}{{else}}The photographer{{end}}" class="w-24 h-24 md:w-48 md:h-48 shrink-0 object-cover rounded-full">
+        {{end}}
+        <h2 class="min-w-0 text-3xl md:text-5xl font-light text-white break-words">{{if .Author.Photographer}}{{.Author.Photographer}}{{else}}About the photographer{{end}}</h2>
+    </div>
+
+    {{if .Author.Description}}
+    <pre class="text-lg text-emerald-100 leading-relaxed" style="font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere;"><span>{{.Author.Description}}</span></pre>
+    {{end}}
+</section>
+{{end}}

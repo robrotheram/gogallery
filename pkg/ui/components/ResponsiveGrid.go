@@ -90,9 +90,11 @@ func (l *ResponsiveGridLayout) gridMetrics(width float32) (int, fyne.Size) {
 type ResponsiveGrid struct {
 	widget.BaseWidget
 
-	layout   *ResponsiveGridLayout
-	content  *fyne.Container
-	scroller *container.Scroll
+	layout        *ResponsiveGridLayout
+	content       *fyne.Container
+	scroller      *container.Scroll
+	leadingLayout *ResponsiveGridLayout
+	bodyTitle     *widget.Label
 }
 
 func NewResponsiveGrid(minCellWidth int, aspectRatio float64, gap int, footerHeight float32) *ResponsiveGrid {
@@ -109,9 +111,41 @@ func NewResponsiveGrid(minCellWidth int, aspectRatio float64, gap int, footerHei
 
 func (g *ResponsiveGrid) SetObjects(objects []fyne.CanvasObject) {
 	g.content.Objects = objects
+	if g.bodyTitle != nil {
+		if len(objects) > 0 {
+			g.bodyTitle.Show()
+		} else {
+			g.bodyTitle.Hide()
+		}
+	}
 	g.content.Refresh()
 	g.scroller.Refresh()
 	g.Refresh()
+}
+
+// SetLeadingGrid places a second grid ahead of the body in the same scroll
+// surface. Both layouts receive the viewport width before height is measured.
+func (g *ResponsiveGrid) SetLeadingGrid(title, bodyTitle string, objects []fyne.CanvasObject, layout *ResponsiveGridLayout) {
+	g.leadingLayout = nil
+	g.bodyTitle = nil
+	if len(objects) == 0 {
+		g.scroller.Content = g.content
+	} else {
+		g.leadingLayout = layout
+		heading := widget.NewLabelWithStyle(title, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+		g.bodyTitle = widget.NewLabelWithStyle(bodyTitle, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+		if len(g.content.Objects) == 0 {
+			g.bodyTitle.Hide()
+		}
+		g.scroller.Content = container.NewVBox(heading, container.New(layout, objects...), g.bodyTitle, g.content)
+	}
+	g.Refresh()
+}
+func (g *ResponsiveGrid) setWidths(width float32) {
+	g.layout.setWidth(width)
+	if g.leadingLayout != nil {
+		g.leadingLayout.setWidth(width)
+	}
 }
 
 func (g *ResponsiveGrid) ScrollToTop() {
@@ -131,7 +165,7 @@ type responsiveGridRenderer struct {
 }
 
 func (r *responsiveGridRenderer) Layout(size fyne.Size) {
-	r.grid.layout.setWidth(size.Width)
+	r.grid.setWidths(size.Width)
 	r.grid.scroller.Resize(size)
 	r.grid.scroller.Refresh()
 }
@@ -142,7 +176,7 @@ func (r *responsiveGridRenderer) MinSize() fyne.Size {
 
 func (r *responsiveGridRenderer) Refresh() {
 	if width := r.grid.Size().Width; width > 0 {
-		r.grid.layout.setWidth(width)
+		r.grid.setWidths(width)
 	}
 	r.grid.scroller.Refresh()
 }

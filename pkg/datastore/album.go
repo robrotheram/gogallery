@@ -42,8 +42,10 @@ func (c *AlbumCollection) Save(album Album) error {
 
 func (c *AlbumCollection) BatchInsert(albums []Album) error {
 	err := c.DB.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}}, // primary key
-		UpdateAll: true,                          // update all fields on conflict
+		Columns: []clause.Column{{Name: "id"}},
+		// Scanning owns filesystem metadata; titles and covers belong to the
+		// user and must survive the next scan or application restart.
+		DoUpdates: clause.AssignmentColumns([]string{"mod_time", "parent", "parent_path", "path"}),
 	}).CreateInBatches(albums, 100).Error
 	return err
 }
@@ -52,7 +54,15 @@ func (c *AlbumCollection) BatchInsert(albums []Album) error {
 func (c *AlbumCollection) Update(id string, updates Album) error {
 	c.Lock()
 	defer c.Unlock()
-	return c.DB.Model(&Album{}).Where("id = ?", id).Updates(updates).Error
+	return c.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&Album{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+			return err
+		}
+		if updates.Name != "" {
+			return tx.Model(&Picture{}).Where("album = ?", id).Update("album_name", updates.Name).Error
+		}
+		return nil
+	})
 }
 
 // Get all albums

@@ -1,0 +1,11 @@
+{{define "main"}}
+<section class="container px-4 mx-auto py-8">
+<div class="py-8" style="display: flex; align-items: center; gap: 24px;">
+    {{if .Author.ProfilePhoto}}
+    <img src="{{.Author.ProfilePhoto}}" alt="{{if .Author.Photographer}}{{.Author.Photographer}}{{else}}The photographer{{end}}" style="width: clamp(96px, 20vw, 192px); aspect-ratio: 1; object-fit: cover; border-radius: 50%; flex-shrink: 0;">
+    {{end}}
+    <h2 style="min-width: 0; overflow-wrap: break-word;">{{if .Author.Photographer}}{{.Author.Photographer}}{{else}}About the photographer{{end}}</h2>
+</div>
+    {{if .Author.Description}}<pre style="font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere;"><span>{{.Author.Description}}</span></pre>{{end}}
+</section>
+{{end}}

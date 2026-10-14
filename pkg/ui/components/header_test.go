@@ -1,47 +1,37 @@
 package components
 
 import (
-	"image/color"
-	"testing"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"image/color"
+	"testing"
 )
 
-func TestResponsiveHeaderUsesFullNavigationWhenItFits(t *testing.T) {
-	brand := sizedRectangle(150, 40)
-	fullNavigation := sizedRectangle(600, 40)
-	compactNavigation := sizedRectangle(140, 40)
-	layout := &responsiveHeaderLayout{gap: 16}
-
-	layout.Layout([]fyne.CanvasObject{brand, fullNavigation, compactNavigation}, fyne.NewSize(900, 40))
-
-	if !fullNavigation.Visible() || compactNavigation.Visible() {
-		t.Fatal("wide header should show full navigation only")
-	}
-	if got := fullNavigation.Position().X + fullNavigation.Size().Width; got != 900 {
-		t.Fatalf("navigation right edge = %.2f, want 900", got)
-	}
-}
-
-func TestResponsiveHeaderUsesCompactNavigationBeforeOverlap(t *testing.T) {
-	brand := sizedRectangle(150, 40)
-	fullNavigation := sizedRectangle(600, 40)
-	compactNavigation := sizedRectangle(140, 40)
-	layout := &responsiveHeaderLayout{gap: 16}
-
-	layout.Layout([]fyne.CanvasObject{brand, fullNavigation, compactNavigation}, fyne.NewSize(500, 40))
-
-	if fullNavigation.Visible() || !compactNavigation.Visible() {
-		t.Fatal("narrow header should show compact navigation only")
-	}
-	if got := compactNavigation.Position().X + compactNavigation.Size().Width; got != 500 {
-		t.Fatalf("compact navigation right edge = %.2f, want 500", got)
-	}
-}
-
 func sizedRectangle(width, height float32) *canvas.Rectangle {
-	rectangle := canvas.NewRectangle(color.Transparent)
-	rectangle.SetMinSize(fyne.NewSize(width, height))
-	return rectangle
+	r := canvas.NewRectangle(color.Transparent)
+	r.SetMinSize(fyne.NewSize(width, height))
+	return r
+}
+func TestShellNavigationReflowsWithoutOverlap(t *testing.T) {
+	side, compact, content := sizedRectangle(188, 300), sizedRectangle(200, 50), sizedRectangle(360, 240)
+	objects := []fyne.CanvasObject{side, compact, content}
+	l := &shellLayout{}
+	for _, width := range []float32{1400, 900, 899, 520, 1200} {
+		l.Layout(objects, fyne.NewSize(width, 600))
+		if width >= 900 {
+			if !side.Visible() || compact.Visible() {
+				t.Fatal("desktop should use sidebar navigation")
+			}
+			if content.Position().X != 188 || content.Size().Width != width-188 {
+				t.Fatalf("content overlaps sidebar at %v", width)
+			}
+		} else {
+			if side.Visible() || !compact.Visible() {
+				t.Fatal("small windows should use toolbar navigation")
+			}
+			if content.Position().Y != 50 || content.Size().Width != width {
+				t.Fatalf("content overlaps toolbar at %v", width)
+			}
+		}
+	}
 }

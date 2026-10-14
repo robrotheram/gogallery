@@ -42,7 +42,7 @@ func cacheMiddleware(next http.Handler) http.Handler {
 func compressionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Accept-Encoding")
-		if strings.HasPrefix(r.URL.Path, "/img/") || r.Header.Get("Range") != "" ||
+		if strings.HasPrefix(r.URL.Path, "/img/") || strings.HasPrefix(r.URL.Path, "/about/profile") || r.Header.Get("Range") != "" ||
 			!strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
 			return
@@ -85,6 +85,9 @@ func (api *Server) Setup() {
 	api.HandleFunc("/img/{id}/{size}.{ext}", api.ImgHandler).Methods(http.MethodGet, http.MethodHead)
 	api.HandleFunc("/manifest.json", api.PreviewManifest).Methods("GET")
 	api.HandleFunc("/albums", api.PreviewAlbumsHandler).Methods("GET")
+	api.HandleFunc("/about", api.PreviewAboutHandler).Methods("GET")
+	api.HandleFunc("/about/", api.PreviewAboutHandler).Methods("GET")
+	api.HandleFunc("/about/{photo}", api.PreviewProfilePhoto).Methods("GET")
 	api.HandleFunc("/photo/{id}", api.PreviewPictureHandler).Methods("GET")
 	api.HandleFunc("/album/{id}", api.PreviewCollectionHandler).Methods("GET")
 
@@ -266,6 +269,26 @@ func (api *Server) PreviewManifest(w http.ResponseWriter, r *http.Request) {
 	if err := templateengine.ManifestWriter(w, &config.Config.Gallery); err != nil {
 		writePreviewError(w, err)
 	}
+}
+
+func (api *Server) PreviewAboutHandler(w http.ResponseWriter, r *http.Request) {
+	if !loadPreviewTemplates(w) {
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := pipeline.NewRenderPipeline(&config.Config.Gallery, api.DataStore).BuildAbout(w); err != nil {
+		writePreviewError(w, err)
+	}
+}
+
+func (api *Server) PreviewProfilePhoto(w http.ResponseWriter, r *http.Request) {
+	path := config.Config.About.ProfilePhoto
+	info, err := os.Stat(path)
+	if err != nil || !info.Mode().IsRegular() || mux.Vars(r)["photo"] != "profile"+filepath.Ext(path) {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeFile(w, r, path)
 }
 
 func loadPreviewTemplates(w http.ResponseWriter) bool {

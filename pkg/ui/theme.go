@@ -7,13 +7,19 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-// ComfortableTheme is a custom theme with increased spacing and padding for a less compact UI
+// ComfortableTheme keeps native controls compact and gives photos neutral chrome.
 type ComfortableTheme struct {
 	fyne.Theme
 	variant string // "light" or "dark"
 }
 
 var darkPalette = map[fyne.ThemeColorName]color.Color{
+	theme.ColorNameSuccess:             color.NRGBA{R: 104, G: 211, B: 155, A: 255},
+	theme.ColorNameError:               color.NRGBA{R: 255, G: 143, B: 143, A: 255},
+	theme.ColorNameForegroundOnSuccess: color.NRGBA{R: 17, G: 20, B: 22, A: 255},
+	theme.ColorNameForegroundOnError:   color.NRGBA{R: 17, G: 20, B: 22, A: 255},
+	theme.ColorNameDisabled:            color.NRGBA{R: 151, G: 164, B: 171, A: 255},
+	theme.ColorNamePlaceHolder:         color.NRGBA{R: 151, G: 164, B: 171, A: 255},
 	theme.ColorNameButton:              color.NRGBA{R: 35, G: 41, B: 45, A: 255},
 	theme.ColorNameDisabledButton:      color.NRGBA{R: 28, G: 33, B: 36, A: 255},
 	theme.ColorNamePrimary:             color.NRGBA{R: 45, G: 178, B: 111, A: 255},
@@ -33,6 +39,12 @@ var darkPalette = map[fyne.ThemeColorName]color.Color{
 }
 
 var lightPalette = map[fyne.ThemeColorName]color.Color{
+	theme.ColorNameSuccess:             color.NRGBA{R: 23, G: 107, B: 64, A: 255},
+	theme.ColorNameError:               color.NRGBA{R: 180, G: 35, B: 24, A: 255},
+	theme.ColorNameForegroundOnSuccess: color.White,
+	theme.ColorNameForegroundOnError:   color.White,
+	theme.ColorNameDisabled:            color.NRGBA{R: 100, G: 113, B: 120, A: 255},
+	theme.ColorNamePlaceHolder:         color.NRGBA{R: 100, G: 113, B: 120, A: 255},
 	theme.ColorNameButton:              color.NRGBA{R: 231, G: 237, B: 240, A: 255},
 	theme.ColorNameDisabledButton:      color.NRGBA{R: 240, G: 243, B: 244, A: 255},
 	theme.ColorNamePrimary:             color.NRGBA{R: 22, G: 142, B: 86, A: 255},
@@ -66,6 +78,11 @@ func (c *ComfortableTheme) Color(name fyne.ThemeColorName, v fyne.ThemeVariant) 
 	if col, ok := palette[name]; ok {
 		return col
 	}
+	if c.variant == "dark" {
+		v = theme.VariantDark
+	} else {
+		v = theme.VariantLight
+	}
 	return theme.DefaultTheme().Color(name, v)
 }
 
@@ -82,7 +99,7 @@ func (c *ComfortableTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 func (c *ComfortableTheme) Size(name fyne.ThemeSizeName) float32 {
 	switch name {
 	case theme.SizeNamePadding:
-		return 8
+		return 6
 	case theme.SizeNameInnerPadding:
 		return 8
 	case theme.SizeNameInputRadius:
@@ -92,7 +109,7 @@ func (c *ComfortableTheme) Size(name fyne.ThemeSizeName) float32 {
 	case theme.SizeNameSeparatorThickness:
 		return 1
 	case theme.SizeNameText:
-		return 15
+		return 14
 	case theme.SizeNameScrollBar:
 		return 8
 	case theme.SizeNameScrollBarSmall:

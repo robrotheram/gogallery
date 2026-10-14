@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/url"
@@ -8,7 +9,10 @@ import (
 	"gogallery/pkg/preview"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -20,7 +24,6 @@ type Header struct {
 	buttons     map[string]*widget.Button
 	compactNav  *widget.Select
 	activePage  string
-	layout      *fyne.Container
 }
 
 func NewHeader(title string, server *preview.Server, onNavChange func(page string)) *Header {
@@ -32,24 +35,12 @@ func NewHeader(title string, server *preview.Server, onNavChange func(page strin
 		onNavChange: onNavChange,
 		server:      server,
 		buttons:     make(map[string]*widget.Button),
-		activePage:  "Gallery",
+		activePage:  "Photos",
 	}
 }
 
-func (h *Header) nav() *fyne.Container {
-	gallery := h.navButton("Gallery", theme.GridIcon())
-	collection := h.navButton("Collections", theme.FolderIcon())
-	preview := widget.NewButtonWithIcon("Preview", theme.VisibilityIcon(), func() {
-		h.Preview()
-	})
-	preview.Importance = widget.MediumImportance
-	tasks := h.navButton("Tasks", theme.ContentPasteIcon())
-	settings := h.navButton("Settings", theme.SettingsIcon())
-	return container.NewHBox(gallery, collection, preview, tasks, settings)
-}
-
 func (h *Header) compactNavigation() *widget.Select {
-	pages := []string{"Gallery", "Collections", "Preview", "Tasks", "Settings"}
+	pages := []string{"Photos", "Albums", "Preview", "Tasks", "Settings"}
 	h.compactNav = widget.NewSelect(pages, func(selected string) {
 		if selected == "" || selected == h.activePage {
 			return
@@ -79,25 +70,52 @@ func (h *Header) navButton(page string, icon fyne.Resource) *widget.Button {
 	return button
 }
 
-func (h *Header) Layout() *fyne.Container {
-	if h.layout != nil {
-		return h.layout
+// Shell gives library navigation a stable home, switching to a compact
+// toolbar only when the window cannot comfortably fit a navigation column.
+func (h *Header) Shell(content fyne.CanvasObject) fyne.CanvasObject {
+	title := widget.NewLabelWithStyle(h.Title, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	title.Truncation = fyne.TextTruncateEllipsis
+	library := Hint("LIBRARY")
+	photos := h.navButton("Photos", theme.MediaPhotoIcon())
+	albums := h.navButton("Albums", theme.FolderIcon())
+	tasks := h.navButton("Tasks", theme.HistoryIcon())
+	settings := h.navButton("Settings", theme.SettingsIcon())
+	for _, button := range h.buttons {
+		button.Alignment = widget.ButtonAlignLeading
 	}
+	previewButton := widget.NewButtonWithIcon("Preview website", theme.VisibilityIcon(), h.Preview)
+	previewButton.Importance = widget.LowImportance
+	previewButton.Alignment = widget.ButtonAlignLeading
+	top := container.NewVBox(title, widget.NewSeparator(), library, photos, albums)
+	bottom := container.NewVBox(Hint("WORKSPACE"), tasks, settings, widget.NewSeparator(), previewButton)
+	sidebar := container.NewStack(canvas.NewRectangle(theme.Color(theme.ColorNameMenuBackground)),
+		container.NewPadded(container.NewBorder(top, bottom, nil, nil, layout.NewSpacer())))
+	compact := container.NewPadded(container.NewBorder(nil, nil, widget.NewLabelWithStyle("GoGallery", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), h.compactNavigation()))
+	return container.New(&shellLayout{}, sidebar, compact, content)
+}
 
-	clickableTitle := NewClickableTitle(h.Title, func() {
-		if h.onNavChange != nil {
-			h.onNavChange("Gallery")
-		}
-	})
-	fullNavigation := h.nav()
-	compactNavigation := h.compactNavigation()
-	headerBox := container.New(&responsiveHeaderLayout{gap: 16}, clickableTitle, fullNavigation, compactNavigation)
+type shellLayout struct{}
 
-	h.layout = container.NewVBox(
-		container.NewPadded(headerBox),
-		widget.NewSeparator(),
-	)
-	return h.layout
+func (*shellLayout) MinSize(_ []fyne.CanvasObject) fyne.Size { return fyne.NewSize(520, 400) }
+func (*shellLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+	sidebar, compact, content := objects[0], objects[1], objects[2]
+	if size.Width < 900 {
+		sidebar.Hide()
+		compact.Show()
+		height := compact.MinSize().Height
+		compact.Move(fyne.Position{})
+		compact.Resize(fyne.NewSize(size.Width, height))
+		content.Move(fyne.NewPos(0, height))
+		content.Resize(fyne.NewSize(size.Width, size.Height-height))
+	} else {
+		sidebar.Show()
+		compact.Hide()
+		const width float32 = 188
+		sidebar.Move(fyne.Position{})
+		sidebar.Resize(fyne.NewSize(width, size.Height))
+		content.Move(fyne.NewPos(width, 0))
+		content.Resize(fyne.NewSize(size.Width-width, size.Height))
+	}
 }
 
 func (h *Header) SetActive(page string) {
@@ -117,16 +135,19 @@ func (h *Header) SetActive(page string) {
 }
 
 func (h *Header) Preview() {
+	if h.server == nil {
+		return
+	}
 	status, _ := h.server.Status()
 	if !status {
 		if err := h.server.Start(); err != nil {
-			log.Printf("Could not start preview server: %v", err)
+			showPreviewError(fmt.Errorf("could not start preview: %w", err))
 			return
 		}
 	}
 	host, port, err := net.SplitHostPort(h.server.Addr())
 	if err != nil {
-		log.Printf("Could not parse preview address: %v", err)
+		showPreviewError(fmt.Errorf("could not read preview address: %w", err))
 		return
 	}
 	if host == "0.0.0.0" || host == "::" {
@@ -139,50 +160,14 @@ func (h *Header) Preview() {
 		return
 	}
 	if err := app.OpenURL(u); err != nil {
-		log.Printf("Could not open preview URL %s: %v", u, err)
+		showPreviewError(fmt.Errorf("could not open preview in your browser: %w", err))
 	}
 }
 
-// responsiveHeaderLayout keeps the full labelled navigation when it fits and
-// swaps to a compact page selector before controls can overlap or clip.
-type responsiveHeaderLayout struct {
-	gap float32
-}
-
-func (l *responsiveHeaderLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
-	if len(objects) < 3 {
-		return
+func showPreviewError(err error) {
+	log.Print(err)
+	app := fyne.CurrentApp()
+	if app != nil && len(app.Driver().AllWindows()) > 0 {
+		dialog.ShowError(err, app.Driver().AllWindows()[0])
 	}
-	brand, fullNavigation, compactNavigation := objects[0], objects[1], objects[2]
-	useFullNavigation := brand.MinSize().Width+fullNavigation.MinSize().Width+l.gap <= size.Width
-
-	navigation := compactNavigation
-	if useFullNavigation {
-		fullNavigation.Show()
-		compactNavigation.Hide()
-		navigation = fullNavigation
-	} else {
-		fullNavigation.Hide()
-		compactNavigation.Show()
-	}
-
-	brandSize := brand.MinSize()
-	navigationSize := navigation.MinSize()
-	brand.Resize(brandSize)
-	navigation.Resize(navigationSize)
-	brand.Move(fyne.NewPos(0, (size.Height-brandSize.Height)/2))
-	navigation.Move(fyne.NewPos(size.Width-navigationSize.Width, (size.Height-navigationSize.Height)/2))
-}
-
-func (l *responsiveHeaderLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
-	if len(objects) < 3 {
-		return fyne.Size{}
-	}
-	brandSize := objects[0].MinSize()
-	fullSize := objects[1].MinSize()
-	compactSize := objects[2].MinSize()
-	return fyne.NewSize(
-		brandSize.Width+compactSize.Width+l.gap,
-		max(brandSize.Height, max(fullSize.Height, compactSize.Height)),
-	)
 }

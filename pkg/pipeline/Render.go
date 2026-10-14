@@ -125,6 +125,9 @@ func (r *RenderPipeline) BuildSite() error {
 	if err := r.renderAlbums(); err != nil {
 		return err
 	}
+	if err := r.renderAbout(); err != nil {
+		return err
+	}
 
 	albums, err := r.Albums.GetAll()
 	if err != nil {

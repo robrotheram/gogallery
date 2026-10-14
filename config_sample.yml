@@ -1,3 +1,7 @@
+ui:
+  aienabled: false # Optional title, description, and tag suggestions; never changes images.
+  geminiapikey: "" # Used only after explicitly enabling AI in Settings.
+
 deploy:
   authtoken: your-netlify-auth-token
   siteid: your-netlify-site-id

@@ -118,7 +118,7 @@
                               {{end}}
                               {{if .Picture.ShutterSpeed}}
                               <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                                   <div class="text-xl font-bold text-emerald-100 mb-1">{{.Picture.ShutterSpeed}}
+                                   <div class="text-xl font-bold text-emerald-100 mb-1">{{.Picture.ShutterSpeedDisplay}}
                                    </div>
                                    <div class="text-sm text-emerald-300 uppercase tracking-wide">Shutter</div>
                               </div>
@@ -205,6 +205,10 @@
                                    <span class="text-emerald-100 font-medium">{{.Picture.Software}}</span>
                               </div>
                               {{end}}
+                              {{if or .Picture.Saturation .Picture.Contrast .Picture.Sharpness .Picture.Temperature .Picture.WhiteBalance}}
+                              <details class="space-y-3">
+                                   <summary class="text-emerald-300 cursor-pointer">Camera processing settings</summary>
+                                   <p class="text-emerald-100">Recorded at capture; these settings may differ from the edited photo.</p>
                               {{with .Picture.Saturation}}
                               <div class="flex justify-between">
                                    <span class="text-emerald-300">Saturation</span>
@@ -234,6 +238,8 @@
                                    <span class="text-emerald-300">White Balance Mode</span>
                                    <span class="text-emerald-100 font-medium">{{.}}</span>
                               </div>
+                              {{end}}
+                              </details>
                               {{end}}
                          </div>
                     </div>

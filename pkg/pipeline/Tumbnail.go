@@ -16,23 +16,22 @@ func (r *RenderPipeline) generateThumbnails() func(pic datastore.Picture) error 
 		}
 		src, err := pic.Load()
 		if err != nil {
-			fmt.Printf("Failed to load image %s: %v\n", pic.Id, err)
-			return fmt.Errorf("failed to load image %s: %w", pic.Id, err)
+			return fmt.Errorf("load thumbnail source %s: %w", pic.Path, err)
 		}
 		var encoded bytes.Buffer
 		if err := ProcessImage(src, config.ImageSizes[size].ImgWidth, config.JPEG, &encoded); err != nil {
-			return fmt.Errorf("encode thumbnail %s: %w", pic.Id, err)
+			return fmt.Errorf("encode thumbnail %s: %w", pic.Path, err)
 		}
 		cache, err := r.ImageCache.Writer(pic.Id, config.JPEG, size)
 		if err != nil {
-			return fmt.Errorf("create cache writer for %s: %w", pic.Id, err)
+			return fmt.Errorf("create cache writer for %s: %w", pic.Path, err)
 		}
 		if _, err := cache.Write(encoded.Bytes()); err != nil {
 			_ = cache.Abort()
-			return fmt.Errorf("write thumbnail %s: %w", pic.Id, err)
+			return fmt.Errorf("write thumbnail %s: %w", pic.Path, err)
 		}
 		if err := cache.Close(); err != nil {
-			return fmt.Errorf("failed to save thumbnail %s: %w", pic.Id, err)
+			return fmt.Errorf("save thumbnail %s: %w", pic.Path, err)
 		}
 		return nil
 	}

@@ -49,7 +49,7 @@ func TestPreviewPagesServeHTML(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := NewServer(store)
-	for _, path := range []string{"/", "/albums", "/photo/photo", "/album/album"} {
+	for _, path := range []string{"/", "/albums", "/about", "/about/", "/photo/photo", "/album/album"} {
 		for _, encoding := range []string{"identity", "gzip"} {
 			t.Run(path+"/"+encoding, func(t *testing.T) {
 				request := httptest.NewRequest(http.MethodGet, path, nil)
@@ -188,5 +188,32 @@ func TestPreviewServerUsesRequestTimeouts(t *testing.T) {
 	}
 	if server.server.IdleTimeout != 60*time.Second {
 		t.Fatalf("IdleTimeout = %v", server.server.IdleTimeout)
+	}
+}
+
+func TestPreviewProfilePhotoServesOnlyConfiguredFile(t *testing.T) {
+	previous := config.Config.About
+	t.Cleanup(func() { config.Config.About = previous })
+	path := filepath.Join(t.TempDir(), "portrait.png")
+	data := []byte("\x89PNG\r\n\x1a\nprofile image")
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	config.Config.About.ProfilePhoto = path
+	server := NewServer(nil)
+	for _, tc := range []struct {
+		path   string
+		status int
+	}{{"/about/profile.png", 200}, {"/about/other.png", 404}} {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, tc.path, nil)
+		request.Header.Set("Accept-Encoding", "gzip")
+		server.ServeHTTP(response, request)
+		if response.Code != tc.status {
+			t.Fatalf("%s: status %d", tc.path, response.Code)
+		}
+		if tc.status == 200 && (response.Body.String() != string(data) || response.Header().Get("Content-Type") != "image/png") {
+			t.Fatal("profile photo response is incorrect")
+		}
 	}
 }
