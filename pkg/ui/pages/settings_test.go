@@ -119,6 +119,10 @@ func TestAISettingsRequireSavingExplicitOptIn(t *testing.T) {
 	var visit func(fyne.CanvasObject)
 	visit = func(object fyne.CanvasObject) {
 		switch o := object.(type) {
+		case *widget.Label:
+			if o.Text == "Images Per Page" {
+				t.Error("Application settings must not expose a desktop images-per-page limit")
+			}
 		case *widget.Check:
 			if o.Text == "Enable AI suggestions" {
 				enabled = o

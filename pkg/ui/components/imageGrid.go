@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"math"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"gogallery/pkg/config"
 	"gogallery/pkg/datastore"
 )
 
@@ -39,11 +39,7 @@ type ImageGrid struct {
 }
 
 func NewImageGrid(db *datastore.DataStore) *ImageGrid {
-	count := config.Config.UI.ImagesPerPage
-	if count <= 0 {
-		count = 60
-	}
-	g := &ImageGrid{DataStore: db, itemsPerPage: count, albumName: allPhotosLabel,
+	g := &ImageGrid{DataStore: db, itemsPerPage: 1, albumName: allPhotosLabel,
 		title:       widget.NewLabelWithStyle(allPhotosLabel, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		statusLabel: Hint("Your photo library"), grid: NewResponsiveGrid(180, 1.5, 6, 0)}
 	g.title.SizeName = theme.SizeNameHeadingText
@@ -78,6 +74,7 @@ func NewImageGrid(db *datastore.DataStore) *ImageGrid {
 	toolbar := container.NewBorder(nil, nil, nil, g.sortOrder, g.search)
 	g.layout = container.NewBorder(container.NewPadded(container.NewVBox(heading, toolbar)),
 		container.NewPadded(g.paginationBar), nil, nil, g.contentStack)
+	g.grid.OnViewportChanged = g.resizePage
 	g.updateState()
 	return g
 }
@@ -171,16 +168,27 @@ func (g *ImageGrid) currentImages() []datastore.Picture {
 	return g.images[start:min(start+g.itemsPerPage, len(g.images))]
 }
 func (g *ImageGrid) Layout() fyne.CanvasObject {
-	count := config.Config.UI.ImagesPerPage
-	if count <= 0 {
-		count = 60
-	}
-	if count != g.itemsPerPage {
-		g.itemsPerPage = count
-		g.applyFilters()
-	}
 	return g.layout
 }
+
+// resizePage fills the viewport with complete columns, including the last visible row.
+func (g *ImageGrid) resizePage(size fyne.Size) {
+	if size.Width <= 0 || size.Height <= 0 {
+		return
+	}
+	columns, cell := g.grid.layout.gridMetrics(size.Width)
+	rows := max(1, int(math.Ceil(float64((size.Height-float32(g.grid.layout.gap))/(cell.Height+float32(g.grid.layout.gap))))))
+	count := columns * rows
+	if count == g.itemsPerPage {
+		return
+	}
+	first := g.currentPage * g.itemsPerPage
+	g.itemsPerPage = count
+	g.totalPages = (len(g.images) + count - 1) / count
+	g.currentPage = max(0, min(first/count, g.totalPages-1))
+	g.Refresh()
+}
+
 func (g *ImageGrid) Refresh() {
 	g.pageLabel.SetText(fmt.Sprintf("%d / %d", g.currentPage+1, max(1, g.totalPages)))
 	g.statusLabel.SetText(PhotoCount(len(g.images)))
@@ -260,9 +268,8 @@ func (g *ImageGrid) updateState() {
 		return
 	}
 	g.grid.Show()
-	if g.totalPages > 1 {
-		g.paginationBar.Show()
-	}
+	// Keep the pagination height stable while resize changes the page count.
+	g.paginationBar.Show()
 }
 
 func (g *ImageGrid) SetTitle(title string) { g.albumName = title; g.title.SetText(title) }

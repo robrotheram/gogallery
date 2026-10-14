@@ -21,7 +21,7 @@ type UIConfiguration struct {
 	Public        bool
 	Notification  bool
 	Theme         string
-	ImagesPerPage int
+	ImagesPerPage int // Legacy saved preference; desktop pagination now follows viewport size.
 	AIEnabled     bool
 	GeminiApiKey  string
 }

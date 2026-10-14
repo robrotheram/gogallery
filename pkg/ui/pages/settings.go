@@ -234,7 +234,7 @@ func galleryConfigForm() fyne.CanvasObject {
 			{Text: "Theme", Widget: theme, HintText: "Built-in theme name or path to a custom website theme"},
 			{Text: "Photo folder", Widget: folderField(basePath), HintText: "Albums are the folders inside this directory. Scan it from Tasks after changing it."},
 			{Text: "Website output", Widget: folderField(destpath), HintText: "Generated website files. Choose a folder separate from your photos."},
-			{Text: "Images Per Page", Widget: imagesPerPage, HintText: "Number of images to display per page"},
+			{Text: "Images Per Page", Widget: imagesPerPage, HintText: "Images per page on the generated website, where supported by the theme. The desktop gallery adapts to the window size."},
 		},
 		OnCancel: func() {
 			name.SetText(cfg.Name)
@@ -399,10 +399,6 @@ func uiConfigForm(server *preview.Server) fyne.CanvasObject {
 	apiKeyEntry.Disable()
 	aiEnabled.SetChecked(cfg.AIEnabled)
 
-	// Setting the number of images per page
-	imagesPerPage := widget.NewEntry()
-	imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
-
 	form := &widget.Form{
 		SubmitText: "Save",
 		CancelText: "Reset",
@@ -410,7 +406,6 @@ func uiConfigForm(server *preview.Server) fyne.CanvasObject {
 			{Text: "Theme", Widget: themeSelect, HintText: "Theme changes apply after restarting the application"},
 			{Text: "Notifications", Widget: notifications, HintText: "Enable or disable notifications"},
 			{Widget: previewPublic, HintText: "Share your website preview on your local network. When off, only this computer can access it."},
-			{Text: "Images Per Page", Widget: imagesPerPage, HintText: "Number of images to display per page"},
 			{Widget: aiEnabled, HintText: "Optional and off by default. AI suggests titles, descriptions, and tags. It never edits your images or changes their appearance.\n\nWhen you request suggestions, the selected photo is sent to Google Gemini. Review the suggested text before saving."},
 			{Text: "Gemini API Key", Widget: apiKeyEntry, HintText: "Used only when AI suggestions are enabled."},
 		},
@@ -418,17 +413,11 @@ func uiConfigForm(server *preview.Server) fyne.CanvasObject {
 			themeSelect.SetSelected(cfg.Theme)
 			notifications.SetChecked(cfg.Notification)
 			previewPublic.SetChecked(cfg.Public)
-			imagesPerPage.SetText(fmt.Sprintf("%d", cfg.ImagesPerPage))
 			apiKeyEntry.SetText(cfg.GeminiApiKey)
 			aiEnabled.SetChecked(cfg.AIEnabled)
 			status.Hide()
 		},
 		OnSubmit: func() {
-			n, err := strconv.Atoi(strings.TrimSpace(imagesPerPage.Text))
-			if err != nil || n <= 0 {
-				showSettingsSaveResult(status, "Application", fmt.Errorf("images per page must be a positive number"))
-				return
-			}
 			if themeSelect.Selected == "" {
 				showSettingsSaveResult(status, "Application", fmt.Errorf("select a light or dark theme"))
 				return
@@ -442,13 +431,12 @@ func uiConfigForm(server *preview.Server) fyne.CanvasObject {
 			next.Theme = themeSelect.Selected
 			next.Notification = notifications.Checked
 			next.Public = previewPublic.Checked
-			next.ImagesPerPage = n
 			next.AIEnabled = aiEnabled.Checked
 			next.GeminiApiKey = strings.TrimSpace(apiKeyEntry.Text)
 			previewAccessChanged := next.Public != cfg.Public
 			candidate := *config.Config
 			candidate.UI = next
-			err = candidate.Save()
+			err := candidate.Save()
 			if err == nil {
 				cfg = next
 				if previewAccessChanged && server != nil {
@@ -470,7 +458,7 @@ func uiConfigForm(server *preview.Server) fyne.CanvasObject {
 		},
 	}
 	return settingsPanel("Application", "Appearance, browsing, notifications, and optional AI suggestions.", status, form,
-		settingsGroup{"Appearance & browsing", []*widget.FormItem{form.Items[0], form.Items[1], form.Items[3]}},
+		settingsGroup{"Appearance", form.Items[:2]},
 		settingsGroup{"Preview", []*widget.FormItem{form.Items[2]}},
-		settingsGroup{"AI", form.Items[4:]})
+		settingsGroup{"AI", form.Items[3:]})
 }

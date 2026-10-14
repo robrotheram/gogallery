@@ -90,11 +90,12 @@ func (l *ResponsiveGridLayout) gridMetrics(width float32) (int, fyne.Size) {
 type ResponsiveGrid struct {
 	widget.BaseWidget
 
-	layout        *ResponsiveGridLayout
-	content       *fyne.Container
-	scroller      *container.Scroll
-	leadingLayout *ResponsiveGridLayout
-	bodyTitle     *widget.Label
+	layout            *ResponsiveGridLayout
+	content           *fyne.Container
+	scroller          *container.Scroll
+	leadingLayout     *ResponsiveGridLayout
+	bodyTitle         *widget.Label
+	OnViewportChanged func(fyne.Size)
 }
 
 func NewResponsiveGrid(minCellWidth int, aspectRatio float64, gap int, footerHeight float32) *ResponsiveGrid {
@@ -166,6 +167,9 @@ type responsiveGridRenderer struct {
 
 func (r *responsiveGridRenderer) Layout(size fyne.Size) {
 	r.grid.setWidths(size.Width)
+	if r.grid.OnViewportChanged != nil {
+		r.grid.OnViewportChanged(size)
+	}
 	r.grid.scroller.Resize(size)
 	r.grid.scroller.Refresh()
 }
